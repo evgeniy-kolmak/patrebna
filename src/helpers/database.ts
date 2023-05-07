@@ -1,6 +1,14 @@
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
-import { Database, getDatabase, get, child, ref, set } from 'firebase/database';
+import {
+  Database,
+  getDatabase,
+  get,
+  child,
+  ref,
+  set,
+  remove,
+} from 'firebase/database';
 import { conf } from '../config';
 
 class DatabaseServise {
@@ -48,6 +56,12 @@ class DatabaseServise {
         .catch((error) => reject(error));
     });
   }
+
+  removeOldAd(id: string): Promise<any> {
+    return new Promise((resolve) => {
+      resolve(remove(child(ref(this.db, 'ads'), id)));
+    });
+  }
 }
 
 const db = new DatabaseServise();
@@ -62,4 +76,5 @@ export interface IAd {
   id: string;
   price: string;
   url: string;
+  createAd: string;
 }
