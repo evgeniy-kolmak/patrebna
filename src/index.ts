@@ -20,21 +20,30 @@ void (async () => {
   }
 
   const { document } = new JSDOM(html).window;
-  const items = document.querySelectorAll('section');
+  const items = document.querySelectorAll(
+    '[data-name=listings] > div > div > section',
+  );
 
   const newAds: ICollection<IAd> = {};
 
   items.forEach((node) => {
-    const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
-    const url = new URL(urlItem);
-    const itemId = url.pathname.split('/')[2];
-    newAds[itemId] = {
-      id: itemId,
-      title: node.querySelector('a > div > h3')?.textContent?.trim() ?? '',
-      price: node.querySelector('a > div ~ div > div')?.textContent ?? '',
-      url: urlItem,
-      createAd: new Date().toLocaleDateString('ru-RU'),
-    };
+    const isNotCompanyAd = node.querySelector(
+      'a div ~ div h3 ~ div > div > div',
+    )?.textContent;
+
+    if (!isNotCompanyAd) {
+      const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
+      const url = new URL(urlItem);
+      const itemId = url.pathname.split('/')[2];
+      newAds[itemId] = {
+        id: itemId,
+        title: node.querySelector('a > div > h3')?.textContent?.trim() ?? '',
+        price: node.querySelector('a > div ~ div > div')?.textContent ?? '',
+        url: urlItem,
+        createAd: new Date().toLocaleDateString('ru-RU'),
+      };
+      console.log(itemId);
+    }
   });
 
   const saveAds = await db.getSavedAds();
