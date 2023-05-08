@@ -13,4 +13,5 @@ export const conf = {
     appId: process.env.APP_ID,
     measurementId: process.env.MEASUREMENT_ID,
   },
+  tokenBot: process.env.TG_TOKEN
 };

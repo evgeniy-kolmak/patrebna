@@ -8,12 +8,14 @@ import {
   ref,
   set,
   remove,
+  onChildAdded,
 } from 'firebase/database';
 import { conf } from '../config';
 
 class DatabaseServise {
   app: FirebaseApp;
   db: Database;
+  initSkip = true;
   constructor() {
     try {
       this.app = initializeApp({
@@ -31,6 +33,35 @@ class DatabaseServise {
     } catch (e) {
       console.log('Application works without database!');
     }
+  }
+
+  getUsers(): Promise<ICollection<IUser>> {
+    return new Promise((resolve) => {
+      get(child(ref(this.db), 'users'))
+        .then((snapshot) => resolve(snapshot.val()))
+        .catch((error) => console.log(error));
+    });
+  }
+
+  setUserListener(user: IUser): Promise<void> {
+    return new Promise((resolve) => {
+      set(ref(this.db, 'users' + '/' + user.id), user)
+        .then(() => resolve())
+        .catch((error) => console.log(error));
+    });
+  }
+
+  updateAds(cb: (data: IAd) => void) {
+    onChildAdded(ref(this.db, 'ads'), (snapshot) => {
+      const data: IAd = snapshot.val();
+      setTimeout(() => {
+        this.initSkip = false;
+      });
+      if (this.initSkip) {
+        return;
+      }
+      cb(data);
+    });
   }
 
   getSavedAds(): Promise<ICollection<IAd>> {
@@ -66,6 +97,13 @@ class DatabaseServise {
 
 const db = new DatabaseServise();
 export default db;
+
+export interface IUser {
+  id: number;
+  is_bot: boolean;
+  username: string;
+  first_name: string;
+}
 
 export interface ICollection<T> {
   [key: string]: T;

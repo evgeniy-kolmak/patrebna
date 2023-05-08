@@ -1,13 +1,48 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
+import { conf } from './config';
 import axios from 'axios';
 import jsdom from 'jsdom';
 const { JSDOM } = jsdom;
+
+import TelegramBot from 'node-telegram-bot-api';
+const TOKEN = conf.tokenBot ?? '';
+const bot = new TelegramBot(TOKEN, {
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10,
+    },
+  },
+});
 import { compareCollections, pause, getOldIdAds } from './helpers/utils';
-import db, { ICollection, IAd } from './helpers/database';
+import db, { ICollection, IAd, IUser } from './helpers/database';
 
 void (async () => {
-  await pause(500);
+  await pause(1000);
+
+  let users = await db.getUsers();
+  let usersIds = users ? Object.keys(users) : [];
+
+  bot.on('message', async (msg) => {
+    users = await db.getUsers();
+    usersIds = users ? Object.keys(users) : [];
+    const { id } = msg.chat;
+    const { from } = msg;
+    await db.setUserListener(from as IUser);
+    bot.sendMessage(id, 'Вы были добавлены в рассылку');
+  });
+  console.log(usersIds);
+
+  function notifyUser(data: IAd): void {
+    const text = `Появился новый товар вот ссылка ${data.url}`;
+    for (const id of usersIds) {
+      bot.sendMessage(id, text);
+    }
+  }
+
+  db.updateAds(notifyUser);
 
   const url = 'https://www.kufar.by/l/r~baran/mobilnye-telefony';
   let html = '';
@@ -42,7 +77,6 @@ void (async () => {
         url: urlItem,
         createAd: new Date().toLocaleDateString('ru-RU'),
       };
-      console.log(itemId);
     }
   });
 
@@ -52,7 +86,7 @@ void (async () => {
 
   for (const id of newIds) {
     await db.setNewAd(newAds[id]);
-    await pause(500);
+    await pause(2500);
   }
 
   if (collectionOldId.length) {
