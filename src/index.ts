@@ -101,6 +101,7 @@ void (async () => {
       if (!isNotCompanyAd) {
         const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
         const url = new URL(urlItem);
+        const { origin, pathname } = url;
         const itemId = url.pathname.split('/')[2];
 
         newAds[itemId] = {
@@ -111,7 +112,7 @@ void (async () => {
           id: itemId,
           title: node.querySelector('a > div > h3')?.textContent?.trim() ?? '',
           price: node.querySelector('a > div ~ div > div')?.textContent ?? '',
-          url: urlItem,
+          url: `${origin}${pathname}`,
           createAd: new Date().toLocaleDateString('ru-RU'),
         };
       }
@@ -127,7 +128,7 @@ void (async () => {
       await pause(2500);
       if (statusCollectionAds) {
         bot.sendPhoto(id, `${data.img_url}`, {
-          caption: `Появился новый товар <b>${data.title}</b>, c ценой <b>${data.price}</b>\nвот ссылка:${data.url}`,
+          caption: `Появился новый товар <b>${data.title}</b>, c ценой <b>${data.price}</b>\nвот ссылка: ${data.url}`,
           parse_mode: 'HTML',
         });
       }
