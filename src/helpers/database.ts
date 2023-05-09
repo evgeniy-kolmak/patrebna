@@ -8,14 +8,12 @@ import {
   ref,
   set,
   remove,
-  onChildAdded,
 } from 'firebase/database';
 import { conf } from '../config';
 
 class DatabaseServise {
   app: FirebaseApp;
   db: Database;
-  initSkip = true;
   constructor() {
     try {
       this.app = initializeApp({
@@ -43,35 +41,40 @@ class DatabaseServise {
     });
   }
 
-  setUserListener(user: IUser): Promise<void> {
+  setUserListener(user: IUser): Promise<any> {
     return new Promise((resolve) => {
-      set(ref(this.db, 'users' + '/' + user.id), user)
-        .then(() => resolve())
+      set(ref(this.db, `users/${user.id}/profile`), user)
+        .then(() => resolve(''))
         .catch((error) => console.log(error));
     });
   }
 
-  updateAds(cb: (data: IAd) => void) {
-    onChildAdded(ref(this.db, 'ads'), (snapshot) => {
-      const data: IAd = snapshot.val();
-      setTimeout(() => {
-        this.initSkip = false;
-      });
-      if (this.initSkip) {
-        return;
-      }
-      cb(data);
+  setUrlUser(url: string, user: IUser): Promise<any> {
+    return new Promise((resolve) => {
+      set(ref(this.db, `users/${user.id}/url/`), url)
+        .then(() => resolve(''))
+        .catch((error) => console.log(error));
     });
   }
 
-  getSavedAds(): Promise<ICollection<IAd>> {
+  getUserUrl(id: string): Promise<string> {
     return new Promise((resolve) => {
-      get(child(ref(this.db), 'ads'))
+      get(child(ref(this.db), `users/${id}/url`))
+        .then((snapshot) => resolve(snapshot.val()))
+        .catch((error) => console.log(error));
+    });
+  }
+
+  getSavedAds(id: string): Promise<ICollection<IAd>> {
+    return new Promise((resolve) => {
+      get(child(ref(this.db), `users/${id}/ads`))
         .then((snapshot) => {
           if (snapshot.exists()) {
             resolve(snapshot.val() || {});
           } else {
-            console.log('Not data available!');
+            set(ref(this.db, `users/${id}/ads`), {})
+              .then(() => resolve({}))
+              .catch((error) => console.log(error));
           }
         })
         .catch((error) => {
@@ -80,19 +83,27 @@ class DatabaseServise {
     });
   }
 
-  setNewAd(ad: IAd): Promise<any> {
-    return new Promise((resolve, reject) => {
-      set(ref(this.db, 'ads' + '/' + ad.id), ad)
+  setNewAd(ad: IAd, id: string): Promise<any> {
+    return new Promise((resolve) => {
+      set(ref(this.db, `users/${id}/ads/${ad.id}`), ad)
         .then(() => resolve(''))
-        .catch((error) => reject(error));
+        .catch((error) => console.log(error));
     });
   }
 
-  removeOldAd(id: string): Promise<any> {
+  isAdsEmpty(id: string): Promise<ICollection<IAd>> {
     return new Promise((resolve) => {
-      resolve(remove(child(ref(this.db, 'ads'), id)));
+      get(child(ref(this.db), `users/${id}/ads`))
+        .then((snapshot) => resolve(snapshot.val()))
+        .catch((error) => console.log(error));
     });
   }
+
+  // removeOldAd(id: string): Promise<any>  {
+  //   return new Promise((resolve) => {
+  //     resolve(remove(child(ref(this.db, 'ads'), id)));
+  //   });
+  // }
 }
 
 const db = new DatabaseServise();
@@ -103,6 +114,7 @@ export interface IUser {
   is_bot: boolean;
   username: string;
   first_name: string;
+  ads: ICollection<IAd>;
 }
 
 export interface ICollection<T> {
@@ -110,6 +122,7 @@ export interface ICollection<T> {
 }
 
 export interface IAd {
+  img_url: string;
   title: string;
   id: string;
   price: string;
