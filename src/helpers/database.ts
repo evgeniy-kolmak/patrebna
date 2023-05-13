@@ -51,7 +51,7 @@ class DatabaseServise {
 
   setUrlUser(url: string, user: IUser): Promise<any> {
     return new Promise((resolve) => {
-      set(ref(this.db, `users/${user.id}/url/`), url)
+      set(ref(this.db, `users/${user.id}/parserData/url`), url)
         .then(() => resolve(''))
         .catch((error) => console.log(error));
     });
@@ -59,10 +59,32 @@ class DatabaseServise {
 
   getUserUrl(id: string): Promise<string> {
     return new Promise((resolve) => {
-      get(child(ref(this.db), `users/${id}/url`))
+      get(child(ref(this.db), `users/${id}/parserData/url`))
         .then((snapshot) => resolve(snapshot.val()))
         .catch((error) => console.log(error));
     });
+  }
+
+  async setUserTypeParser(typeParse: string, user: IUser): Promise<any> {
+    try {
+      await set(
+        ref(this.db, `users/${user.id}/parserData/typeParser`),
+        typeParse,
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async getUserTypeParser(id: string): Promise<any> {
+    try {
+      const snapshot = await get(
+        child(ref(this.db), `users/${id}/parserData/typeParser`),
+      );
+      return snapshot.val();
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   getSavedAds(id: string): Promise<ICollection<IAd>> {
@@ -97,6 +119,10 @@ class DatabaseServise {
         .then((snapshot) => resolve(snapshot.val()))
         .catch((error) => console.log(error));
     });
+  }
+
+  async removeAds(id: string): Promise<void> {
+    await remove(ref(this.db, `users/${id}/ads`));
   }
 
   // removeOldAd(id: string): Promise<any>  {
