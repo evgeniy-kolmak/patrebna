@@ -6,10 +6,11 @@ import { parserAuto } from './categories/auto';
 import { parserOthers } from './categories/others';
 
 export function parserAds(typeAds: TypeAds, html: string): ICollection<IAd> {
-  const { document } = new JSDOM(html).window;
-
+  const { document } = new JSDOM(html, {
+    includeNodeLocations: true,
+  }).window;
   const parentPathRe = 'section';
-  const parentPathAuto = '';
+  const parentPathAuto = '[data-cy=auto-listing-block] > div > div > section';
   const parentPathOthers = '[data-name=listings] > div > div > section';
 
   switch (typeAds) {
