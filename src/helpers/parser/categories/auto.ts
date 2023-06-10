@@ -2,37 +2,41 @@ import { ICollection, IAd } from '../../database';
 
 export function parserAuto(items: NodeListOf<HTMLElement>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
+
   items.forEach((node) => {
     const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
     const url = new URL(urlItem);
     const { origin, pathname } = url;
+    const urlAd = `${origin}${pathname}`;
+    const itemIdAd = url.pathname.split('/')[2];
+    const titleAd =
+      node.querySelector('h3[class^="styles_title__"]')?.textContent ?? '';
+    const descriptionAd = `${
+      node.querySelector('p[class^="styles_params__"]')?.textContent
+    }, ${node.querySelector('div[class^="styles_year__"]')?.textContent} год, ${
+      node.querySelector('div[class^="styles_mileage__"]')?.textContent
+    }`;
+    const imgUrlAd =
+      node
+        .querySelector('img[class^="styles_image__"]')
+        ?.getAttribute('data-src') ?? 'dist/images/no-photo.webp';
+    const priceAd = Array.from(
+      node.querySelectorAll('div[class^=styles_price__] > span'),
+    )
+      .map((e) => e.textContent?.replace(/[*]/g, ''))
+      .join(' / ');
 
-    const itemId = url.pathname.split('/')[2];
-    const contentParent = node.querySelector('a')?.children[1];
-    const imageParent = node.querySelector('a')?.children[0];
-    const titleAd = contentParent?.children[0].children[0];
-    const priceAd = contentParent?.children[0].children[1];
+    const isNotCompanyAd = !node.querySelector('div[class^="styles_badge__"]')
+      ?.textContent;
 
-    const isNotCompanyAd = contentParent?.children[1].children[0]?.textContent;
-
-    if (!isNotCompanyAd) {
-      newAds[itemId] = {
-        img_url:
-          `${imageParent?.children[0].children[0].children[0]?.getAttribute(
-            'data-src',
-          )}` ?? 'dist/images/no-photo.png',
-        id: itemId,
-        title:
-          `${titleAd?.children[0].textContent} | ${titleAd?.children[2].textContent}` ??
-          '',
-        price:
-          `${
-            priceAd?.children[2].children[0].textContent
-          } / ${priceAd?.children[2].children[1].textContent?.replace(
-            /[*]/g,
-            '',
-          )}` ?? '',
-        url: `${origin}${pathname}`,
+    if (isNotCompanyAd) {
+      newAds[itemIdAd] = {
+        img_url: imgUrlAd,
+        id: itemIdAd,
+        title: titleAd,
+        description: descriptionAd,
+        price: priceAd,
+        url: urlAd,
         createAd: new Date().toLocaleDateString('ru-RU'),
       };
     }
