@@ -2,25 +2,34 @@ import { ICollection, IAd } from '../../database';
 
 export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
-  items.forEach((node) => {
-    const isNotCompanyAd = node.querySelector(
-      'a div ~ div h3 ~ div > div > div',
-    )?.textContent;
-    if (!isNotCompanyAd) {
-      const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
-      const url = new URL(urlItem);
-      const { origin, pathname } = url;
-      const itemId = url.pathname.split('/')[2];
 
-      newAds[itemId] = {
-        img_url:
-          node
-            .querySelector(`a > div > div > div > div > div > img`)
-            ?.getAttribute('data-src') ?? 'dist/images/no-photo.webp',
-        id: itemId,
-        title: node.querySelector('a > div > h3')?.textContent?.trim() ?? '',
-        price: node.querySelector('a > div ~ div > div')?.textContent ?? '',
-        url: `${origin}${pathname}`,
+  items.forEach((node) => {
+    const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
+    const url = new URL(urlItem);
+    const { origin, pathname } = url;
+    const urlAd = `${origin}${pathname}`;
+    const itemIdAd = url.pathname.split('/')[2];
+    const titleAd =
+      node.querySelector('h3[class^="styles_title__"]')?.textContent?.trim() ??
+      '';
+    const imgUrlAd =
+      node
+        .querySelector('img[class^="styles_image__"]')
+        ?.getAttribute('data-src') ?? 'dist/images/no-photo.webp';
+    const priceAd =
+      node.querySelector('div[class^=styles_price__] > span')?.textContent ??
+      '';
+
+    const isNotCompanyAd = !node.querySelector('div[class^="styles_badge__"]')
+      ?.textContent;
+
+    if (isNotCompanyAd) {
+      newAds[itemIdAd] = {
+        img_url: imgUrlAd,
+        id: itemIdAd,
+        title: titleAd,
+        price: priceAd,
+        url: urlAd,
         createAd: new Date().toLocaleDateString('ru-RU'),
       };
     }
