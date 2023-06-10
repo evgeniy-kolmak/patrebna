@@ -10,7 +10,7 @@ export function parserAds(typeAds: TypeAds, html: string): ICollection<IAd> {
     includeNodeLocations: true,
   }).window;
   const nodeList = document.querySelectorAll(
-    'div[class^="styles_cards__"] > section',
+    'div[class^="styles_wrapper__"] > div > section',
   );
 
   switch (typeAds) {
