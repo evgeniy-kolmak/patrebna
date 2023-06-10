@@ -1,6 +1,6 @@
 import { ICollection, IAd } from '../../database';
 
-export function parserOthers(items: NodeListOf<HTMLElement>): ICollection<IAd> {
+export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
   items.forEach((node) => {
     const isNotCompanyAd = node.querySelector(
@@ -16,7 +16,7 @@ export function parserOthers(items: NodeListOf<HTMLElement>): ICollection<IAd> {
         img_url:
           node
             .querySelector(`a > div > div > div > div > div > img`)
-            ?.getAttribute('data-src') ?? 'dist/images/no-photo.png',
+            ?.getAttribute('data-src') ?? 'dist/images/no-photo.webp',
         id: itemId,
         title: node.querySelector('a > div > h3')?.textContent?.trim() ?? '',
         price: node.querySelector('a > div ~ div > div')?.textContent ?? '',

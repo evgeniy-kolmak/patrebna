@@ -1,7 +1,7 @@
 import { ICollection, IAd } from '../../database';
 
 export function parserRealOfEstate(
-  items: NodeListOf<HTMLElement>,
+  items: NodeListOf<Element>,
 ): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
 

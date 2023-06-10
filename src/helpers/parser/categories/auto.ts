@@ -1,6 +1,6 @@
 import { ICollection, IAd } from '../../database';
 
-export function parserAuto(items: NodeListOf<HTMLElement>): ICollection<IAd> {
+export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
 
   items.forEach((node) => {

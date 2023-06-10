@@ -9,17 +9,17 @@ export function parserAds(typeAds: TypeAds, html: string): ICollection<IAd> {
   const { document } = new JSDOM(html, {
     includeNodeLocations: true,
   }).window;
-  const parentPathRe = 'section';
-  const parentPathAuto = '[data-cy=auto-listing-block] > div > div > section';
-  const parentPathOthers = '[data-name=listings] > div > div > section';
+  const nodeList = document.querySelectorAll(
+    'div[class^="styles_cards__"] > section',
+  );
 
   switch (typeAds) {
     case 're':
-      return parserRealOfEstate(document.querySelectorAll(parentPathRe));
+      return parserRealOfEstate(nodeList);
     case 'auto':
-      return parserAuto(document.querySelectorAll(parentPathAuto));
+      return parserAuto(nodeList);
     case 'others':
-      return parserOthers(document.querySelectorAll(parentPathOthers));
+      return parserOthers(nodeList);
   }
 }
 
