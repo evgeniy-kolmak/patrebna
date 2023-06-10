@@ -11,3 +11,4 @@ export const bot = new TelegramBot(TOKEN, {
     },
   },
 });
+process.env['NTBA_FIX_350'] = '1';
