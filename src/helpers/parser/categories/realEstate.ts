@@ -9,24 +9,31 @@ export function parserRealOfEstate(
     const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
     const url = new URL(urlItem);
     const { origin, pathname } = url;
+    const urlAd = `${origin}${pathname}`;
     const itemPath = url.pathname.split('/');
-    const itemId = itemPath[itemPath.length - 1];
-    const contentParent = node.querySelector('a')?.children[1];
-    const imageParent = node.querySelector('a')?.children[0];
-    const pathToImg =
-      imageParent?.children[0].children[0].children[0].getAttribute(
-        'data-src',
-      ) ??
-      imageParent?.children[0].children[0].children[0].children[0].children[0].children[0].children[0].getAttribute(
-        'data-src',
-      );
-    newAds[itemId] = {
-      img_url: pathToImg ?? 'dist/images/no-photo.png',
-      id: itemId,
-      title: contentParent?.children[3].textContent ?? '',
-      price:
-        contentParent?.children[0].children[0].children[0].textContent ?? '',
-      url: `${origin}${pathname}`,
+    const itemIdAd = itemPath[itemPath.length - 1];
+    const titleAd =
+      node.querySelector('div[class^="styles_parameters"]')?.textContent ?? '';
+    const descriptionAd =
+      node.querySelector('p[class^="styles_body__"]')?.textContent ?? '';
+    const priceAd = Array.from(
+      node.querySelectorAll('span[class^=styles_price__]'),
+    )
+      .map((e) => e.textContent?.replace(/[*]/g, ''))
+      .join(' / ');
+    const imgUrlAd =
+      node
+        .querySelector('div[class^=styles_segment__]')
+        ?.getAttribute('data-testid')
+        ?.slice(8) ?? 'dist/images/no-photo.webp';
+
+    newAds[itemIdAd] = {
+      img_url: imgUrlAd,
+      id: itemIdAd,
+      title: titleAd,
+      price: priceAd,
+      url: urlAd,
+      description: descriptionAd,
       createAd: new Date().toLocaleDateString('ru-RU'),
     };
   });
