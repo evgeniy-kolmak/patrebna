@@ -25,16 +25,15 @@ export async function commandChangeurl(
       });
 
       bot.on('callback_query', async (query) => {
-        const msgKeyboard = ctx.message_id + 1;
         switch (query.data) {
           case 'change': {
-            bot.deleteMessage(id, msgKeyboard);
             const promptLink = await bot.sendMessage(
               id,
-              '⚙️ Укажите ссылку с параметрами для отслеживания типа - https://kufar.by/l/город/товар/',
+              '⚙️ Укажите ссылку с параметрами для отслеживания',
               {
                 reply_markup: {
                   force_reply: true,
+                  input_field_placeholder: 'https://kufar.by/l/город/товар/',
                 },
               },
             );
@@ -57,13 +56,18 @@ export async function commandChangeurl(
                 } catch (error) {
                   errorMsg(id, '/changeurl');
                 }
+              } else {
+                errorMsg(id, '/changeurl');
               }
             });
             break;
           }
           case 'back': {
-            bot.deleteMessage(id, msgKeyboard);
-            bot.sendMessage(id, 'text');
+            bot.sendMessage(
+              id,
+              '📑 Выберите команду для дальнейшего взаимодействия с ботом. Для  этого нажмите на кнопку <b>Меню</b>.\nЕсли регистрация прошла успешно, просто ожидайте обновлений.',
+              { parse_mode: 'HTML' },
+            );
           }
         }
       });
