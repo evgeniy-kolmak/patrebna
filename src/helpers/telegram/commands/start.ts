@@ -3,6 +3,7 @@ import axios from 'axios';
 import db from '../../database';
 import { typeUrlParser } from '../../typeUrlParser';
 import { ICollection, IUser } from '../../database';
+import { errorMsg } from '../../errorMessage';
 
 export async function commandStart(
   users: ICollection<IUser>,
@@ -21,19 +22,22 @@ export async function commandStart(
         {
           reply_markup: {
             inline_keyboard: [
-              [{ text: ' 🔗 Добавить ссылку', callback_data: 'reply' }],
+              [{ text: ' 🔗 Добавить ссылку', callback_data: 'add' }],
             ],
           },
         },
       );
 
       bot.on('callback_query', async (query) => {
+        const msgKeyboard = ctx.message_id + 1;
+        bot.deleteMessage(id, msgKeyboard);
         const promptLink = await bot.sendMessage(
           id,
-          '⚙️ Укажите ссылку с параметрами для отслеживания типа - https://kufar.by/l/город/товар/',
+          '⚙️ Укажите ссылку с параметрами для отслеживания типа',
           {
             reply_markup: {
               force_reply: true,
+              input_field_placeholder: 'https://kufar.by/l/город/товар/',
             },
           },
         );
@@ -52,15 +56,17 @@ export async function commandStart(
                 );
               }
             } catch (error) {
-              console.log(error);
+              errorMsg(id, '/changeurl');
             }
+          } else {
+            errorMsg(id, '/changeurl');
           }
         });
       });
     } else {
       bot.sendMessage(
         id,
-        '😊 Вы уже зарегестрирвоаны! Что бы изменить ссылку используйте команду <code>/changeurl</code>',
+        '😊 Вы уже зарегестрирвоаны! Что бы изменить ссылку используйте команду <a>/changeurl</a>',
         { parse_mode: 'HTML' },
       );
     }
