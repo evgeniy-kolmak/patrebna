@@ -1,17 +1,45 @@
-export const conf = {
+import config from 'config';
+
+export const conf: Iconf = {
   authFirebase: {
-    email: process.env.EMAIL,
-    password: process.env.PASSWORD,
+    email: config.get('authFirebase.email'),
+    password: config.get('authFirebase.password'),
   },
   firebase: {
-    apiKey: process.env.API_KEY,
-    authDomain: process.env.AUTH_DOMAIN,
-    databaseURL: process.env.DATABASE_URL,
-    projectId: process.env.PROJECT_ID,
-    storageBucket: process.env.STORAGE_BUCKET,
-    messagingSenderId: process.env.MESSAGING_SENDER_ID,
-    appId: process.env.APP_ID,
-    measurementId: process.env.MEASUREMENT_ID,
+    apiKey: config.get('firebase.apiKey'),
+    authDomain: config.get('firebase.authDomain'),
+    databaseURL: config.get('firebase.databaseURL'),
+    projectId: config.get('firebase.projectId'),
+    storageBucket: config.get('firebase.storageBucket'),
+    messagingSenderId: config.get('firebase.messagingSenderId'),
+    appId: config.get('firebase.appId'),
+    measurementId: config.get('firebase.measurementId'),
   },
-  tokenBot: process.env.TG_TOKEN
+  tokenBot: config.get('tokenBot'),
+  webhook: {
+    url: config.get('webhook.url'),
+    port: config.get('webhook.port'),
+  },
 };
+
+export interface Iconf {
+  authFirebase: {
+    email: string;
+    password: string;
+  };
+  firebase: {
+    apiKey: string;
+    authDomain: string;
+    databaseURL: string;
+    projectId: string;
+    storageBucket: string;
+    messagingSenderId: number;
+    appId: string;
+    measurementId: string;
+  };
+  tokenBot: string;
+  webhook: {
+    url: string;
+    port: number;
+  };
+}
