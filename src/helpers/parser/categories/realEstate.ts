@@ -25,7 +25,7 @@ export function parserRealOfEstate(
       node
         .querySelector('div[class^=styles_segment__]')
         ?.getAttribute('data-testid')
-        ?.slice(8) ?? 'dist/images/no-photo.webp';
+        ?.slice(8) ?? 'assets/no-photo.webp';
 
     newAds[itemIdAd] = {
       img_url: imgUrlAd,

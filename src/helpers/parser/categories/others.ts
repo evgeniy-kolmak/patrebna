@@ -15,7 +15,7 @@ export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
     const imgUrlAd =
       node
         .querySelector('img[class^="styles_image__"]')
-        ?.getAttribute('data-src') ?? 'dist/images/no-photo.webp';
+        ?.getAttribute('data-src') ?? 'assets/no-photo.webp';
     const priceAd =
       node.querySelector('div[class^=styles_price__] > span')?.textContent ??
       '';

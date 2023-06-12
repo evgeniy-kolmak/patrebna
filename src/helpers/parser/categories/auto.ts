@@ -19,7 +19,7 @@ export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
     const imgUrlAd =
       node
         .querySelector('img[class^="styles_image__"]')
-        ?.getAttribute('data-src') ?? 'dist/images/no-photo.webp';
+        ?.getAttribute('data-src') ?? 'assets/no-photo.webp';
     const priceAd = Array.from(
       node.querySelectorAll('div[class^=styles_price__] > span'),
     )
