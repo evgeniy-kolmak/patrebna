@@ -23,27 +23,6 @@ export async function commandStop(
           },
         },
       );
-
-      bot.on('callback_query', async (query) => {
-        switch (query.data) {
-          case 'remove': {
-            await db.removeUser(id.toString());
-            await bot.sendMessage(
-              id,
-              '👌 Удаление прошло успешно! Будем ждать вас снова.',
-            );
-            break;
-          }
-          case 'back': {
-            bot.sendMessage(
-              id,
-              '📑 Выберите команду для дальнейшего взаимодействия с ботом. Для  этого нажмите на кнопку <b>Меню</b>.\nЕсли регистрация прошла успешно, просто ожидайте обновлений.',
-              { parse_mode: 'HTML' },
-            );
-            break;
-          }
-        }
-      });
     } else {
       bot.sendMessage(
         id,
