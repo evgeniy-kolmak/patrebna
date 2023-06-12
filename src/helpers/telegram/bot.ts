@@ -2,16 +2,16 @@ import { conf } from '../../config';
 import cbquery from '../cbquery';
 
 import TelegramBot from 'node-telegram-bot-api';
-const TOKEN = conf.tokenBot ?? '';
+const TOKEN = conf.tokenBot;
+const URL = conf.webhook.url;
+const PORT = conf.webhook.port;
 export const bot = new TelegramBot(TOKEN, {
-  polling: {
-    interval: 300,
-    autoStart: true,
-    params: {
-      timeout: 10,
-    },
+  webHook: {
+    port: PORT,
   },
 });
+
+bot.setWebHook(`${URL}/${TOKEN}`);
 process.env['NTBA_FIX_350'] = '1';
 
 cbquery();
