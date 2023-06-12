@@ -33,103 +33,120 @@ class DatabaseServise {
     }
   }
 
-  getUsers(): Promise<ICollection<IUser>> {
-    return new Promise((resolve) => {
-      get(child(ref(this.db), 'users'))
-        .then((snapshot) => resolve(snapshot.val()))
-        .catch((error) => console.log(error));
-    });
-  }
-
-  setUserListener(user: IUser): Promise<any> {
-    return new Promise((resolve) => {
-      set(ref(this.db, `users/${user.id}/profile`), user)
-        .then(() => resolve(''))
-        .catch((error) => console.log(error));
-    });
-  }
-
-  setUrlUser(url: string, user: IUser): Promise<any> {
-    return new Promise((resolve) => {
-      set(ref(this.db, `users/${user.id}/parserData/url`), url)
-        .then(() => resolve(''))
-        .catch((error) => console.log(error));
-    });
-  }
-
-  getUserUrl(id: string): Promise<string> {
-    return new Promise((resolve) => {
-      get(child(ref(this.db), `users/${id}/parserData/url`))
-        .then((snapshot) => resolve(snapshot.val()))
-        .catch((error) => console.log(error));
-    });
-  }
-
-  async setUserTypeParser(typeParse: string, user: IUser): Promise<any> {
+  async getUsers() {
     try {
-      await set(
-        ref(this.db, `users/${user.id}/parserData/typeParser`),
-        typeParse,
-      );
+      const snapshot = await get(child(ref(this.db), 'users'));
+      return snapshot.val();
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      throw Error("Can't get users");
     }
   }
 
-  async getUserTypeParser(id: string): Promise<any> {
+  async getUserUrl(id: string) {
+    try {
+      const snapshot = await get(
+        child(ref(this.db), `users/${id}/parserData/url`),
+      );
+      return snapshot.val();
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't get user url");
+    }
+  }
+
+  async getUserTypeParser(id: string) {
     try {
       const snapshot = await get(
         child(ref(this.db), `users/${id}/parserData/typeParser`),
       );
       return snapshot.val();
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      throw Error("Can't get user type parser");
     }
   }
 
-  getSavedAds(id: string): Promise<ICollection<IAd>> {
-    return new Promise((resolve) => {
-      get(child(ref(this.db), `users/${id}/ads`))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            resolve(snapshot.val() || {});
-          } else {
-            set(ref(this.db, `users/${id}/ads`), {})
-              .then(() => resolve({}))
-              .catch((error) => console.log(error));
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    });
+  async getSavedAds(id: string) {
+    try {
+      const snapshot = await get(child(ref(this.db), `users/${id}/ads`));
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        await set(ref(this.db, `users/${id}/ads`), {});
+        return {};
+      }
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't get user save ads");
+    }
   }
 
-  setNewAd(ad: IAd, id: string): Promise<any> {
-    return new Promise((resolve) => {
-      set(ref(this.db, `users/${id}/ads/${ad.id}`), ad)
-        .then(() => resolve(''))
-        .catch((error) => console.log(error));
-    });
+  async setUserListener(user: IUser) {
+    try {
+      await set(ref(this.db, `users/${user.id}/profile`), user);
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't set user listener");
+    }
   }
 
-  isAdsEmpty(id: string): Promise<ICollection<IAd>> {
-    return new Promise((resolve) => {
-      get(child(ref(this.db), `users/${id}/ads`))
-        .then((snapshot) => resolve(snapshot.val()))
-        .catch((error) => console.log(error));
-    });
+  async setUrlUser(url: string, user: IUser) {
+    try {
+      await set(ref(this.db, `users/${user.id}/parserData/url`), url);
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't set url user");
+    }
   }
 
-  async removeAds(id: string): Promise<void> {
-    await remove(ref(this.db, `users/${id}/ads`));
+  async setUserTypeParser(typeParse: string, user: IUser): Promise<void> {
+    try {
+      await set(
+        ref(this.db, `users/${user.id}/parserData/typeParser`),
+        typeParse,
+      );
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't set user type parser");
+    }
   }
 
-  // removeOldAd(id: string): Promise<any>  {
-  //   return new Promise((resolve) => {
-  //     resolve(remove(child(ref(this.db, 'ads'), id)));
-  //   });
-  // }
+  async setNewAd(ad: IAd, id: string) {
+    try {
+      set(ref(this.db, `users/${id}/ads/${ad.id}`), ad);
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't set new ad");
+    }
+  }
+
+  async isAdsEmpty(id: string) {
+    try {
+      const snapshot = await get(child(ref(this.db), `users/${id}/ads`));
+      return snapshot.val();
+    } catch (error) {
+      throw Error("Can't get value ads");
+    }
+  }
+
+  async removeAds(id: string) {
+    try {
+      await remove(ref(this.db, `users/${id}/ads`));
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't delete ads");
+    }
+  }
+
+  async removeUser(id: string): Promise<void> {
+    try {
+      await remove(child(ref(this.db, 'users'), id.toString()));
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't delete user");
+    }
+  }
 }
 
 const db = new DatabaseServise();
@@ -150,6 +167,7 @@ export interface ICollection<T> {
 export interface IAd {
   img_url: string;
   title: string;
+  description?: string;
   id: string;
   price: string;
   url: string;
