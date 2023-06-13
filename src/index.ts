@@ -1,6 +1,3 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import schedule from 'node-schedule';
 import axios from 'axios';
 import { bot } from './helpers/telegram/bot';
