@@ -1,11 +1,12 @@
 {
   "name": "patrebna",
-  "version": "0.1.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Parser telegram bot for Kufar",
   "main": "index.js",
   "scripts": {
     "start": "tsc -w",
-    "dev": "nodemon dist/index.js"
+    "dev": "nodemon dist/index.js",
+    "build" : "tsc"
   },
   "repository": {
     "type": "git",
@@ -13,7 +14,7 @@
   },
   "keywords": [],
   "author": "Evgeniy Kolmak",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/evgeniy-kolmak/patrebna/issues"
   },
