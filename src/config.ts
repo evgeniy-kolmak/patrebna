@@ -1,4 +1,5 @@
 import config from 'config';
+import { FirebaseOptions } from 'firebase/app';
 
 export const conf: Iconf = {
   authFirebase: {
@@ -22,24 +23,19 @@ export const conf: Iconf = {
   },
 };
 
+type AuthFirebase = {
+  email: string;
+  password: string;
+};
+
+type WebhookParams = {
+  url: string;
+  port: number;
+};
+
 export interface Iconf {
-  authFirebase: {
-    email: string;
-    password: string;
-  };
-  firebase: {
-    apiKey: string;
-    authDomain: string;
-    databaseURL: string;
-    projectId: string;
-    storageBucket: string;
-    messagingSenderId: number;
-    appId: string;
-    measurementId: string;
-  };
+  authFirebase: AuthFirebase;
+  firebase: FirebaseOptions;
   tokenBot: string;
-  webhook: {
-    url: string;
-    port: number;
-  };
+  webhook: WebhookParams;
 }
