@@ -38,10 +38,10 @@ export default () =>
                 );
               }
             } catch (error) {
-              errorMsg(id, '/changeurl');
+              errorMsg(id, '/change_url');
             }
           } else {
-            errorMsg(id, '/changeurl');
+            errorMsg(id, '/change_url');
           }
         });
         break;

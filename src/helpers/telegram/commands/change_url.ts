@@ -6,7 +6,7 @@ export async function commandChangeurl(
   users: ICollection<IUser>,
   usersIds: string[],
 ): Promise<void> {
-  bot.onText(/\/changeurl/, async (ctx) => {
+  bot.onText(/\/change_url/, async (ctx) => {
     users = await db.getUsers();
     usersIds = users ? Object.keys(users) : [];
 

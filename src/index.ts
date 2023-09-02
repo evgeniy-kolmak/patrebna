@@ -6,7 +6,7 @@ import db from './helpers/database';
 import { parserAds } from './helpers/parser/parserAds';
 import { commandStart } from './helpers/telegram/commands/start';
 import { commandHelp } from './helpers/telegram/commands/help';
-import { commandChangeurl } from './helpers/telegram/commands/changeurl';
+import { commandChangeurl } from './helpers/telegram/commands/change_url';
 import { commandStop } from './helpers/telegram/commands/stop';
 
 void (async () => {
