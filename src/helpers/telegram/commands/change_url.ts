@@ -15,7 +15,7 @@ export async function commandChangeurl(
       bot.sendMessage(id, '💬 Хотите изменить ссылку?', {
         reply_markup: {
           inline_keyboard: [
-            [{ text: ' 👌 Да, хочу!', callback_data: 'change' }],
+            [{ text: ' 👌 Да, хочу!', callback_data: 'changeLink' }],
             [{ text: ' ◀ Назад', callback_data: 'back' }],
           ],
         },
