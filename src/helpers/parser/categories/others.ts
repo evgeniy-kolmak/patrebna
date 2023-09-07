@@ -17,11 +17,10 @@ export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
         .querySelector('img[class^="styles_image__"]')
         ?.getAttribute('data-src') ?? 'assets/no-photo.webp';
     const priceAd =
-      node.querySelector('div[class^=styles_price__] > span')?.textContent ??
-      '';
-
-    const isNotCompanyAd = !node.querySelector('div[class^="styles_badge__"]')
-      ?.textContent;
+      node.querySelector('p[class^=styles_price__] span')?.textContent ?? '';
+    const isNotCompanyAd = !node
+      .querySelector('div[class^="styles_badge__"]')
+      ?.textContent?.slice(0, -1);
 
     if (isNotCompanyAd) {
       newAds[itemIdAd] = {
