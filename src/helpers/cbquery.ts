@@ -2,7 +2,7 @@ import { bot } from './telegram/bot';
 import axios from 'axios';
 import db from './database';
 import { IUser } from './database';
-import { typeUrlParser } from './typeUrlParser';
+import { typeUrlParser } from './parser/typeUrlParser';
 import { addTracks } from './tracker/addTracks';
 import { errorMsg } from './errorMessage';
 import addComment from './tracker/addComment';
