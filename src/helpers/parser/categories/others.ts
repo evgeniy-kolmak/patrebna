@@ -20,7 +20,7 @@ export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
       node.querySelector('p[class^=styles_price__] span')?.textContent ?? '';
     const isNotCompanyAd = !node
       .querySelector('div[class^="styles_badge__"]')
-      ?.textContent?.slice(0, -1);
+      ?.textContent?.replace('.', '');
 
     if (isNotCompanyAd) {
       newAds[itemIdAd] = {
