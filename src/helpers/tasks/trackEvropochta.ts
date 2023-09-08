@@ -5,6 +5,7 @@ import { compareLengthPathPackages, pause } from '../utils';
 import { createTrackCard } from '../tracker/createCard';
 
 export default async function trackEvropochta(usersIds: string[]) {
+  console.log(new Date().toLocaleTimeString('ru-RU'));
   for (const id of usersIds) {
     await pause(2500);
     const packages: ITrack[] = Object.values(await db.getPackages(id));
@@ -19,6 +20,9 @@ export default async function trackEvropochta(usersIds: string[]) {
         });
         await db.setCompareDataTrack(id, { ...isChangeLength });
         await fsp.rm(`assets/track-card--${item.trackNumber}.jpg`);
+        console.log(
+          `Статус посылки ${item.trackNumber}(${item.lengthPath}) изменился.`,
+        );
       }
     });
   }
