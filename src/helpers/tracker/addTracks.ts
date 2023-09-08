@@ -28,9 +28,8 @@ export async function getDataForTrackNumber(
   } else {
     const dataTrack: ITrack = {
       trackNumber,
-      infoPoint: truncateString(dataApi[0].InfoTrack),
+      infoPoint: truncateString(dataApi[0].InfoTrack, 120),
       lengthPath: dataApi.length,
-      comment: '',
     };
     return dataTrack;
   }

@@ -6,6 +6,7 @@ import { typeUrlParser } from './parser/typeUrlParser';
 import { addTracks } from './tracker/addTracks';
 import { errorMsg } from './errorMessage';
 import addComment from './tracker/addComment';
+import { truncateString } from './utils';
 
 let currentTrackNumber = '';
 
@@ -148,7 +149,7 @@ export default () =>
 
         const { message_id } = promptComment;
         bot.onReplyToMessage(id, message_id, async (message) => {
-          const msg = message.text ?? '';
+          const msg = truncateString(message.text ?? '', 25);
           await db.addСomment(id.toString(), currentTrackNumber, msg);
           await bot.sendMessage(
             id,

@@ -33,5 +33,5 @@ export async function compareLengthPathPackages(
   }
 }
 
-export const truncateString = (s: string) =>
-  s.length > 130 ? `${s.substring(0, 130)} ...` : s;
+export const truncateString = (s: string, w: number) =>
+  s.length > w ? `${s.substring(0, w)} ...` : s;
