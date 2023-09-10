@@ -30,8 +30,6 @@ void (async () => {
     }
   });
 
-  await parseKufar(usersIds);
-
   schedule.scheduleJob('0 */1 * * *', async () => {
     try {
       await trackEvropochta(usersIds);
