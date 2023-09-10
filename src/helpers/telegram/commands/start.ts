@@ -1,6 +1,6 @@
 import { bot } from '../bot';
 import db from '../../database';
-import { ICollection, IUser } from '../../database';
+import { IUser, ICollection } from '../../tasks/parseKufar';
 
 export async function commandStart(
   users: ICollection<IUser>,
@@ -17,7 +17,7 @@ export async function commandStart(
       "Доброго времени суток!\n<b>Patrebna</b> - это бот для отслеживания новых объявлений на площадке 'Kufar', а так же мониторинга изменений в статусе посылок 'Еврочта' по их трек-номерам. Наша основная цель - предоставлять вам актуальную информацию и помогать быть в курсе всех обновлений.",
       { parse_mode: 'HTML' },
     );
-    const isRegistered = !usersIds.includes(id.toString());
+    const isLink = !(await db.getUserUrl(id.toString()));
     bot.sendMessage(
       id,
       '🔎 Отлично, давайте начнем. Что бы вы хотели отслеживать?',
@@ -27,11 +27,11 @@ export async function commandStart(
             [
               {
                 text: `${
-                  isRegistered
+                  isLink
                     ? '📢 Добавить ссылку Kufar'
                     : '🔄 Изменить ссылку Kufar'
                 }`,
-                callback_data: `${isRegistered ? 'addLink' : 'changeLink'}`,
+                callback_data: `${isLink ? 'addLink' : 'changeLink'}`,
               },
             ],
             [
