@@ -14,14 +14,16 @@ export default async function trackEvropochta(usersIds: string[]) {
         await compareLengthPathPackages(item);
       if (isChangeLength) {
         const currentTrackData = await db.getTrack(id, item.trackNumber);
-        await createTrackCard(currentTrackData);
+        const { trackNumber, infoPoint, lengthPath } = isChangeLength;
+        const { comment } = currentTrackData;
+        await createTrackCard({ trackNumber, infoPoint, comment });
         await bot.sendPhoto(id, `assets/track-card--${item.trackNumber}.jpg`, {
           caption: 'Статус посылки изменился.',
         });
         await db.setCompareDataTrack(id, { ...isChangeLength });
         await fsp.rm(`assets/track-card--${item.trackNumber}.jpg`);
         console.log(
-          `Статус посылки ${item.trackNumber}(${item.lengthPath}) изменился.`,
+          `Статус посылки ${item.trackNumber}(${lengthPath}) изменился.`,
         );
       }
     });

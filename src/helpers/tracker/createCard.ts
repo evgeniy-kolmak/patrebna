@@ -5,7 +5,7 @@ export const createTrackCard = async ({
   trackNumber,
   infoPoint,
   comment,
-}: ITrack): Promise<void> => {
+}: Omit<ITrack, 'lengthPath'>): Promise<void> => {
   await nodeHtmlToImage({
     output: `assets/track-card--${trackNumber}.jpg`,
     html: `<html>
