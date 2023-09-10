@@ -1,6 +1,6 @@
 import { bot } from '../bot';
 import db from '../../database';
-import { ICollection, IUser } from '../../database';
+import { IUser, ICollection } from '../../tasks/parseKufar';
 
 export async function commandStop(
   users: ICollection<IUser>,
@@ -17,7 +17,13 @@ export async function commandStop(
         {
           reply_markup: {
             inline_keyboard: [
-              [{ text: ' ❌ Остановить бота', callback_data: 'remove' }],
+              [{ text: ' ❌ Остановить бота', callback_data: 'removeUser' }],
+              [
+                {
+                  text: ' 🚫 Остановить отлеживание объявлений Kufar',
+                  callback_data: 'stopParseAds',
+                },
+              ],
               [{ text: ' ◀ Назад', callback_data: 'back' }],
             ],
           },

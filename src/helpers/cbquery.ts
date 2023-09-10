@@ -1,7 +1,7 @@
 import { bot } from './telegram/bot';
 import axios from 'axios';
 import db from './database';
-import { IUser } from './database';
+import { IUser } from './tasks/parseKufar';
 import { typeUrlParser } from './parser/typeUrlParser';
 import { addTracks } from './tracker/addTracks';
 import { errorMsg } from './errorMessage';
@@ -74,7 +74,7 @@ export default () =>
           if (entities?.[0].type === 'url') {
             try {
               if (text) {
-                await db.removeAds(id.toString());
+                await db.removeDataParse(id.toString());
                 await axios.get(text);
                 await typeUrlParser(text, from as IUser);
                 await db.setUrlUser(text, from as IUser);
@@ -158,11 +158,20 @@ export default () =>
         });
         break;
       }
-      case 'remove': {
+      case 'removeUser': {
         await db.removeUser(id.toString());
         await bot.sendMessage(
           id,
           '👌 Удаление прошло успешно! Будем ждать вас снова.',
+        );
+        break;
+      }
+      case 'stopParseAds': {
+        await db.removeDataParse(id.toString());
+        await bot.sendMessage(
+          id,
+          '👌 Удаление прошло успешно! Повторно добавить ссылку, моджно используя команды: <a>/start</a> или <a>/change_url</a>.',
+          { parse_mode: 'HTML' },
         );
         break;
       }
