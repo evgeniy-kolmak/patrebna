@@ -18,7 +18,7 @@ void (async () => {
 
   await commandStart(users, usersIds);
   await commandChangeurl(users, usersIds);
-  await commandTrackPackages();
+  await commandTrackPackages(users, usersIds);
   await commandStop(users, usersIds);
   commandHelp();
 
