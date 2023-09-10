@@ -10,6 +10,8 @@ import {
   remove,
 } from 'firebase/database';
 import { conf } from '../config';
+import { IAd, IUser } from './tasks/parseKufar';
+import { ITrack } from './tasks/trackEvropochta';
 
 class DatabaseServise {
   app: FirebaseApp;
@@ -27,7 +29,7 @@ class DatabaseServise {
         console.log(`${code} - ${message}`);
       });
       this.db = getDatabase(this.app);
-      console.log('Successfully');
+      console.log('Database connection: Successfully');
     } catch (e) {
       console.log('Application works without database!');
     }
@@ -73,7 +75,6 @@ class DatabaseServise {
       if (snapshot.exists()) {
         return snapshot.val();
       } else {
-        await set(ref(this.db, `users/${id}/ads`), {});
         return {};
       }
     } catch (error) {
@@ -130,9 +131,10 @@ class DatabaseServise {
     }
   }
 
-  async removeAds(id: string) {
+  async removeDataParse(id: string) {
     try {
       await remove(ref(this.db, `users/${id}/ads`));
+      await remove(ref(this.db, `users/${id}/parserData`));
     } catch (error) {
       console.error(error);
       throw Error("Can't delete ads");
@@ -147,29 +149,77 @@ class DatabaseServise {
       throw Error("Can't delete user");
     }
   }
+
+  async getTrack(id: string, trackNumber: string): Promise<ITrack> {
+    try {
+      const snapshot = await get(
+        child(ref(this.db), `users/${id}/packages/${trackNumber}/`),
+      );
+      return snapshot.val();
+    } catch (error) {
+      throw Error("Can't get value track");
+    }
+  }
+  async getPackages(id: string) {
+    try {
+      const snapshot = await get(child(ref(this.db), `users/${id}/packages/`));
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        return {};
+      }
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't get user save packages");
+    }
+  }
+
+  async setTrack(dataTrack: ITrack, id: string): Promise<void> {
+    try {
+      await set(
+        ref(this.db, `users/${id}/packages/${dataTrack.trackNumber}`),
+        dataTrack,
+      );
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't set value track");
+    }
+  }
+
+  async setCompareDataTrack(
+    id: string,
+    { trackNumber, lengthPath, infoPoint }: ITrack,
+  ) {
+    try {
+      await set(
+        ref(this.db, `users/${id}/packages/${trackNumber}/lengthPath/`),
+        lengthPath,
+      );
+      await set(
+        ref(this.db, `users/${id}/packages/${trackNumber}/infoPoint/`),
+        infoPoint,
+      );
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't set compare data");
+    }
+  }
+  async addСomment(
+    id: string,
+    trackNumber: string,
+    comment: string,
+  ): Promise<void> {
+    try {
+      await set(
+        ref(this.db, `users/${id}/packages/${trackNumber}/comment/`),
+        comment,
+      );
+    } catch (error) {
+      console.error(error);
+      throw Error("Can't add comment");
+    }
+  }
 }
 
 const db = new DatabaseServise();
 export default db;
-
-export interface IUser {
-  id: number;
-  is_bot: boolean;
-  username: string;
-  first_name: string;
-  ads: ICollection<IAd>;
-}
-
-export interface ICollection<T> {
-  [key: string]: T;
-}
-
-export interface IAd {
-  img_url: string;
-  title: string;
-  description?: string;
-  id: string;
-  price: string;
-  url: string;
-  createAd: string;
-}
