@@ -1,4 +1,4 @@
-import { ICollection, IAd } from '../../database';
+import { IAd, ICollection } from '../../tasks/parseKufar';
 
 export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};

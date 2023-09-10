@@ -1,4 +1,4 @@
-import { ICollection, IAd } from '../../database';
+import { IAd, ICollection } from '../../tasks/parseKufar';
 
 export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
@@ -17,9 +17,9 @@ export function parserOthers(items: NodeListOf<Element>): ICollection<IAd> {
         .querySelector('img[class^="styles_image__"]')
         ?.getAttribute('data-src') ?? 'assets/no-photo.webp';
     const priceAd =
-      node.querySelector('div[class^=styles_price__] > span')?.textContent ??
-      '';
-
+      node
+        .querySelector('p[class^=styles_price__] span')
+        ?.textContent?.replace(/[.]+$/, '') ?? '';
     const isNotCompanyAd = !node.querySelector('div[class^="styles_badge__"]')
       ?.textContent;
 
