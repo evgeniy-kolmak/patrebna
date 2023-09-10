@@ -1,5 +1,5 @@
 import { bot } from '../telegram/bot';
-import db, { ITrack } from '../database';
+import db from '../database';
 import fsp from 'fs/promises';
 import { compareLengthPathPackages, pause } from '../utils';
 import { createTrackCard } from '../tracker/createCard';
@@ -28,4 +28,11 @@ export default async function trackEvropochta(usersIds: string[]) {
       }
     });
   }
+}
+
+export interface ITrack {
+  infoPoint: string;
+  trackNumber: string;
+  comment?: string;
+  lengthPath: number;
 }

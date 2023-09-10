@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ITrack } from '../database';
+import { ITrack } from '../tasks/trackEvropochta';
 import { compareLengthPathPackages, truncateString } from '../utils';
 
 export async function addTracks(

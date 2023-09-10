@@ -1,6 +1,6 @@
 import jsdom from 'jsdom';
 const { JSDOM } = jsdom;
-import { ICollection, IAd } from '../database';
+import { IAd, ICollection } from '../tasks/parseKufar';
 import { parserRealOfEstate } from './categories/realEstate';
 import { parserAuto } from './categories/auto';
 import { parserOthers } from './categories/others';

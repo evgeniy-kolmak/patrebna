@@ -1,4 +1,4 @@
-import { ICollection, IAd } from '../../database';
+import { IAd, ICollection } from '../../tasks/parseKufar';
 
 export function parserRealOfEstate(
   items: NodeListOf<Element>,

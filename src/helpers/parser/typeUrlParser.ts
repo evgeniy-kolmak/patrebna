@@ -1,4 +1,4 @@
-import { IUser } from '../database';
+import { IUser } from '../tasks/parseKufar';
 import db from '../database';
 
 export async function typeUrlParser(

@@ -1,4 +1,6 @@
-import { ICollection, IAd, ITrack } from './database';
+import { IAd, ICollection } from './tasks/parseKufar';
+import { ITrack } from './tasks/trackEvropochta';
+
 import { IDataApiError, getDataForTrackNumber } from './tracker/addTracks';
 
 export function pause(val = 500) {

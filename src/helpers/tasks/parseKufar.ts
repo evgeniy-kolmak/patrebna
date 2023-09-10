@@ -44,3 +44,25 @@ export default async function parseKufar(usersIds: string[]) {
     }
   }
 }
+
+export interface IUser {
+  id: number;
+  is_bot: boolean;
+  username: string;
+  first_name: string;
+  ads: ICollection<IAd>;
+}
+
+export interface ICollection<T> {
+  [key: string]: T;
+}
+
+export interface IAd {
+  img_url: string;
+  title: string;
+  description?: string;
+  id: string;
+  price: string;
+  url: string;
+  createAd: string;
+}

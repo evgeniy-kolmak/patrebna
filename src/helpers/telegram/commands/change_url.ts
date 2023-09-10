@@ -1,6 +1,6 @@
 import { bot } from '../bot';
 import db from '../../database';
-import { IUser, ICollection } from '../../database';
+import { IUser, ICollection } from '../../tasks/parseKufar';
 
 export async function commandChangeurl(
   users: ICollection<IUser>,

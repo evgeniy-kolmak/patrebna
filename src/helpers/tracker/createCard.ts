@@ -1,5 +1,5 @@
 import nodeHtmlToImage from 'node-html-to-image';
-import { ITrack } from '../database';
+import { ITrack } from '../tasks/trackEvropochta';
 
 export const createTrackCard = async ({
   trackNumber,
