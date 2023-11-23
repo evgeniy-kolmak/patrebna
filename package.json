@@ -6,8 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
-    "build": "tsc",
-    "pm2": "pm2 start node dist/index.js"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -30,7 +29,6 @@
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "node-html-to-image": "^4.0.0",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.7",
     "ts-node": "^10.9.1",
@@ -43,6 +41,7 @@
     "config": "^3.3.9",
     "firebase": "^9.21.0",
     "jsdom": "^21.1.1",
+    "node-html-to-image": "^4.0.0",
     "node-schedule": "^2.1.1",
     "node-telegram-bot-api": "^0.61.0"
   }
