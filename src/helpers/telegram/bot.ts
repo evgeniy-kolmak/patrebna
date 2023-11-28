@@ -13,13 +13,12 @@ const options = {
     cert: 'crt.pem',
   },
 };
+process.env['NTBA_FIX_350'] = '1';
 
 export const bot = new TelegramBot(TOKEN, options);
 
 bot.setWebHook(`${URL}:${PORT}/bot${TOKEN}`, {
   certificate: options.webHook.cert,
 });
-
-process.env['NTBA_FIX_350'] = '1';
 
 cbquery();
