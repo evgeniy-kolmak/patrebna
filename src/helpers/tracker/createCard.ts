@@ -1,5 +1,4 @@
 import Chromium from 'chrome-aws-lambda';
-import puppeteerCore from 'puppeteer-core';
 import nodeHtmlToImage from 'node-html-to-image';
 import { ITrack } from '../tasks/trackEvropochta';
 
@@ -30,10 +29,9 @@ export const createTrackCard = async ({
     </body>
   </html>
   `,
-    puppeteer: puppeteerCore,
     puppeteerArgs: {
       args: Chromium.args,
-      executablePath: await Chromium.executablePath,
+      executablePath: '/usr/bin/chromium-browser',
     },
   });
 };
