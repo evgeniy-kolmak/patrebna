@@ -2,7 +2,7 @@ import { bot } from '../telegram/bot';
 import db from '../database';
 import axios from 'axios';
 import { parserAds } from '../parser/parserAds';
-import { compareCollections, pause } from '../utils';
+import { compareCollections, pause, truncateString } from '../utils';
 
 export default async function parseKufar(usersIds: string[]) {
   console.log(new Date().toLocaleTimeString('ru-RU'));
@@ -33,7 +33,9 @@ export default async function parseKufar(usersIds: string[]) {
             caption: `Появилось новое объявление: <b>${
               data.title
             }</b>, c ценой <b>${data.price}</b>.\n<i>${
-              data?.description ? data.description + '\n' : ''
+              data?.description
+                ? truncateString(data.description, 500) + '\n'
+                : ''
             }</i><a href="${data.url}">Подробнее</a>`,
             parse_mode: 'HTML',
           });
