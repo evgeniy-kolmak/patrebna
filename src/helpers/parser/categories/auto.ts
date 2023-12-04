@@ -1,5 +1,13 @@
 import { IAd, ICollection } from '../../tasks/parseKufar';
 
+const TITLE_AD_SELECTOR = 'h3[class^="styles_title__"]';
+const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_params__"]';
+const DESCRIPTION_YEAR_AD_SELECTOR = 'div[class^="styles_year__"]';
+const DESCRIPTION_MILEAGE_AD_SELECTOR = 'div[class^="styles_mileage__"]';
+const PRICE_AD_SELECTOR = 'div[class^=styles_price__] > span';
+const IMAGE_URL_AD_SELECTOR = 'img[class^="styles_image__"]';
+const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
+
 export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
   const newAds: ICollection<IAd> = {};
 
@@ -9,25 +17,21 @@ export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
     const { origin, pathname } = url;
     const urlAd = `${origin}${pathname}`;
     const itemIdAd = url.pathname.split('/')[2];
-    const titleAd =
-      node.querySelector('h3[class^="styles_title__"]')?.textContent ?? '';
+    const titleAd = node.querySelector(TITLE_AD_SELECTOR)?.textContent ?? '';
     const descriptionAd = `${
-      node.querySelector('p[class^="styles_params__"]')?.textContent
-    }, ${node.querySelector('div[class^="styles_year__"]')?.textContent} год, ${
-      node.querySelector('div[class^="styles_mileage__"]')?.textContent
+      node.querySelector(DESCRIPTION_AD_SELECTOR)?.textContent
+    }, ${node.querySelector(DESCRIPTION_YEAR_AD_SELECTOR)?.textContent} год, ${
+      node.querySelector(DESCRIPTION_MILEAGE_AD_SELECTOR)?.textContent
     }`;
     const imgUrlAd =
-      node
-        .querySelector('img[class^="styles_image__"]')
-        ?.getAttribute('data-src') ?? 'assets/no-photo.webp';
-    const priceAd = Array.from(
-      node.querySelectorAll('div[class^=styles_price__] > span'),
-    )
+      node.querySelector(IMAGE_URL_AD_SELECTOR)?.getAttribute('data-src') ??
+      'assets/no-photo.webp';
+    const priceAd = Array.from(node.querySelectorAll(PRICE_AD_SELECTOR))
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
 
-    const isNotCompanyAd = !node.querySelector('div[class^="styles_badge__"]')
-      ?.textContent;
+    const isNotCompanyAd =
+      !node.querySelector(COMPANY_AD_SELECTOR)?.textContent;
 
     if (isNotCompanyAd) {
       newAds[itemIdAd] = {
