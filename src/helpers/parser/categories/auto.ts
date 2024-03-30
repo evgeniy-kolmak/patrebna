@@ -1,11 +1,12 @@
 import { IAd, ICollection } from '../../tasks/parseKufar';
 
-const TITLE_AD_SELECTOR = 'h3[class^="styles_title__"]';
-const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_params__"]';
-const DESCRIPTION_YEAR_AD_SELECTOR = 'div[class^="styles_year__"]';
-const DESCRIPTION_MILEAGE_AD_SELECTOR = 'div[class^="styles_mileage__"]';
-const PRICE_AD_SELECTOR = 'div[class^=styles_price__] > span';
-const IMAGE_URL_AD_SELECTOR = 'img[class^="styles_image__"]';
+const TITLE_AD_SELECTOR = 'h3[class^="styles_info__title__"]';
+const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_description__params__"]';
+const DESCRIPTION_YEAR_AD_SELECTOR = 'div[class^="styles_description__"] > p';
+const DESCRIPTION_MILEAGE_AD_SELECTOR =
+  'p[class^="styles_description__params__"] ~ p';
+const PRICE_AD_SELECTOR = 'div[class^=styles_info__price__] > span';
+const IMAGE_URL_AD_SELECTOR = 'div[class^="styles_segment__"]';
 const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
 
 export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
@@ -16,16 +17,18 @@ export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
     const url = new URL(urlItem);
     const { origin, pathname } = url;
     const urlAd = `${origin}${pathname}`;
-    const itemIdAd = url.pathname.split('/')[2];
+    const itemIdAd = pathname.replace(/\D/g, '');
     const titleAd = node.querySelector(TITLE_AD_SELECTOR)?.textContent ?? '';
     const descriptionAd = `${
       node.querySelector(DESCRIPTION_AD_SELECTOR)?.textContent
-    }, ${node.querySelector(DESCRIPTION_YEAR_AD_SELECTOR)?.textContent} год, ${
+    }, ${node.querySelector(DESCRIPTION_YEAR_AD_SELECTOR)?.textContent}, ${
       node.querySelector(DESCRIPTION_MILEAGE_AD_SELECTOR)?.textContent
     }`;
     const imgUrlAd =
-      node.querySelector(IMAGE_URL_AD_SELECTOR)?.getAttribute('data-src') ??
-      'assets/no-photo.webp';
+      node
+        .querySelector(IMAGE_URL_AD_SELECTOR)
+        ?.getAttribute('data-testid')
+        ?.replace('segment-', '') ?? 'assets/no-photo.webp';
     const priceAd = Array.from(node.querySelectorAll(PRICE_AD_SELECTOR))
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
