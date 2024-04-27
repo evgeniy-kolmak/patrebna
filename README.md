@@ -7,7 +7,7 @@
    <img src="https://img.shields.io/badge/Typescript-%5E5.0.4-blue" alt="Typescript Version">
    <img src="https://img.shields.io/badge/Node%20telegram%20bot%20api-%5E0.61.0-blueviolet" alt="Node telegram botapi Version">
   <img src="https://img.shields.io/badge/DB-Firebase-important" alt="Database">
-   <img src="https://img.shields.io/badge/Version-v2.3.0-9cf" alt="App Version">
+   <img src="https://img.shields.io/badge/Version-v2.3.1-9cf" alt="App Version">
    <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
