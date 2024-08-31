@@ -9,7 +9,7 @@ import {
   set,
   remove,
 } from 'firebase/database';
-import { conf } from '../config';
+import { conf } from 'config/config';
 import { IAd, IUser } from './tasks/parseKufar';
 import { ITrack } from './tasks/trackEvropochta';
 
