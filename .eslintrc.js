@@ -1,23 +1,28 @@
-module.exports ={
-  "env": {
-    "browser": false,
-    "es6": true,
-    "node": true
+module.exports = {
+  env: {
+    browser: false,
+    commonjs: true,
+    es2021: true,
   },
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": "tsconfig.json",
-    "sourceType": "module",
-    "ecmaVersion": 2020
-  },
-  "plugins": ["@typescript-eslint", "jest"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:jest/recommended",
-    "prettier"
+  extends: ['standard-with-typescript', 'prettier'],
+  overrides: [
+    {
+      env: {
+        node: true,
+      },
+      files: ['.eslintrc.{js,cjs}'],
+      parserOptions: {
+        sourceType: 'script',
+      },
+    },
   ],
-  "rules": {
-    "@typescript-eslint/explicit-function-return-type": "warn"
-  }
-}
+  parserOptions: {
+    ecmaVersion: 'latest',
+  },
+  plugins: ['prettier'],
+  rules: {
+    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/naming-convention': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off',
+  },
+};

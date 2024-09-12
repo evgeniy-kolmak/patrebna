@@ -5,18 +5,16 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strictPropertyInitialization": false,
-    "lib": [      
-      "ES2015",
-      "ES2016",
-      "ES2017"
-    ],
-    "outDir": "./dist",
-    "strict": true,
+    "lib": ["ES2015", "ES2016", "ES2017"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["src/*"]
+    },
+    "strict": true
   },
-  "exclude": [
-    "node_modules",
-  ],
-  "include": [
-    "src/**/*"
-  ]
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "exclude": ["node_modules"],
+  "include": ["**/*.ts", "src/config/config.ts"]
 }
