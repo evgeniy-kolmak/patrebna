@@ -1,13 +1,13 @@
 import jsdom from 'jsdom';
+import { parserRealOfEstate } from 'parsers/kufar/categories/realEstate';
+import { parserAuto } from 'parsers/kufar/categories/auto';
+import { parserOthers } from 'parsers/kufar/categories/other';
+import { type IAd, type TypesParser } from 'config/types';
 const { JSDOM } = jsdom;
-import { IAd, ICollection } from '../tasks/parseKufar';
-import { parserRealOfEstate } from './categories/realEstate';
-import { parserAuto } from './categories/auto';
-import { parserOthers } from './categories/others';
 
 const SELECTOR_AD_SECTION = 'div[class^="styles_wrapper__"] > div > section';
 
-export function parserAds(typeAds: TypeAds, html: string): ICollection<IAd> {
+export function parserAds(typeAds: TypesParser, html: string): IAd[] {
   const { document } = new JSDOM(html, {
     includeNodeLocations: true,
   }).window;
@@ -18,9 +18,7 @@ export function parserAds(typeAds: TypeAds, html: string): ICollection<IAd> {
       return parserRealOfEstate(nodeList);
     case 'auto':
       return parserAuto(nodeList);
-    case 'others':
+    default:
       return parserOthers(nodeList);
   }
 }
-
-export type TypeAds = 're' | 'auto' | 'others';

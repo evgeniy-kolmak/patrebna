@@ -1,14 +1,12 @@
-import { IAd, ICollection } from '../../tasks/parseKufar';
+import { type IAd } from 'config/types';
 
 const TITLE_AD_SELECTOR = 'div[class^="styles_parameters"]';
 const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_body__"]';
 const PRICE_AD_SELECTOR = 'span[class^=styles_price__]';
 const IMAGE_URL_AD_SELECTOR = 'div[class^=styles_segment__]';
 
-export function parserRealOfEstate(
-  items: NodeListOf<Element>,
-): ICollection<IAd> {
-  const newAds: ICollection<IAd> = {};
+export function parserRealOfEstate(items: NodeListOf<Element>): IAd[] {
+  const newAds: IAd[] = [];
 
   items.forEach((node) => {
     const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
@@ -27,17 +25,16 @@ export function parserRealOfEstate(
       node
         .querySelector(IMAGE_URL_AD_SELECTOR)
         ?.getAttribute('data-testid')
-        ?.slice(8) ?? 'assets/no-photo.webp';
+        ?.slice(8) ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp';
 
-    newAds[itemIdAd] = {
+    newAds.push({
       img_url: imgUrlAd,
       id: itemIdAd,
       title: titleAd,
       price: priceAd,
       url: urlAd,
       description: descriptionAd,
-      createAd: new Date().toLocaleDateString('ru-RU'),
-    };
+    });
   });
   return newAds;
 }

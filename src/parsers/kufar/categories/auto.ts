@@ -1,4 +1,4 @@
-import { IAd, ICollection } from '../../tasks/parseKufar';
+import { type IAd } from 'config/types';
 
 const TITLE_AD_SELECTOR = 'h3[class^="styles_info__title__"]';
 const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_description__params__"]';
@@ -9,8 +9,8 @@ const PRICE_AD_SELECTOR = 'div[class^=styles_info__price__] > span';
 const IMAGE_URL_AD_SELECTOR = 'div[class^="styles_segment__"]';
 const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
 
-export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
-  const newAds: ICollection<IAd> = {};
+export function parserAuto(items: NodeListOf<Element>): IAd[] {
+  const newAds: IAd[] = [];
 
   items.forEach((node) => {
     const urlItem = node.querySelector('a')?.getAttribute('href') ?? '';
@@ -28,7 +28,7 @@ export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
       node
         .querySelector(IMAGE_URL_AD_SELECTOR)
         ?.getAttribute('data-testid')
-        ?.replace('segment-', '') ?? 'assets/no-photo.webp';
+        ?.replace('segment-', '') ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp';
     const priceAd = Array.from(node.querySelectorAll(PRICE_AD_SELECTOR))
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
@@ -37,15 +37,14 @@ export function parserAuto(items: NodeListOf<Element>): ICollection<IAd> {
       !node.querySelector(COMPANY_AD_SELECTOR)?.textContent;
 
     if (isNotCompanyAd) {
-      newAds[itemIdAd] = {
+      newAds.push({
         img_url: imgUrlAd,
         id: itemIdAd,
         title: titleAd,
         description: descriptionAd,
         price: priceAd,
         url: urlAd,
-        createAd: new Date().toLocaleDateString('ru-RU'),
-      };
+      });
     }
   });
 
