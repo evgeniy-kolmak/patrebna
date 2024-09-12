@@ -1,0 +1,21 @@
+version: '3'
+services:
+  bot:
+    build: 
+      context: ../
+      dockerfile: ./.Docker/bot/Dockerfile
+    ports:
+      - "8443:8443"
+    depends_on:
+      - mongodb
+    networks:
+      - patrebna-network  
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - patrebna-network
+
+networks:
+  patrebna-network:
