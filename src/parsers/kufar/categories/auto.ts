@@ -6,7 +6,7 @@ const DESCRIPTION_YEAR_AD_SELECTOR = 'div[class^="styles_description__"] > p';
 const DESCRIPTION_MILEAGE_AD_SELECTOR =
   'p[class^="styles_description__params__"] ~ p';
 const PRICE_AD_SELECTOR = 'div[class^=styles_info__price__] > span';
-const IMAGE_URL_AD_SELECTOR = 'div[class^="styles_segment__"]';
+const IMAGE_URL_AD_SELECTOR = 'img[class^="styles_image__"]';
 const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
 
 export function parserAuto(items: NodeListOf<Element>): IAd[] {
@@ -25,10 +25,8 @@ export function parserAuto(items: NodeListOf<Element>): IAd[] {
       node.querySelector(DESCRIPTION_MILEAGE_AD_SELECTOR)?.textContent
     }`;
     const imgUrlAd =
-      node
-        .querySelector(IMAGE_URL_AD_SELECTOR)
-        ?.getAttribute('data-testid')
-        ?.replace('segment-', '') ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp';
+      node.querySelector(IMAGE_URL_AD_SELECTOR)?.getAttribute('src') ??
+      'https://i.ibb.co/NLkvZYG/no-photo.webp';
     const priceAd = Array.from(node.querySelectorAll(PRICE_AD_SELECTOR))
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
