@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 
 const KufarAdSchema = new Schema(
   {
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true },
     title: { type: String, required: true, trim: true },
     url: { type: String, required: true },
     img_url: { type: String, required: true },
