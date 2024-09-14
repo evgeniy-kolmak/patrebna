@@ -50,11 +50,13 @@ class DatabaseService {
     const user = await this.getUser(id);
     if (!user) return null;
     const parser = await Parser.findOne(user.parsers?._id);
-    const kufarObjectIds = parser?.kufar?.kufarAds;
-    await KufarAd.deleteMany({
-      _id: { $in: kufarObjectIds },
-    });
-    await parser?.deleteOne(user.parsers?._id);
+    if (user.parsers?._id) {
+      const kufarObjectIds = parser?.kufar?.kufarAds;
+      await KufarAd.deleteMany({
+        _id: { $in: kufarObjectIds },
+      });
+      await parser?.deleteOne(user.parsers?._id);
+    }
     await Profile.deleteOne(user.profiles?._id);
     await user.deleteOne({ id });
   }
@@ -81,7 +83,7 @@ class DatabaseService {
       const typeUrlParser = getTypeUrlParser(url);
       const dataParser = { url, typeUrlParser };
       const data = { kufar: { dataParser } };
-      if (!parser) {
+      if (!user.parsers?._id) {
         const parser = await Parser.create(data);
         user.parsers = parser._id;
         await user.save();
@@ -134,14 +136,13 @@ class DatabaseService {
     if (!user) return null;
     const profile = await Profile.findOne(user.profiles?._id);
     const parser = await Parser.findOne(user.parsers?._id);
-    return {
-      first_name: profile?.first_name ?? '',
-      last_name: profile?.last_name ?? '',
-      username: profile?.username ?? '',
-      premium: profile?.premium ?? 0,
-      link: parser?.kufar?.dataParser?.url ?? '',
-      count_ads: parser?.kufar?.kufarAds.length ?? 0,
-    } satisfies IProfile;
+    const dataProfile: IProfile = Object.assign(profile as IUser);
+    if (user.parsers?._id) {
+      dataProfile.link = parser?.kufar?.dataParser?.url;
+      dataProfile.count_ads = parser?.kufar?.kufarAds.length;
+    }
+
+    return dataProfile;
   }
 }
 
