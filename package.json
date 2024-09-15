@@ -1,6 +1,6 @@
 {
   "name": "patrebna",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Parser telegram bot for Kufar",
   "main": "index.js",
   "scripts": {
@@ -38,10 +38,9 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@types/config": "^3.3.4",
     "@types/jsdom": "^21.1.7",
     "axios": "^1.7.6",
-    "config": "^3.3.12",
+    "dotenv": "^16.4.5",
     "i18next": "^23.14.0",
     "jsdom": "^25.0.0",
     "mongoose": "^8.6.0",

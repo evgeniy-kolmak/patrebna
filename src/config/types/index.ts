@@ -1,7 +1,3 @@
-export interface Iconf {
-  tokenBot: string;
-}
-
 export interface IUser {
   username?: string;
   first_name?: string;
@@ -36,10 +32,4 @@ export enum TypesParser {
   OTHERS = 'others',
   AUTO = 'auto',
   RE = 're',
-}
-
-export interface IConfig {
-  telegram: {
-    token: string;
-  };
 }

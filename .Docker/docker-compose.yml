@@ -4,6 +4,8 @@ services:
     build: 
       context: ../
       dockerfile: ./.Docker/bot/Dockerfile
+    container_name: patrebna_bot
+    restart: always
     ports:
       - "8443:8443"
     depends_on:
@@ -12,8 +14,15 @@ services:
       - patrebna-network  
   mongodb:
     image: mongo:latest
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     ports:
       - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
     networks:
       - patrebna-network
 

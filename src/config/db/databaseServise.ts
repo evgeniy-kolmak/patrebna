@@ -10,7 +10,9 @@ import { getTypeUrlParser } from 'config/lib/helpers/getTypeUrlParser';
 class DatabaseService {
   url: string;
   constructor() {
-    this.url = 'mongodb://localhost:27017/patrebna';
+    const user = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
+    const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
+    this.url = `mongodb://${user}:${password}@mongodb:27017/patrebna?authSource=admin`;
     void mongoose.connect(this.url);
 
     const connect = mongoose.connection;

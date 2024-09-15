@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import db from 'config/db/databaseServise';
 import parseKufar from 'parsers/kufar/tasks/parseKufar';
 import { scheduleJob } from 'node-schedule';
