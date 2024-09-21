@@ -1,4 +1,4 @@
-name: Deploy to Server
+name: Deployment to server
 on:
   push:
     branches: [main]
@@ -14,6 +14,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             cd patrebna
-            git pull
+            git pull origin main
             cd .Docker
             docker-compose up -d --build bot
