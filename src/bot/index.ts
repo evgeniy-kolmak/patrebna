@@ -9,7 +9,8 @@ const URL = process.env.WEBHOOK_URL ?? '';
 const options = {
   webHook: {
     port: PORT,
-    cert: 'crt.pem',
+    key: 'key.pem',
+    cert: 'cert.pem',
   },
 };
 
