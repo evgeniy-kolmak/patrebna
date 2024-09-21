@@ -14,6 +14,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             cd patrebna
-            git pull origin main
+            git pull
             cd .Docker
             docker-compose up -d --build bot
