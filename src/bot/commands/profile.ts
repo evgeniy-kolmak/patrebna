@@ -11,7 +11,7 @@ export default (): void => {
       const isUser = await db.getUser(userID);
       if (isUser) {
         const profile = await db.getProfile(userID);
-        const dataProfile = `<b>ФИО</b>: ${profile?.first_name ?? ''} ${profile?.last_name ?? ''}\n<b>Псевдоним</b>: ${profile?.username ?? ''}\n<b>Подписка</b>: ${profile?.premium ? new Date(profile.premium * 1000).toLocaleDateString('ru-RU') : '➖'} \n<b>Cсылка</b>: ${profile?.link ?? '❌'}\n<b>Количество объявлений</b>: ${profile?.count_ads ?? 0}`;
+        const dataProfile = `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}\n<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}\n<b>${t('Подписка')}</b>: ${profile?.premium ? new Date(profile.premium * 1000).toLocaleDateString('ru-RU') : '➖'} \n<b>${t('Ссылка')}</b>: ${profile?.link ?? '❌'}\n<b>${t('Количество объявлений')}</b>: ${profile?.count_ads ?? 0}`;
         await bot.sendMessage(userID, dataProfile, {
           parse_mode: 'HTML',
           disable_web_page_preview: true,
