@@ -20,7 +20,7 @@ export const bot = new TelegramBot(TOKEN, options);
 void (async () => {
   try {
     const { url } = await bot.getWebHookInfo();
-    if (url === WEBHOOK_URL) {
+    if (url !== WEBHOOK_URL) {
       await bot.setWebHook(WEBHOOK_URL, {
         certificate: options.webHook.cert,
       });
