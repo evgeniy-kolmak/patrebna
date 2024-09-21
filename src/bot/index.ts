@@ -4,7 +4,8 @@ import cbquery from 'bot/cbquery';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const PORT = Number(process.env.WEBHOOK_PORT) ?? 8443;
-const URL = process.env.WEBHOOK_URL ?? '';
+const HOST = process.env.WEBHOOK_HOST ?? '';
+const WEBHOOK_URL = `${HOST}:${PORT}/bot${TOKEN}`;
 
 const options = {
   webHook: {
@@ -18,10 +19,13 @@ export const bot = new TelegramBot(TOKEN, options);
 
 void (async () => {
   try {
-    await bot.setWebHook(`${URL}:${PORT}/bot${TOKEN}`, {
-      certificate: options.webHook.cert,
-    });
-    console.info('Webhook set is successfully');
+    const { url } = await bot.getWebHookInfo();
+    if (url === WEBHOOK_URL) {
+      await bot.setWebHook(WEBHOOK_URL, {
+        certificate: options.webHook.cert,
+      });
+      console.info('Webhook was successfully set');
+    }
   } catch (error) {
     console.error('The certificate could not be installed', error);
   }
