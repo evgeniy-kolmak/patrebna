@@ -6,7 +6,7 @@ import { scheduleJob } from 'node-schedule';
 void (async () => {
   const users: number[] = await db.getUserForParse();
 
-  scheduleJob('*/15 7-23 * *', async () => {
+  scheduleJob('*/15 * * * *', async () => {
     try {
       await parseKufar(users);
     } catch (error) {
