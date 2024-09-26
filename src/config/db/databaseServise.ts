@@ -113,12 +113,16 @@ class DatabaseService {
     }
   }
 
-  async getSavedAds(id: number) {
+  async getSavedIds(id: number) {
     const user = await this.getUser(id);
     if (!user) return null;
     const parser = await Parser.findOne(user?.parsers?._id);
-    const ads = await KufarAd.find({ _id: { $in: parser?.kufar?.kufarAds } });
-    return ads;
+    const adIds = await KufarAd.find(
+      { _id: { $in: parser?.kufar?.kufarAds } },
+      { id: 1, _id: 0 },
+    );
+    const ids = adIds.map((ad) => ad.id);
+    return ids;
   }
 
   async setAdKufar(data: IAd, id: number) {

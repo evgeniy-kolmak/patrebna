@@ -22,16 +22,16 @@ export default async function parseKufar(usersIds: number[]): Promise<void> {
 
       const typeUrlParser = dataParser.typeUrlParser as TypesParser;
       const parserData = parserAds(typeUrlParser, html);
-      const saveAds = (await db.getSavedAds(userId)) as IAd[];
-
-      const newIds = compareCollections(saveAds, parserData);
+      const saveIds = (await db.getSavedIds(userId)) as string[];
+      const parseIds = parserData.map((ad) => ad.id);
+      const newIds = compareCollections(saveIds, parseIds);
 
       const statusCollectionAds = await db.isAdsEmpty(userId);
       for (const newId of newIds) {
         const data = parserData.find((ad: IAd) => ad.id === newId);
         if (data) {
           await db.setAdKufar(data, userId);
-          await pause(2500);
+          await pause(2000);
           if (statusCollectionAds) {
             await sendMessageOfNewAd({ userId, ...data });
           }
