@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { t } from 'i18next';
+import i18next, { t } from 'i18next';
 import { bot } from 'bot';
 import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
+import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 
 export default (): void => {
   bot.onText(/Профиль|Профіль/, (ctx) => {
     void (async () => {
       const userID = ctx.chat.id;
+      await i18next.changeLanguage(getUserLanguage(userID));
       const isUser = await db.getUser(userID);
       if (isUser) {
         const profile = await db.getProfile(userID);

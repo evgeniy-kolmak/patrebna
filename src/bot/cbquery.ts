@@ -8,6 +8,10 @@ import observe from 'bot/commands/observe';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import { eventMessage } from 'config/lib/helpers/eventMessage';
+import {
+  getUserLanguage,
+  setUserLanguage,
+} from 'config/lib/helpers/cacheLaguage';
 import { type IUser, Languages } from 'config/types';
 
 export default (): void => {
@@ -15,8 +19,10 @@ export default (): void => {
     const { data, from, message } = query;
     const chatID = from.id;
     const messageID = message?.message_id;
+    const language = getUserLanguage(chatID);
     switch (data) {
       case 'registration': {
+        await i18next.changeLanguage(language);
         try {
           const { username, first_name, last_name } = from;
           const profile: IUser = {
@@ -43,25 +49,27 @@ export default (): void => {
         break;
       }
       case 'change_language': {
-        await i18next.changeLanguage(
-          i18next.language === Languages.Belarusian
+        const newLanguage =
+          language === Languages.Belarusian
             ? Languages.Russian
-            : Languages.Belarusian,
-        );
-
+            : Languages.Belarusian;
+        setUserLanguage(chatID, newLanguage);
+        await i18next.changeLanguage(newLanguage);
         await bot.sendMessage(chatID, t('Язык был изменен'), {
           parse_mode: 'HTML',
           reply_markup: keyboard.Main(),
         });
-        await bot.editMessageText(t('Переключить язык приложения'), {
-          chat_id: chatID,
-          message_id: messageID,
+
+        if (message && message.text?.includes('🔄'))
+          await bot.deleteMessage(chatID, message.message_id);
+        await bot.sendMessage(chatID, t('Переключить язык приложения'), {
           reply_markup: keyboard.Button(t('Сменить язык'), 'change_language'),
         });
         break;
       }
 
       case 'remove_me': {
+        await i18next.changeLanguage(language);
         await bot.editMessageText(t('Сообщение об удалении профиля'), {
           chat_id: chatID,
           message_id: messageID,
@@ -74,6 +82,7 @@ export default (): void => {
         break;
       }
       case 'approve': {
+        await i18next.changeLanguage(language);
         await bot.editMessageText(t('Подтвердить удаление'), {
           chat_id: chatID,
           message_id: messageID,
@@ -84,6 +93,7 @@ export default (): void => {
         break;
       }
       case 'reject': {
+        await i18next.changeLanguage(language);
         await bot.editMessageText(t('Отклонить удаление'), {
           chat_id: chatID,
           message_id: messageID,
@@ -93,6 +103,7 @@ export default (): void => {
         break;
       }
       case 'back': {
+        await i18next.changeLanguage(language);
         await bot.sendMessage(chatID, t('Действие отменено'), {
           reply_markup: keyboard.Main(),
         });
@@ -105,6 +116,7 @@ export default (): void => {
         break;
       }
       case 'back_observe': {
+        await i18next.changeLanguage(language);
         await bot.editMessageText(t('Сообщение об отслеживании'), {
           chat_id: chatID,
           message_id: messageID,
@@ -117,6 +129,7 @@ export default (): void => {
         break;
       }
       case 'kufar': {
+        await i18next.changeLanguage(language);
         const dataParser = await db.getDataParser(chatID);
         await bot.editMessageText(t('Текст для Kufar'), {
           chat_id: chatID,
@@ -133,6 +146,7 @@ export default (): void => {
         break;
       }
       case 'add_link_kufar': {
+        await i18next.changeLanguage(language);
         await bot.editMessageText(t('Текст для Kufar при добавлении ссылки'), {
           chat_id: chatID,
           message_id: messageID,
