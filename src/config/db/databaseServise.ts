@@ -12,7 +12,7 @@ class DatabaseService {
   constructor() {
     const user = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.url = `mongodb://${user}:${password}@mongodb:27017/patrebna?authSource=admin`;
+    this.url = `mongodb://${user}:${password}@mongodb:27017/patrebna?authSource=admin&tls=true`;
     void mongoose.connect(this.url);
 
     const connect = mongoose.connection;
