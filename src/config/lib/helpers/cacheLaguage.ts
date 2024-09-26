@@ -6,7 +6,6 @@ export const getUserLanguage = (chatID: number): Languages => {
   if (!userLanguageCache.has(chatID)) {
     userLanguageCache.set(chatID, Languages.Russian);
   }
-  console.log(userLanguageCache);
   return userLanguageCache.get(chatID);
 };
 
