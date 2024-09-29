@@ -1,4 +1,5 @@
 node_modules
 .Docker/data
-*.pem
+*pem
+/certs
 .env

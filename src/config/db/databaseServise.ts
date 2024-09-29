@@ -6,14 +6,19 @@ import { Parser } from 'config/db/models/Parser';
 import { KufarAd } from 'config/db/models/KufarAd';
 import { type IAd, type IProfile, type IUser } from 'config/types';
 import { getTypeUrlParser } from 'config/lib/helpers/getTypeUrlParser';
+import path from 'path';
+import { readFileSync } from 'fs';
 
 class DatabaseService {
   url: string;
   constructor() {
-    const user = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
+    const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.url = `mongodb://${user}:${password}@mongodb:27017/patrebna?authSource=admin&tls=true`;
-    void mongoose.connect(this.url);
+    this.url = `mongodb://${username}:${password}@mongodb:27017/patrebna`;
+    void mongoose.connect(this.url, {
+      authSource: 'admin',
+      tls: true,
+    });
 
     const connect = mongoose.connection;
 
