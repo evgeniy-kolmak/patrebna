@@ -10,8 +10,8 @@ const WEBHOOK_URL = `${HOST}:${PORT}/bot${TOKEN}`;
 const options = {
   webHook: {
     port: PORT,
-    key: 'key.pem',
-    cert: 'cert.pem',
+    key: './certs/bot/key.pem',
+    cert: './certs/bot/cert.pem',
   },
 };
 

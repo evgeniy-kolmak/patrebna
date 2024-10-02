@@ -18,12 +18,12 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-    command: mongod --tlsMode requireTLS --tlsCertificateKeyFile /etc/ssl/mongodb.pem --tlsCAFile /etc/ssl/ca.pem
+    command: mongod --tlsMode requireTLS --tlsCertificateKeyFile /etc/ssl/mongodb.pem --tlsCAFile /etc/ssl/ca.pem --auth
     ports:
       - "27017:27017"
     volumes:
       - ./data/db:/data/db
-      - ../certs/mongodb.pem:/etc/ssl/mongodb.pem
+      - ../certs/mongodb/mongodb.pem:/etc/ssl/mongodb.pem
       - ../certs/ca.pem:/etc/ssl/ca.pem
     networks:
       - patrebna-network
