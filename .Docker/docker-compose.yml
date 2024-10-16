@@ -4,6 +4,7 @@ services:
     build: 
       context: ../
       dockerfile: ./.Docker/bot/Dockerfile
+    image: bot
     container_name: patrebna_bot
     restart: always
     ports:
