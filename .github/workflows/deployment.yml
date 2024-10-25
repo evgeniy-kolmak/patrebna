@@ -17,3 +17,4 @@ jobs:
             git pull origin main
             cd .Docker
             docker-compose up -d --build bot
+            docker image prune -f
