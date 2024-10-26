@@ -4,11 +4,9 @@ import parseKufar from 'parsers/kufar/tasks/parseKufar';
 import { scheduleJob } from 'node-schedule';
 
 void (async () => {
-  const users: number[] = await db.getUserForParse();
-
   scheduleJob('*/15 * * * *', async () => {
     try {
-      await parseKufar(users);
+      await parseKufar((await db.getUserForParse()) as number[]);
     } catch (error) {
       console.error(error);
     }
