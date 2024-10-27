@@ -4,6 +4,7 @@
   "description": "Parser telegram bot for Kufar",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
     "lint": "eslint \"**/*.{ts,tsx}\""
   },
