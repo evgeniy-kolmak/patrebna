@@ -4,30 +4,25 @@
 <h1 align="center">PATREBNA</h1>
 
 <p align="center">
-   <img src="https://img.shields.io/badge/Typescript-%5E5.0.4-blue" alt="Typescript Version">
-   <img src="https://img.shields.io/badge/Node%20telegram%20bot%20api-%5E0.61.0-blueviolet" alt="Node telegram botapi Version">
-  <img src="https://img.shields.io/badge/DB-Firebase-important" alt="Database">
-   <img src="https://img.shields.io/badge/Version-v2.3.1-9cf" alt="App Version">
+   <img src="https://img.shields.io/badge/Typescript-%5E5.5.4-blue" alt="Typescript Version">
+   <img src="https://img.shields.io/badge/Node%20telegram%20bot%20api-%5E0.66.0-blueviolet" alt="Node telegram botapi Version">
+  <img src="https://img.shields.io/badge/DB-Mongodb-green" alt="Database">
+   <img src="https://img.shields.io/badge/Languages-2-red" alt="Languages">
+   <img src="https://img.shields.io/badge/Version-v3.3.2-9cf" alt="App Version">
    <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
 ## Что умеет этот бот?
 
 **Patrebna bot** - бот парсер, который  отслеживает и оповещает о появлении новых объявлений на площадке **Kufar**.
-А так же бот может отслеживать обновление статуса посылок **Европочта**.
 Сообщения приходят в личную переписку с ботом.
 
 ## Интерактив с ботом
 
 Что бы начать, достаточно запустить бота `/start`  и добавить ссылку для отслеживания (с выбранной категорией и настроенными фильтрами товаров)  - https://kufar.by/l/город/товар/.
 
-#### Бот рапознает 5 команд:
+<img src="https://i.ibb.co/CB0xznz/IMG-2389.webp" width="1000" alt="Пример использования">
 
-  - `/start` - Запустить бота.
-  - `/help` - Помощь и информация.
-  - `/changeurl` - Изменить ссылку для отслеживания.
-  - `/track_packages` - Отслеживать поcылки.
-  - `/stop` - Остановить бота.
 
 #### Какую информацию парсит бот
 
@@ -39,134 +34,115 @@
 
 * Параметры могут варьироваться в зависимости от категории объявлений (Недвижимость, Авто или Другое).
 
-**Пример сообщения** 
-
-<img src="https://i.ibb.co/jZV3H3r/image.png" alt="Пример сообщения">
+<img src="https://i.ibb.co/T00jMgr/IMG-9240.webp" width="400" alt="Пример сообщения">
 
 ##### Парсинг коммерчиских объявлений отключен по умолчанию.
 
-Что бы включить -  уберите из кода **src/helpers/parcer/categories/auto.ts** (пример)  `isNotCompanyAd`.
-
-#### Отслеживание посылок
-
-- Информация о посылке берется из API Европочты.
-- Количество  добавляемых посылок, не ограничено.
-- После окончания доставки, посылка не отслеживается.
-- Каждое оповещение приходит в формате картинки.
-- Для каждого трек-номера можно добавить комментарий.
-
-**Пример сообщения**
-
-<img src="https://i.ibb.co/VQ2mpMC/photo-2024-01-02-12-00-06.jpg" alt="Пример сообщения" width="300">
+Что бы включить -  уберите из кода **src/parsers/kufar/categories/other.ts** (пример)  `isNotCompanyAd`.
 
 ## Документация 
 
-### Telegram
+#### Создание окружение
 
-**BotFather**
-
- - Регистрируем бота телеграм, получаем токен  
- - Создаем команды (описаны выше) - Bot Settings >  `/setcommands`
-
-### Firebase
-
-- Создаем **Realtime Database**
-- Получаем конфигурацию для подключения базы данных 
-- В корне БД создаем `users` 
-
-### Конфигурация 
-
-В корне проекта создаем директорию `config` и в ней файл `default.yaml`
+- В корне проекта нужно создать файл окружения - `touch .env`.
 
 ```
-{
-  authFirebase:
-    { email: 'ваш_имейл', password: 'ваш_пароль' },
-  firebase:
-    {
-      apiKey: 'конфиг_бд',
-      authDomain: 'конфиг_бд',
-      databaseURL: 'конфиг_бд',
-      projectId: 'конфиг_бд',
-      storageBucket: 'конфиг_бд',
-      messagingSenderId: 'конфиг_бд',
-      appId: 'конфиг_бд',
-      measurementId: 'конфиг_бд',
-    },
-  tokenBot: 'токен_вашего_бота',
-  webhook: { url: 'ваш_url', port: ваш_порт },
-}
+MONGO_INITDB_ROOT_USERNAME= ИМЯ_ПОЛЬЗОВАТЕЛЯ_БД
+MONGO_INITDB_ROOT_PASSWORD= ПАРОЛЬ_ПОЛЬЗОВАТЕЛЯ_БД
+TELEGRAM_BOT_TOKEN= ТОКЕН_БОТА_ТЕЛЕГРАМ
+WEBHOOK_HOST= АДРЕС_СЕРВЕРА (IP)
+WEBHOOK_PORT= ПОРТ (обычно 8443 или 443 для ssl)
 ```
-### Работа с проектом
+#### Создание SSL сертификатов 
 
-**Установка зависимостей**
-```
-npm install
-```
-**Разработка**
-```
-npm start 
-```
-```
-npm run dev 
-```
-**Сборка**
-```
-npm run build
-```
-**Выполнение скрипта (cron)**
+- В корне проекта нужно создать директорию для хранение сертификатов - `mkdir certs`.
+- Переходим в директория `cd certs` и в ней создаем две поддиректории `mkdir mongodb && mkdir bot`
+- Создаем два файла конфигруции `touch openssl.cnf && touch config.cnf`
 
-По умолчанию проверка наличия новых объявлений выполняется раз в 15 минут (*/15), а обновление статуса посылки раз в 1 час (0 */1 )
-
-## Запуск 
-
-### Ngrok 
+**Openssl.cnf**
 
 ```
-ngrok http ваш_порт
-```
-Например: `ngrok http 3000`  Полученный url и указазаный порт нужно добавить в конфигурацию.
+[ req ]
+distinguished_name = x509_distinguished_name
+x509_extensions = x509_ext
+prompt = no
+default_md = sha256
 
-#### Старт приложения
-```
-node dist/index.js
-```
+[ x509_distinguished_name ]
+CN = Общее название 
+O = Название компании
+L = Город
+C = Регион
 
-### VPS
-
-Предварительно нужно установить **Node js** и **Git**. Клонировать репозиторий и установить зависимости.
-
-- Установка **Chromium** для **Ubuntu** 
-
-``` 
-sudo apt install chromium-browser
-```
-*Пакет нужен для корректной отправки уведомлений о изменение положении посылки*
-
-- Создание **SSL** сертификата для **webhook** 
-
-```
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=адрес_вашего_сервера"
-```
-[Подробнее об SSL](https://core.telegram.org/bots/self-signed)
-
-*Если вы не используете вебхук, этот шаг можно пропустить.*
-
-### Установка менеджера процессов PM2
-
-```
-npm install pm2 -g
-```
-#### Старт приложения
-
-```
-pm2 start --name "имя_вашего_приложения" npm -- start
+[ x509_ext ]
+basicConstraints = critical,CA:true
+keyUsage = critical, keyCertSign, cRLSign
 ```
 
-### Альтернативный метод 
+**Config.cnf**
 
-Замените метод работы бота с `webhook` на `pooling: true` в **src/helpers/telegram/bot.ts**
+```
+[ req ]
+distinguished_name = x509_distinguished_name
+x509_extensions = x509_ext
+prompt = no
+default_md = sha256
 
+[ x509_distinguished_name ]
+CN = Общее название (Должно отличаться от openssl.cnf иначе сертификаты будут считаться самоподписанными)
+O = Название компании
+L = Город
+C = Регион
+
+[ x509_ext ]
+basicConstraints = critical,CA:false
+keyUsage = critical,digitalSignature,keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+
+[ alt_names ]
+IP.1 = Доверенный адрес (IP сервера)
+```
+- Создание цетра сертификации
+  
+```
+openssl genrsa -out ca-key.pem 4096
+openssl req -x509 -new -nodes -key ca-key.pem -sha256 -days 365 -out ca.pem -config openssl.cnf
+```
+- Создание сертификата для Mongodb
+
+```
+openssl genrsa -out mongodb/mongodb-key.pem 4096
+openssl req -new -key mongodb/mongodb-key.pem -out mongodb/mongodb.csr -config config.cnf
+openssl x509 -req -in mongodb/mongodb.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out mongodb/mongodb-cert.pem -days 365 -sha256
+cat mongodb/mongodb-cert.pem mongodb/mongodb-key.pem > mongodb/mongodb.pem
+```
+- Создание клиентского сертификата
+
+```
+openssl genrsa -out client-key.pem 4096
+openssl req -new -key client-key.pem -out client.csr -config config.cnf
+openssl x509 -req -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out client-cert.pem -days 365 -sha256
+cat client-cert.pem client-key.pem > client.pem
+```
+- Создание SSL сертификата для webhook
+  
+```
+openssl req -x509 -newkey rsa:2048 -keyout bot/key.pem -out bot/cert.pem -days 365 -nodes -subj "/CN=IP_СЕРВЕРА"
+```
+[Подробнее об SSL для телеграм ботов](https://core.telegram.org/bots/self-signed)
+
+#### Запуск и сборка
+
+Для старта проекта (из корневой папки).
+
+```cd .Docker && docker-compose --env-file ../.env up -d```
+
+## Дополнительная информация
+
+- Бот - мультиязычный и поддерживает два языка (русский и белорусский).
+- По умолчанию проверка наличия новых объявлений выполняется раз в 15 минут (*/15).
+- Директория **.github** нужна только для разработки и деплоя на сервер (ее можно удалить).
 
 ## Разработчик
 - [Евгений Колмак](https://github.com/evgeniy-kolmak)
