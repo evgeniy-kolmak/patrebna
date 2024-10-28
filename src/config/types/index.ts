@@ -33,3 +33,15 @@ export enum TypesParser {
   AUTO = 'auto',
   RE = 're',
 }
+
+export interface Error {
+  response: {
+    body: {
+      error_code: number;
+      description: string;
+    };
+    request: {
+      href: string;
+    };
+  };
+}
