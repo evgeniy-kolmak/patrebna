@@ -19,7 +19,7 @@ export interface IAd {
   title: string;
   url: string;
   img_url: string;
-  description?: string;
+  description?: string | null;
   price: string;
 }
 

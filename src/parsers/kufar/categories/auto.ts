@@ -5,7 +5,9 @@ const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_description__params__"]';
 const DESCRIPTION_YEAR_AD_SELECTOR = 'div[class^="styles_description__"] > p';
 const DESCRIPTION_MILEAGE_AD_SELECTOR =
   'p[class^="styles_description__params__"] ~ p';
+const DESCRIPTION_AD_SELECTOR_ANOTHER = `p[class^=styles_info__price__] ~ p`;
 const PRICE_AD_SELECTOR = 'div[class^=styles_info__price__] > span';
+const PRICE_AD_SELECTOR_ANOTHER = 'p[class^=styles_info__price__] > span';
 const IMAGE_URL_AD_SELECTOR = 'img[class^="styles_image__"]';
 const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
 
@@ -19,15 +21,23 @@ export function parserAuto(items: NodeListOf<Element>): IAd[] {
     const urlAd = `${origin}${pathname}`;
     const itemIdAd = pathname.replace(/\D/g, '');
     const titleAd = node.querySelector(TITLE_AD_SELECTOR)?.textContent ?? '';
-    const descriptionAd = `${
-      node.querySelector(DESCRIPTION_AD_SELECTOR)?.textContent
-    }, ${node.querySelector(DESCRIPTION_YEAR_AD_SELECTOR)?.textContent}, ${
-      node.querySelector(DESCRIPTION_MILEAGE_AD_SELECTOR)?.textContent
-    }`;
+    const descriptionAd = node.querySelector(DESCRIPTION_AD_SELECTOR)
+      ? `${
+          node.querySelector(DESCRIPTION_AD_SELECTOR)?.textContent
+        }, ${node.querySelector(DESCRIPTION_YEAR_AD_SELECTOR)?.textContent}, ${
+          node.querySelector(DESCRIPTION_MILEAGE_AD_SELECTOR)?.textContent
+        }`
+      : node.querySelector(DESCRIPTION_AD_SELECTOR_ANOTHER)?.textContent;
+
     const imgUrlAd =
       node.querySelector(IMAGE_URL_AD_SELECTOR)?.getAttribute('src') ??
       'https://i.ibb.co/NLkvZYG/no-photo.webp';
-    const priceAd = Array.from(node.querySelectorAll(PRICE_AD_SELECTOR))
+
+    const priceList = node.querySelectorAll(PRICE_AD_SELECTOR).length
+      ? node.querySelectorAll(PRICE_AD_SELECTOR)
+      : node.querySelectorAll(PRICE_AD_SELECTOR_ANOTHER);
+
+    const priceAd = Array.from(priceList)
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
 
