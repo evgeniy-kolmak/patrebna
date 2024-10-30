@@ -36,11 +36,24 @@ class DatabaseService {
     });
   }
 
-  async getUserForParse() {
-    const usersWithParsers = await User.find({
-      parsers: { $exists: true },
-    });
+  async getUsersForParse(): Promise<number[]> {
+    const usersWithParsers = await User.find(
+      {
+        parsers: { $exists: true },
+      },
+      { id: 1, _id: 0 },
+    );
     return usersWithParsers.map((user) => user.id);
+  }
+
+  async getInactiveUsers(): Promise<number[]> {
+    const inactiveUsers = await User.find(
+      {
+        parsers: { $exists: false },
+      },
+      { id: 1, _id: 0 },
+    );
+    return inactiveUsers.map((user) => user.id);
   }
 
   async getUser(id: number) {

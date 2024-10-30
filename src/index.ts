@@ -6,7 +6,12 @@ import { type Error } from 'config/types';
 
 void (async () => {
   scheduleJob('*/15 * * * *', async () => {
-    await taskKufar((await db.getUserForParse()) as number[]);
+    await taskKufar(await db.getUsersForParse());
+  });
+  scheduleJob('0 0 * * *', async () => {
+    for (const id of await db.getInactiveUsers()) {
+      await db.removeUser(id);
+    }
   });
 })();
 
