@@ -8,6 +8,7 @@ const KufarAdSchema = new Schema(
     img_url: { type: String, required: true },
     description: { type: String, trim: true },
     price: { type: String, required: true, trim: true },
+    createdAt: { type: Date, default: Date.now, expires: '7d' },
   },
   { versionKey: false },
 );
