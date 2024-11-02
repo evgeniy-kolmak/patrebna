@@ -34,6 +34,7 @@ export function parserRealOfEstate(items: NodeListOf<Element>): IAd[] {
       price: priceAd,
       url: urlAd,
       description: descriptionAd,
+      createdAt: new Date(),
     });
   });
   return newAds;

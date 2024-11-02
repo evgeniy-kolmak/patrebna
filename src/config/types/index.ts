@@ -21,6 +21,7 @@ export interface IAd {
   img_url: string;
   description?: string | null;
   price: string;
+  createdAt: Date;
 }
 
 export enum Languages {

@@ -33,6 +33,7 @@ export function parserOthers(items: NodeListOf<Element>): IAd[] {
         title: titleAd,
         price: priceAd,
         url: urlAd,
+        createdAt: new Date(),
       });
     }
   });

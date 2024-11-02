@@ -52,6 +52,7 @@ export function parserAuto(items: NodeListOf<Element>): IAd[] {
         description: descriptionAd,
         price: priceAd,
         url: urlAd,
+        createdAt: new Date(),
       });
     }
   });
