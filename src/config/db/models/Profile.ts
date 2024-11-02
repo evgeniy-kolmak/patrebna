@@ -4,7 +4,6 @@ const ProfileSchema = new Schema(
   {
     username: {
       type: String,
-      unique: true,
     },
     first_name: {
       type: String,
