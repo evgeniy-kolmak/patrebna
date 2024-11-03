@@ -101,7 +101,7 @@ class DatabaseService {
   async setUrlKufar(url: string, id: number) {
     const user = await this.getUser(id);
     const regex =
-      /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by)\/?[^а-яА-Я\s]*$/;
+      /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by)\/?[\wа-яА-Я%-=&?.]*$/;
     if (!user) return null;
     if (url.match(regex)) {
       const parser = await Parser.findOne(user.parsers?._id);
