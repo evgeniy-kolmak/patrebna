@@ -6,8 +6,10 @@ import { compareCollections } from 'config/lib/helpers/compareCollection';
 import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import { type IAd, type TypesParser } from 'config/types';
 
-export default async function parseKufar(usersIds: number[]): Promise<void> {
-  console.log(new Date().toLocaleTimeString('ru-RU'));
+export default async function Kufar(usersIds: number[]): Promise<void> {
+  console.info(
+    `Время запуска парсера: ${new Date().toLocaleTimeString('ru-RU')}\nКоличество пользователей: ${usersIds.length}`,
+  );
   for (const userId of usersIds) {
     const dataParser = await db.getDataParser(userId);
     const url = dataParser?.url;
@@ -26,18 +28,15 @@ export default async function parseKufar(usersIds: number[]): Promise<void> {
       const parseIds = parserData.map((ad) => ad.id);
       const newIds = compareCollections(saveIds, parseIds);
 
-      const statusCollectionAds = await db.isAdsEmpty(userId);
       for (const newId of newIds) {
         const data = parserData.find((ad: IAd) => ad.id === newId);
         if (data) {
           await db.setAdKufar(data, userId);
-          await pause(2000);
-          if (statusCollectionAds) {
-            await sendMessageOfNewAd({ userId, ...data });
-          }
+          await pause(2500);
+          await sendMessageOfNewAd({ userId, ...data });
         }
       }
-      console.log(`Добавлено новых объявлений ${newIds.length} в базу`);
+      console.info(`Добавлено новых объявлений ${newIds.length} в базу`);
     }
   }
 }

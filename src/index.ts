@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import db from 'config/db/databaseServise';
-import parseKufar from 'parsers/kufar/tasks/parseKufar';
+import Kufar from 'parsers/kufar/tasks/Kufar';
 import { scheduleJob } from 'node-schedule';
 import { type Error } from 'config/types';
 
@@ -17,7 +17,7 @@ void (async () => {
 
 async function taskKufar(users: number[]): Promise<void> {
   try {
-    await parseKufar(users);
+    await Kufar(users);
   } catch (error) {
     const err = error as Error;
     if (

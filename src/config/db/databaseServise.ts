@@ -6,6 +6,8 @@ import { Parser } from 'config/db/models/Parser';
 import { KufarAd } from 'config/db/models/KufarAd';
 import { type IAd, type IProfile, type IUser } from 'config/types';
 import { getTypeUrlParser } from 'config/lib/helpers/getTypeUrlParser';
+import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
+import { parseKufar } from 'config/lib/helpers/parseKufar';
 
 class DatabaseService {
   url: string;
@@ -86,12 +88,6 @@ class DatabaseService {
     await user.deleteOne({ id });
   }
 
-  async isAdsEmpty(id: number) {
-    const user = await this.getUser(id);
-    const parser = await Parser.findOne(user?.parsers?._id);
-    return parser?.kufar?.kufarAds.length;
-  }
-
   async getDataParser(id: number) {
     const user = await this.getUser(id);
     const parser = await Parser.findOne(user?.parsers?._id);
@@ -104,31 +100,38 @@ class DatabaseService {
       /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by)\/?[\wа-яА-Я%-=&?.]*$/;
     if (!user) return null;
     if (url.match(regex)) {
-      const parser = await Parser.findOne(user.parsers?._id);
-      const typeUrlParser = getTypeUrlParser(url);
-      const dataParser = { url, typeUrlParser };
-      const data = { kufar: { dataParser } };
-      if (!user.parsers?._id) {
-        const parser = await Parser.create(data);
-        user.parsers = parser._id;
-        await user.save();
-      } else if (parser?.kufar) {
-        if (parser.kufar.kufarAds.length) {
-          const kufarObjectIds = parser.kufar.kufarAds;
-          await KufarAd.deleteMany({
-            _id: { $in: kufarObjectIds },
-          });
-          await Parser.updateMany(
-            { _id: parser._id },
-            {
-              $set: { 'kufar.kufarAds': [] },
-            },
-          );
+      const dataUrl = await checkUrlOfKufar(url);
+      if (dataUrl && typeof dataUrl === 'string') {
+        const parser = await Parser.findOne(user.parsers?._id);
+        const typeUrlParser = getTypeUrlParser(url);
+        const dataParser = { url, typeUrlParser };
+        const data = { kufar: { dataParser } };
+        if (!user.parsers?._id) {
+          const parser = await Parser.create(data);
+          user.parsers = parser._id;
+          await user.save();
+        } else if (parser?.kufar) {
+          if (parser.kufar.kufarAds.length) {
+            const kufarObjectIds = parser.kufar.kufarAds;
+            await KufarAd.deleteMany({
+              _id: { $in: kufarObjectIds },
+            });
+            await Parser.updateMany(
+              { _id: parser._id },
+              {
+                $set: { 'kufar.kufarAds': [] },
+              },
+            );
+          }
+          parser.kufar.dataParser = dataParser;
+          await parser.save();
+        } else {
+          console.error('Не удалось добавить ссылку Kufar!');
+          return new Error();
         }
-        parser.kufar.dataParser = dataParser;
-        await parser.save();
+        await parseKufar(dataUrl, id, typeUrlParser);
       } else {
-        console.error('Не удалось добавить ссылку Kufar!');
+        console.error('Неподходящая ссылка Kufar!');
         return new Error();
       }
     } else {
