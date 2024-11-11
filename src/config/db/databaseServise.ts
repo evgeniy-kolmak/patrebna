@@ -22,8 +22,8 @@ class DatabaseService {
       },
       tls: true,
       dbName: 'patrebna',
-      tlsAllowInvalidCertificates: true,
       authSource: 'admin',
+      tlsAllowInvalidCertificates: true,
       tlsCertificateKeyFile: './certs/client.pem',
     });
 
@@ -97,7 +97,7 @@ class DatabaseService {
   async setUrlKufar(url: string, id: number) {
     const user = await this.getUser(id);
     const regex =
-      /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by\/l)[\wа-яА-Я%-=&?.]*$/;
+      /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by\/l)[\wа-яА-Я\-_.~!*'();/?:@&=+$,%]*$/;
     if (!user) return null;
     if (url.match(regex)) {
       const dataUrl = await checkUrlOfKufar(url);
