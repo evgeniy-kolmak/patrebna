@@ -9,9 +9,13 @@ void (async () => {
     await taskKufar(await db.getUsersForParse());
   });
   scheduleJob('0 0 * * *', async () => {
-    for (const id of await db.getInactiveUsers()) {
-      await db.removeUser(id);
+    const inactiveUsers = await db.getInactiveUsers();
+    if (inactiveUsers.length) {
+      for (const id of await db.getInactiveUsers()) {
+        await db.removeUser(id);
+      }
     }
+    await db.clearExpiredAdReferences();
   });
 })();
 

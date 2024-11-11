@@ -16,15 +16,15 @@ class DatabaseService {
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
     this.url = `mongodb://localhost:27017/`;
     void mongoose.connect(this.url, {
-      // auth: {
-      //   username,
-      //   password,
-      // },
-      // tls: true,
-      // dbName: 'patrebna',
-      // tlsAllowInvalidCertificates: true,
+      auth: {
+        username,
+        password,
+      },
+      tls: true,
+      dbName: 'patrebna',
+      tlsAllowInvalidCertificates: true,
       authSource: 'admin',
-      // tlsCertificateKeyFile: './certs/client.pem',
+      tlsCertificateKeyFile: './certs/client.pem',
     });
 
     const connect = mongoose.connection;
@@ -175,6 +175,16 @@ class DatabaseService {
     }
 
     return dataProfile;
+  }
+
+  async clearExpiredAdReferences() {
+    const activeAdIds = await KufarAd.find({}, '_id').then((ads) =>
+      ads.map((ad) => ad._id),
+    );
+    await Parser.updateMany(
+      {},
+      { $pull: { 'kufar.kufarAds': { $nin: activeAdIds } } },
+    );
   }
 }
 
