@@ -14,17 +14,17 @@ class DatabaseService {
   constructor() {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.url = `mongodb://mongodb:27017/`;
+    this.url = `mongodb://localhost:27017/`;
     void mongoose.connect(this.url, {
-      auth: {
-        username,
-        password,
-      },
-      tls: true,
-      dbName: 'patrebna',
-      tlsAllowInvalidCertificates: true,
+      // auth: {
+      //   username,
+      //   password,
+      // },
+      // tls: true,
+      // dbName: 'patrebna',
+      // tlsAllowInvalidCertificates: true,
       authSource: 'admin',
-      tlsCertificateKeyFile: './certs/client.pem',
+      // tlsCertificateKeyFile: './certs/client.pem',
     });
 
     const connect = mongoose.connection;
@@ -97,7 +97,7 @@ class DatabaseService {
   async setUrlKufar(url: string, id: number) {
     const user = await this.getUser(id);
     const regex =
-      /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by)\/?[\wа-яА-Я%-=&?.]*$/;
+      /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by\/l)[\wа-яА-Я%-=&?.]*$/;
     if (!user) return null;
     if (url.match(regex)) {
       const dataUrl = await checkUrlOfKufar(url);
