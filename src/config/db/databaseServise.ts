@@ -14,7 +14,7 @@ class DatabaseService {
   constructor() {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.url = `mongodb://localhost:27017/`;
+    this.url = `mongodb://mongodb:27017/`;
     void mongoose.connect(this.url, {
       auth: {
         username,
