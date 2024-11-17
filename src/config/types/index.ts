@@ -6,8 +6,9 @@ export interface IUser {
 }
 
 export interface IProfile extends IUser {
-  link?: string;
-  count_ads?: number;
+  link?: string | null;
+  count_ads?: number | null;
+  count_tracks?: number | null;
 }
 
 export interface ParserData {
@@ -22,6 +23,22 @@ export interface IAd {
   description?: string | null;
   price: string;
   createdAt: Date;
+}
+
+export interface IPackage {
+  trackNumber: string;
+  infoPoint: string;
+  lengthPath: number;
+  comment?: string;
+}
+
+export interface IDataPackageApi {
+  Timex: string;
+  InfoTrack: string;
+  IsChooseDeliveryTime: string;
+  CheckxFrom: string;
+  CheckxTo: string;
+  Info: string;
 }
 
 export enum Languages {
