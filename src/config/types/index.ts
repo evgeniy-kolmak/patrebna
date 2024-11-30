@@ -35,14 +35,14 @@ export enum TypesParser {
   RE = 're',
 }
 
-export interface Error {
+export interface ErrorTelegram {
   response: {
     body: {
       error_code: number;
       description: string;
     };
     request: {
-      href: string;
+      body: string;
     };
   };
 }

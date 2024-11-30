@@ -2,7 +2,7 @@ import 'dotenv/config';
 import db from 'config/db/databaseServise';
 import Kufar from 'parsers/kufar/tasks/Kufar';
 import { scheduleJob } from 'node-schedule';
-import { type Error } from 'config/types';
+import { type ErrorTelegram } from 'config/types';
 
 void (async () => {
   scheduleJob('*/15 * * * *', async () => {
@@ -23,18 +23,18 @@ async function taskKufar(users: number[]): Promise<void> {
   try {
     await Kufar(users);
   } catch (error) {
-    const err = error as Error;
+    const err = error as ErrorTelegram;
     if (
       err?.response?.body?.description ===
         'Forbidden: bot was blocked by the user' &&
       err?.response?.body?.error_code === 403
     ) {
-      const url = err?.response?.request?.href;
+      const url = err?.response?.request?.body;
       const match = url.match(/chat_id=(\d+)/);
       const chatId = match ? Number(match[1]) : null;
       if (chatId) {
         await db.removeUser(chatId);
-        const indexOfUser = users.findIndex((user) => indexOfUser === user);
+        const indexOfUser = users.findIndex((user) => chatId === user);
         if (indexOfUser !== users.length - 1) {
           await taskKufar(users.slice(indexOfUser + 1));
         }
