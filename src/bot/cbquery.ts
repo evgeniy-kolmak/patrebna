@@ -23,28 +23,38 @@ export default (): void => {
     switch (data) {
       case 'registration': {
         await i18next.changeLanguage(language);
-        try {
-          const { username, first_name, last_name } = from;
-          const profile: IUser = {
-            username,
-            first_name,
-            last_name,
-            premium: 0,
-          };
-          await db.setUser(profile, chatID);
-          await bot.editMessageText(t('Успех регистрации'), {
+        const isRegistred = await db.getUser(chatID);
+        if (!isRegistred) {
+          try {
+            const { username, first_name, last_name } = from;
+            const profile: IUser = {
+              username,
+              first_name,
+              last_name,
+              premium: 0,
+            };
+            await db.setUser(profile, chatID);
+            await bot.editMessageText(t('Успех регистрации'), {
+              chat_id: chatID,
+              message_id: messageID,
+              reply_markup: await keyboard.Profile(chatID),
+            });
+          } catch (error) {
+            console.error(error);
+            await eventMessage(
+              chatID,
+              t('Ошибка регистрации'),
+              keyboard.Button(t('Регистрация'), 'registration'),
+            );
+            await eventMessage(chatID, t('Помощь'), keyboard.Main());
+          }
+        } else {
+          await bot.editMessageText(t('Пользователь уже зарегистрирован'), {
             chat_id: chatID,
             message_id: messageID,
-            reply_markup: await keyboard.Profile(chatID),
+            parse_mode: 'HTML',
+            reply_markup: keyboard.Observe(),
           });
-        } catch (error) {
-          console.error(error);
-          await eventMessage(
-            chatID,
-            t('Ошибка регистрации'),
-            keyboard.Button(t('Регистрация'), 'registration'),
-          );
-          await eventMessage(chatID, t('Помощь'), keyboard.Main());
         }
         break;
       }
