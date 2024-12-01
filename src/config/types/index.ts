@@ -42,7 +42,7 @@ export interface ErrorTelegram {
       description: string;
     };
     request: {
-      body: string;
+      href: string;
     };
   };
 }

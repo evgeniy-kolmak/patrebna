@@ -29,8 +29,8 @@ async function taskKufar(users: number[]): Promise<void> {
         'Forbidden: bot was blocked by the user' &&
       err?.response?.body?.error_code === 403
     ) {
-      const url = err?.response?.request?.body;
-      const match = url.match(/chat_id=(\d+)/);
+      const url = err?.response?.request?.href;
+      const match = url?.match(/chat_id=(\d+)/);
       const chatId = match ? Number(match[1]) : null;
       if (chatId) {
         await db.removeUser(chatId);
