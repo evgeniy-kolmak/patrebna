@@ -22,11 +22,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     command: >
       mongod 
-      --replSet rs0 
       --tlsMode requireTLS 
       --tlsCertificateKeyFile /etc/ssl/mongodb.pem 
       --tlsCAFile /etc/ssl/ca.pem 
-      --keyFile /etc/ssl/mongodb-keyfile
       --auth
     ports:
       - "27017:27017"
@@ -34,7 +32,6 @@ services:
       - ./data/db:/data/db
       - ../certs/mongodb/mongodb.pem:/etc/ssl/mongodb.pem
       - ../certs/ca.pem:/etc/ssl/ca.pem
-      - ../certs/mongodb-keyfile:/etc/ssl/mongodb-keyfile
     networks:
       - patrebna-network
 
