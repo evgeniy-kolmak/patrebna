@@ -26,9 +26,9 @@ services:
       --tlsMode requireTLS 
       --tlsCertificateKeyFile /etc/ssl/mongodb.pem 
       --tlsCAFile /etc/ssl/ca.pem 
-      --auth
       --keyFile /etc/ssl/mongodb-keyfile
-      ports:
+      --auth
+    ports:
       - "27017:27017"
     volumes:
       - ./data/db:/data/db
