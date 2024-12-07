@@ -1,12 +1,13 @@
 name: Deployment to server
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
 jobs:
-  deploy:
+  deploy-main:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Executing remote ssh commands using password
+      - name: Deploy to main server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -15,6 +16,23 @@ jobs:
           script: |
             cd patrebna
             git pull origin main
+            cd .Docker
+            docker-compose up -d --build bot
+            docker image prune -f
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to dev server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd patrebna
+            git pull origin dev
             cd .Docker
             docker-compose up -d --build bot
             docker image prune -f
