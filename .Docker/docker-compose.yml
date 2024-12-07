@@ -21,11 +21,16 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     command: >
-      mongod 
-      --tlsMode requireTLS 
-      --tlsCertificateKeyFile /etc/ssl/mongodb.pem 
-      --tlsCAFile /etc/ssl/ca.pem 
+      bash -c "
+      chmod 400 /etc/ssl/mongo-keyfile &&
+      chown 999:999 /etc/ssl/mongo-keyfile &&
+      mongod
+      --replSet rs0
+      --tlsMode requireTLS
+      --tlsCertificateKeyFile /etc/ssl/mongodb.pem
+      --tlsCAFile /etc/ssl/ca.pem
       --auth
+      --keyFile /etc/ssl/mongo-keyfile"
     ports:
       - "27017:27017"
     volumes:
