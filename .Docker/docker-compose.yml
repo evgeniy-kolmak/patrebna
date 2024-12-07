@@ -37,6 +37,7 @@ services:
       - ./data/db:/data/db
       - ../certs/mongodb/mongodb.pem:/etc/ssl/mongodb.pem
       - ../certs/ca.pem:/etc/ssl/ca.pem
+      - ../certs/mongo-keyfile:/etc/ssl/mongo-keyfile
     networks:
       - patrebna-network
 
