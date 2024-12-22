@@ -11,6 +11,7 @@ services:
       - "8443:8443"
     depends_on:
       - mongodb
+      - redis
     networks:
       - patrebna-network  
   mongodb:
@@ -41,7 +42,27 @@ services:
       - ../certs/mongo-keyfile:/etc/ssl/mongo-keyfile
     networks:
       - patrebna-network
-
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ../certs/redis:/etc/ssl/redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: >
+      redis-server
+      --tls-port 6379
+      --port 0
+      --tls-cert-file /etc/ssl/redis/redis-cert.pem
+      --tls-key-file /etc/ssl/redis/redis-key.pem
+      --tls-ca-cert-file /etc/ssl/ca.pem
+      --tls-auth-clients yes
+      --requirepass $REDIS_PASSWORD
+    networks:
+      - patrebna-network
 networks:
   patrebna-network:
     driver: bridge
