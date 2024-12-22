@@ -1,36 +1,36 @@
-import redis from 'redis';
+import Redis from 'ioredis';
 
 class RedisService {
-  private readonly client: redis.RedisClientType;
-
+  private readonly redis: Redis;
   constructor() {
     const password = process.env.REDIS_PASSWORD ?? '';
-
-    // Создаем клиента Redis и сохраняем его в свойстве класса
-    this.client = redis.createClient({
-      url: 'rediss://redis:6379',
-      password,
-      socket: {
-        tls: true,
+    this.redis = new Redis({
+      host: 'redis',
+      port: 6379,
+      tls: {
         ca: './certs/ca.pem',
-        cert: './certs/client-cert.pem',
-        key: './certs/client-key.pem',
+        cert: './certs/redis-client-cert.pem',
+        key: './certs/redis-client-key.pem',
       },
+      password,
     });
 
-    this.client.on(
+    this.redis.on(
       'error',
       console.error.bind(console, 'Error connecting to Redis:'),
     );
 
-    // Соединение с Redis
-    this.client.once('connect', () => {
+    this.redis.once('open', () => {
       console.log('Connected to Redis successfully!');
     });
   }
 
+  async setCache(key: string, value: any, ttl: number): Promise<void> {
+    await this.redis.set(key, JSON.stringify(value), 'EX', ttl);
+  }
+
   async getCache(key: string): Promise<string | null> {
-    return await this.client.get(key);
+    return await this.redis.get(key);
   }
 }
 
