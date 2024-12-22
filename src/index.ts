@@ -3,10 +3,8 @@ import db from 'config/db/databaseServise';
 import Kufar from 'parsers/kufar/tasks/Kufar';
 import { scheduleJob } from 'node-schedule';
 import { type ErrorTelegram } from 'config/types';
-import cache from 'config/redis/redisService';
 
 void (async () => {
-  await cache.getCache('users'); // Проверка доступности кэша
   scheduleJob('*/15 * * * *', async () => {
     await taskKufar(await db.getUsersForParse());
   });
