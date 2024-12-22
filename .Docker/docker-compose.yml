@@ -49,7 +49,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - ../certs/ca.pem:/etc/ssl/redis
+      - ../certs/ca.pem:/etc/ssl/ca.pem
       - ../certs/redis:/etc/ssl/redis
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -63,7 +63,7 @@ services:
       --port 0
       --tls-cert-file /etc/ssl/redis/redis-cert.pem
       --tls-key-file /etc/ssl/redis/redis-key.pem
-      --tls-ca-cert-file /etc/ssl/redis/ca.pem
+      --tls-ca-cert-file /etc/ssl/ca.pem
       --tls-auth-clients yes
       --requirepass $REDIS_PASSWORD"
     networks:
