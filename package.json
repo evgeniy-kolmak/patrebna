@@ -41,9 +41,11 @@
     "axios": "^1.7.6",
     "dotenv": "^16.4.5",
     "i18next": "^23.14.0",
+    "ioredis": "^5.4.2",
     "jsdom": "^25.0.0",
     "mongoose": "^8.6.0",
     "node-schedule": "^2.1.1",
-    "node-telegram-bot-api": "^0.66.0"
+    "node-telegram-bot-api": "^0.66.0",
+    "redis": "^4.7.0"
   }
 }
