@@ -3,12 +3,12 @@ import db from 'config/db/databaseServise';
 import Kufar from 'parsers/kufar/tasks/Kufar';
 import { scheduleJob } from 'node-schedule';
 import { type ErrorTelegram } from 'config/types';
-import redis from 'config/redis/redisService';
+import cache from 'config/redis/redisService';
 
 void (async () => {
+  await cache.getCache('users'); // Проверка доступности кэша
   scheduleJob('*/15 * * * *', async () => {
     await taskKufar(await db.getUsersForParse());
-    await redis.getCache('users'); // Проверка доступности кэша
   });
   scheduleJob('0 0 * * *', async () => {
     const inactiveUsers = await db.getInactiveUsers();
