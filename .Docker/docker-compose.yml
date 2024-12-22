@@ -55,9 +55,8 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     command: >
       bash -c "
-      chmod 600 /etc/ssl/redis/redis-key.pem &&
-      chmod 644 /etc/ssl/redis/redis-cert.pem /etc/ssl/ca.pem &&
-      chown redis:redis /etc/ssl/redis-key.pem /etc/ssl/redis-cert.pem /etc/ssl/ca.pem &&
+      chmod 644 /etc/ssl/redis/redis-key.pem /etc/ssl/redis/redis-cert.pem /etc/ssl/ca.pem &&
+      chown redis:redis /etc/ssl/redis/redis-key.pem /etc/ssl/redis/redis-cert.pem /etc/ssl/ca.pem &&
       redis-server
       --tls-port 6379
       --port 0
