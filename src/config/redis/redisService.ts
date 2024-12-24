@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { readFileSync } from 'fs';
 
 class RedisService {
   private readonly redis: Redis;
@@ -7,22 +8,23 @@ class RedisService {
     this.redis = new Redis({
       host: 'redis',
       port: 6379,
-      tls: {
-        ca: './certs/ca.pem',
-        cert: './certs/redis-client-cert.pem',
-        key: './certs/redis-client-key.pem',
-      },
       password,
+      tls: {
+        ca: readFileSync('certs/ca.pem'),
+        cert: readFileSync('certs/client-cert.pem'),
+        key: readFileSync('certs/client-key.pem'),
+        rejectUnauthorized: false,
+      },
+    });
+
+    this.redis.once('connect', () => {
+      console.log('Connected to Redis successfully!');
     });
 
     this.redis.on(
       'error',
       console.error.bind(console, 'Error connecting to Redis:'),
     );
-
-    this.redis.once('open', () => {
-      console.log('Connected to Redis successfully!');
-    });
   }
 
   async setCache(key: string, value: any, ttl: number): Promise<void> {
