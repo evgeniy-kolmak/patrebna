@@ -10,7 +10,7 @@ export default async function Kufar(usersIds: number[]): Promise<void> {
   console.info(
     `Время запуска парсера: ${new Date().toLocaleTimeString('ru-RU')}\nКоличество пользователей: ${usersIds.length}`,
   );
-  for (const userId of usersIds) {
+  for (const [index, userId] of usersIds.entries()) {
     const dataParser = await db.getDataParser(userId);
     const url = dataParser?.url;
     let html = '';
@@ -36,7 +36,11 @@ export default async function Kufar(usersIds: number[]): Promise<void> {
           await sendMessageOfNewAd({ userId, ...data });
         }
       }
-      console.info(`Добавлено новых объявлений ${newIds.length} в базу`);
+      if (newIds.length) {
+        console.info(
+          `${index}). Добавлено новых объявлений ${newIds.length} в базу`,
+        );
+      }
     }
   }
 }
