@@ -25,7 +25,7 @@ export function parserOthers(items: NodeListOf<Element>): IAd[] {
         node.querySelector(PRICE_AD_SELECTOR) ??
         node.querySelector(DISCOUNT_PRICE_AD_SELECTOR)
       )?.textContent?.replace(/[.]+$/, '') ?? '';
-    console.log(priceAd);
+
     const isNotCompanyAd =
       !node.querySelector(COMPANY_AD_SELECTOR)?.textContent;
 
