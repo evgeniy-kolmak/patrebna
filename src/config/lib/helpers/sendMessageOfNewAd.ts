@@ -17,22 +17,24 @@ export async function sendMessageOfNewAd({
   description,
 }: SendMessageOfNewAdProps): Promise<void> {
   await i18next.changeLanguage(getUserLanguage(userId));
+  const message = [
+    `${t('Появилось новое объявление')}: <b>${title}</b>`,
+    `${t('C ценой')} <b>${price}</b>.`,
+    description ? `<i>${truncateString(description, 500)}\n</i>` : '',
+    `<a href="${url}">Подробнее</a>`,
+  ]
+    .filter(Boolean)
+    .join('\n');
   try {
     await bot.sendPhoto(userId, `${img_url}`, {
-      caption: `${t('Появилось новое объявление')}: <b>${title}</b>, ${t('C ценой')} <b>${price}</b>.\n<i>${
-        description ? truncateString(description, 500) + '\n' : ''
-      }</i><a href="${url}">Подробнее</a>`,
+      caption: message,
       parse_mode: 'HTML',
     });
   } catch {
     await bot.sendPhoto(userId, 'https://i.ibb.co/NLkvZYG/no-photo.webp', {
-      caption: `${t('Появилось новое объявление')}: <b>${title}</b>, ${t('C ценой')} <b>${price}</b>.\n<i>${
-        description ? truncateString(description, 500) + '\n' : ''
-      }</i><a href="${url}">Подробнее</a>`,
+      caption: message,
       parse_mode: 'HTML',
     });
-    console.error(
-      'Невалидная ссылка изображения! Уведомление не отправлено или отправлено с ошибками.',
-    );
+    console.error('Невалидная ссылка изображения!');
   }
 }
