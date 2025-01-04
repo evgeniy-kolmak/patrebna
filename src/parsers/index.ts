@@ -2,12 +2,12 @@ import jsdom from 'jsdom';
 import { parserRealOfEstate } from 'parsers/kufar/categories/realEstate';
 import { parserAuto } from 'parsers/kufar/categories/auto';
 import { parserOthers } from 'parsers/kufar/categories/other';
-import { type IAd, type TypesParser } from 'config/types';
+import { type IAd, type TypesUrlParser } from 'config/types';
 const { JSDOM } = jsdom;
 
 const SELECTOR_AD_SECTION = 'div[class^="styles_wrapper__"] > div > section';
 
-export function parserAds(typeAds: TypesParser, html: string): IAd[] {
+export function parserAds(typeAds: TypesUrlParser, html: string): IAd[] {
   const { document } = new JSDOM(html, {
     includeNodeLocations: true,
   }).window;

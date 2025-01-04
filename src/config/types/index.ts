@@ -1,19 +1,30 @@
-export interface IUser {
+export interface IProfile {
   username?: string;
   first_name?: string;
   last_name?: string;
-  premium?: number;
+  premium: IPremium;
+  referrals: string[];
 }
 
-export interface IProfile extends IUser {
-  link?: string;
-  count_ads?: number;
-}
-
-export interface ParserData {
+export interface IDataParserItem {
   url: string;
-  typeParser: TypesParser;
+  typeUrlParser: TypesUrlParser;
+  isActive: boolean;
 }
+
+export interface IExtendedDataParserItem {
+  _id: string;
+}
+
+export type UsersParserData = Record<
+  number,
+  {
+    urls: IDataParserItem[];
+    referrals: number[];
+    canNotify: boolean;
+  }
+>;
+
 export interface IAd {
   id: string;
   title: string;
@@ -29,13 +40,18 @@ export enum Languages {
   Belarusian = 'by',
 }
 
-export enum TypesParser {
+export enum TypesUrlParser {
   OTHERS = 'others',
   AUTO = 'auto',
   RE = 're',
 }
 
-export interface ErrorTelegram {
+export enum OperationType {
+  INSERT = 'insert',
+  UPDATE = 'update',
+}
+
+export interface IErrorTelegram {
   response: {
     body: {
       error_code: number;
@@ -45,4 +61,15 @@ export interface ErrorTelegram {
       href: string;
     };
   };
+}
+
+export enum StatusPremium {
+  ACTIVE = 'insert',
+  EXPIRED = 'update',
+  NONE = 'none',
+}
+
+export interface IPremium {
+  status: StatusPremium;
+  end_date?: Date;
 }
