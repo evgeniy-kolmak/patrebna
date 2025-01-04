@@ -9,8 +9,8 @@ const UserSchema = new Schema(
       required: true,
       unique: true,
     },
-    profiles: { type: Schema.Types.ObjectId, ref: Profile },
-    parsers: { type: Schema.Types.ObjectId, ref: Parser },
+    profile: { type: Schema.Types.ObjectId, ref: Profile },
+    parser: { type: Schema.Types.ObjectId, ref: Parser },
   },
   { versionKey: false },
 );
