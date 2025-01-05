@@ -2,6 +2,7 @@ import axios from 'axios';
 import pLimit from 'p-limit';
 import db from 'config/db/databaseServise';
 import { pause } from 'config/lib/helpers/pause';
+import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 import { getUsers } from 'config/lib/helpers/getUsers';
 import { parserAds } from 'parsers';
 import { type IAd } from 'config/types';
@@ -31,6 +32,7 @@ export default async function parseKufar(): Promise<void> {
     const parseAds = response
       .flat()
       .filter((ad): ad is IAd => ad !== undefined);
-    await db.addUniqueAds(id, parseAds);
+    const newAds = await db.addUniqueAds(id, parseAds);
+    await notificationOfNewAds(id, newAds, users);
   }
 }
