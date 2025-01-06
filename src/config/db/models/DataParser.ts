@@ -6,7 +6,7 @@ const DataParserSchema = new Schema(
     urls: {
       type: [
         {
-          id: {
+          urlId: {
             type: Number,
             required: true,
           },
