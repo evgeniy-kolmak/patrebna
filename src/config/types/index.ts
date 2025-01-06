@@ -7,6 +7,7 @@ export interface IProfile {
 }
 
 export interface IDataParserItem {
+  urlId: number;
   url: string;
   typeUrlParser: TypesUrlParser;
   isActive: boolean;
