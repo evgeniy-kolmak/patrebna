@@ -1,4 +1,6 @@
 import { Schema, model } from 'mongoose';
+import { Premium } from 'config/db/models/Premium';
+import { Referral } from 'config/db/models/Referral';
 
 const ProfileSchema = new Schema(
   {
@@ -11,9 +13,8 @@ const ProfileSchema = new Schema(
     last_name: {
       type: String,
     },
-    premium: {
-      type: Number,
-    },
+    premium: { type: Schema.Types.ObjectId, ref: Premium },
+    referrals: [{ type: Schema.Types.ObjectId, ref: Referral }],
   },
   { versionKey: false },
 );
