@@ -21,6 +21,7 @@ export type UsersParserData = Record<
   number,
   {
     urls: IDataParserItem[];
+    status: StatusPremium;
     referrals: number[];
     canNotify: boolean;
   }
@@ -65,8 +66,8 @@ export interface IErrorTelegram {
 }
 
 export enum StatusPremium {
-  ACTIVE = 'insert',
-  EXPIRED = 'update',
+  ACTIVE = 'active',
+  EXPIRED = 'expired',
   NONE = 'none',
 }
 

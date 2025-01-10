@@ -11,6 +11,7 @@ import {
   type IProfile,
   type IDataParserItem,
   type IExtendedDataParserItem,
+  StatusPremium,
 } from 'config/types';
 import { getTypeUrlParser } from 'config/lib/helpers/getTypeUrlParser';
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
@@ -75,22 +76,41 @@ class DatabaseService {
   }
 
   async getUsersForParse() {
-    const users = await User.find({}, { id: 1, _id: 0 });
-    const userIds: number[] = users.map(({ id }) => id);
-    const promises = userIds.map(async (id) => {
-      const dataParser = await this.getDataParser(id);
+    const users = await User.find({}, { id: 1, profile: 1 }).lean();
+    const profiles = await Profile.find(
+      { _id: { $in: users.map(({ profile }) => profile) } },
+      { premium: 1 },
+    ).lean();
+    const premiums = await Premium.find(
+      { _id: { $in: profiles.map(({ premium }) => premium) } },
+      { status: 1 },
+    ).lean();
+
+    const promises = users.map(async (user) => {
+      const profile = profiles.find(({ _id }) => _id.equals(user.profile));
+      const premium = premiums.find(({ _id }) => _id.equals(profile?.premium));
+      const dataParser = await this.getDataParser(user.id);
       const extendedUrls: IExtendedDataParserItem[] =
         dataParser?.urls.toObject();
       const urls = extendedUrls.map(
         ({ _id, ...rest }) => rest as IDataParserItem,
       );
-      return { id, urls };
+      return {
+        id: user.id,
+        statusPremium: premium?.status ?? StatusPremium.NONE,
+        urls,
+      };
     });
 
     return (await Promise.all(promises))
       .filter(Boolean)
-      .reduce<UsersParserData>((acc, { id, urls }) => {
-        acc[id] = { urls, canNotify: true, referrals: [] };
+      .reduce<UsersParserData>((acc, { id, urls, statusPremium }) => {
+        acc[id] = {
+          urls,
+          status: statusPremium ?? StatusPremium.NONE,
+          canNotify: true,
+          referrals: [],
+        };
         return acc;
       }, {});
   }
@@ -167,6 +187,21 @@ class DatabaseService {
     } else {
       return new Error();
     }
+  }
+
+  async toggleUrlStatus(userId: number, urlId: number) {
+    const dataParser = await this.getDataParser(userId);
+    const urls = dataParser?.urls.map((url) => {
+      if (url.urlId === urlId) {
+        return {
+          ...url.toObject(),
+          isActive: !url.isActive,
+        };
+      }
+      return url;
+    });
+
+    await DataParser.updateOne({ _id: dataParser?._id }, { $set: { urls } });
   }
 
   async addUniqueAds(id: number, parseAds: IAd[]) {
