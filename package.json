@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "start:server": "ts-node src/api/server.ts",
     "dev": "nodemon src/index.ts",
     "lint": "eslint \"**/*.{ts,tsx}\""
   },
@@ -19,6 +20,7 @@
   },
   "homepage": "https://github.com/evgeniy-kolmak/patrebna#readme",
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.5.1",
     "@types/node-schedule": "^2.1.7",
     "@types/node-telegram-bot-api": "^0.64.7",
@@ -40,6 +42,7 @@
     "@types/jsdom": "^21.1.7",
     "axios": "^1.7.6",
     "dotenv": "^16.4.5",
+    "express": "^4.21.2",
     "i18next": "^23.14.0",
     "ioredis": "^5.4.2",
     "jsdom": "^25.0.0",
