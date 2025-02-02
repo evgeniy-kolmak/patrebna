@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import webhookRoutes from 'api/routes/webhook.routes';
 
 const app = express();
-const PORT = 443;
+const PORT = 3000;
 
 const options = {
   ca: readFileSync('certs/ca.pem'),
