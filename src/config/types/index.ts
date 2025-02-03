@@ -65,6 +65,11 @@ export interface IErrorTelegram {
   };
 }
 
+export interface ICallbackData {
+  action: string;
+  param?: any;
+}
+
 export enum StatusPremium {
   ACTIVE = 'active',
   EXPIRED = 'expired',
@@ -74,4 +79,13 @@ export enum StatusPremium {
 export interface IPremium {
   status: StatusPremium;
   end_date?: Date;
+}
+
+export interface IOrder {
+  orderId: number;
+  name: string;
+  qauntityOfDays: number;
+  description: string;
+  amount: number;
+  messageForBot: string;
 }
