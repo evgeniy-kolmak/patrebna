@@ -4,29 +4,22 @@ import { bot } from 'bot';
 import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 
 export default (): void => {
   bot.onText(/Профиль|Профіль/, (ctx) => {
     void (async () => {
-      const userID = ctx.chat.id;
-      await i18next.changeLanguage(getUserLanguage(userID));
-      const isUser = await db.getUser(userID);
+      const userId = ctx.chat.id;
+      await i18next.changeLanguage(getUserLanguage(userId));
+      const isUser = await db.getUser(userId);
       if (isUser) {
-        const profile = await db.getProfile(userID);
-        const dataProfile = `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}${profile?.username ? `\n<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}` : ''}\n<b>${t('Подписка')}</b>: ${profile?.premium ? new Date(profile.premium * 1000).toLocaleDateString('ru-RU') : '➖'} \n<b>${t('Ссылка')}</b>: ${profile?.link ?? '❌'}\n<b>${t('Количество объявлений')}</b>: ${profile?.count_ads ?? 0}`;
-        await bot.sendMessage(userID, dataProfile, {
+        const profile = await db.getProfile(userId);
+        const dataProfile = `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}${profile?.username ? `\n<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}` : ''}\n<b>${t('Подписка')}</b>: '➖'} \n<b>${t('Ссылка')}</b>: '❌'}\n<b>${t('Количество объявлений')}</b>: 0`;
+        await bot.sendMessage(userId, dataProfile, {
           parse_mode: 'HTML',
-          disable_web_page_preview: true,
+          reply_markup: await keyboard.Profile(userId),
         });
-        await bot.sendMessage(userID, t('Помощь'), {
-          parse_mode: 'HTML',
-          reply_markup: await keyboard.Profile(userID),
-        });
-      } else {
-        await bot.sendMessage(userID, t('Сообщение о регистрации'), {
-          reply_markup: keyboard.Button(t('Регистрация'), 'registration'),
-        });
-      }
+      } else await notRegistrationMessage(userId);
     })();
   });
 };

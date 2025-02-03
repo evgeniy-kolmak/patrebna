@@ -3,22 +3,19 @@ import { bot } from 'bot';
 import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 
 export default (): void => {
   bot.onText(/Отслеживать|Адсочваць/, (ctx) => {
     void (async () => {
-      const userID = ctx.chat.id;
-      const isUser = await db.getUser(userID);
-      await i18next.changeLanguage(getUserLanguage(userID));
-      if (isUser) {
-        await bot.sendMessage(userID, t('Сообщение об отслеживании'), {
+      const userId = ctx.chat.id;
+      await i18next.changeLanguage(getUserLanguage(userId));
+      const isRegistred = await db.getUser(userId);
+      if (isRegistred) {
+        await bot.sendMessage(userId, t('Сообщение об отслеживании'), {
           reply_markup: keyboard.Observe(),
         });
-      } else {
-        await bot.sendMessage(userID, t('Сообщение о регистрации'), {
-          reply_markup: keyboard.Button(t('Регистрация'), 'registration'),
-        });
-      }
+      } else await notRegistrationMessage(userId);
     })();
   });
 };

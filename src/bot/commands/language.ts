@@ -1,6 +1,5 @@
 import i18next, { t } from 'i18next';
 import { bot } from 'bot';
-import keyboard from 'bot/keyboard';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 
 export default (): void => {
@@ -9,7 +8,16 @@ export default (): void => {
       const userID = ctx.chat.id;
       await i18next.changeLanguage(getUserLanguage(userID));
       await bot.sendMessage(userID, t('Переключить язык приложения'), {
-        reply_markup: keyboard.Button(t('Сменить язык'), 'change_language'),
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: t('Сменить язык'),
+                callback_data: JSON.stringify({ action: 'change_language' }),
+              },
+            ],
+          ],
+        },
       });
     })();
   });
