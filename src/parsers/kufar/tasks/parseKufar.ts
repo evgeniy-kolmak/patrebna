@@ -1,37 +1,26 @@
 import axios from 'axios';
-import pLimit from 'p-limit';
 import db from 'config/db/databaseServise';
 import { pause } from 'config/lib/helpers/pause';
 import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 import { parserAds } from 'parsers';
-import { type UsersParserData, type IAd } from 'config/types';
+import { type UsersParserData } from 'config/types';
 
 export default async function parseKufar(
   users: UsersParserData,
 ): Promise<void> {
-  const limit = pLimit(10);
   for (const [key, value] of Object.entries(users)) {
-    const urls = value.urls.flat();
-    const response = await Promise.all(
-      urls
-        .filter(({ isActive }) => isActive)
-        .map(async ({ url, typeUrlParser }) => {
-          return await limit(async () => {
-            try {
-              await pause(200);
-              const { data } = await axios.get<string>(url);
-              return parserAds(typeUrlParser, data);
-            } catch (error) {
-              console.error(`Ошибка получения данных - ${url}:`, error);
-            }
-          });
-        }),
-    );
     const id = Number(key);
-    const parseAds = response
-      .flat()
-      .filter((ad): ad is IAd => ad !== undefined);
-    const newAds = await db.addUniqueAds(id, parseAds);
-    await notificationOfNewAds(id, newAds, users);
+    for (const { url, typeUrlParser, urlId, isActive } of value.urls.flat()) {
+      if (!isActive) continue;
+      try {
+        await pause(200);
+        const { data } = await axios.get<string>(url);
+        const ads = parserAds(typeUrlParser, data);
+        const newAds = await db.addUniqueAds(id, ads, urlId);
+        await notificationOfNewAds(id, newAds, users);
+      } catch (error) {
+        console.error(`Ошибка получения данных - ${url}:`, error);
+      }
+    }
   }
 }
