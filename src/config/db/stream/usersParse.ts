@@ -57,11 +57,10 @@ export default (): void => {
           break;
         }
         case OperationType.UPDATE: {
-          const urls: IDataParserItem[] = [
-            change.updateDescription.updatedFields.urls.map(
+          const urls: IDataParserItem[] =
+            change.updateDescription.updatedFields.urls?.map(
               ({ _id, ...rest }: IExtendedDataParserItem) => rest,
-            ),
-          ];
+            );
           users[userId] = {
             urls,
             status: statusPremium?.status ?? StatusPremium.NONE,
@@ -69,6 +68,11 @@ export default (): void => {
             canNotify: false,
           };
           await cache.setCache('users', { ...users }, TTL);
+          break;
+        }
+        case OperationType.DELETE: {
+          const { [userId]: _, ...updatedUsers } = users;
+          await cache.setCache('users', updatedUsers, 43200);
           break;
         }
       }
