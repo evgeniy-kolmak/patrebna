@@ -42,5 +42,3 @@ export const tariffData: IOrder[] = [
     amount: 1500,
   },
 ];
-
-// нужно прогнать через интернализацию
