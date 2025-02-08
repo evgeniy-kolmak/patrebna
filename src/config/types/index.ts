@@ -42,6 +42,22 @@ export enum Languages {
   Belarusian = 'by',
 }
 
+export interface IButton {
+  text: string;
+  callback_data: string;
+}
+
+export enum Button {
+  ADD = 'add',
+  ADD_MORE = 'add_more',
+  WRAP = 'wrap',
+  UPDATE = 'update',
+  START_OBSERVE = 'start_observe',
+  STOP_OBSERVE = 'stop_observe',
+  DELETE = 'delete',
+  BACK = 'back',
+}
+
 export enum TypesUrlParser {
   OTHERS = 'others',
   AUTO = 'auto',
@@ -51,6 +67,7 @@ export enum TypesUrlParser {
 export enum OperationType {
   INSERT = 'insert',
   UPDATE = 'update',
+  DELETE = 'delete',
 }
 
 export interface IErrorTelegram {
