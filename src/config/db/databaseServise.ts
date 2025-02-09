@@ -5,6 +5,7 @@ import { Profile } from 'config/db/models/Profile';
 import { Parser } from 'config/db/models/Parser';
 import { KufarAd } from 'config/db/models/KufarAd';
 import { DataParser } from 'config/db/models/DataParser';
+import { Premium } from 'config/db/models/Premium';
 import {
   type UsersParserData,
   type IAd,
@@ -18,7 +19,6 @@ import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
 import dataParserStream from 'config/db/stream/usersParse';
 import cache from 'config/redis/redisService';
 import { parserAds } from 'parsers';
-import { Premium } from './models/Premium';
 import { getUsers } from 'config/lib/helpers/getUsers';
 
 class DatabaseService {
@@ -26,7 +26,7 @@ class DatabaseService {
   constructor() {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.url = `mongodb://mongodb:27017/`;
+    this.url = `mongodb://localhost:27017/`;
     void mongoose.connect(this.url, {
       auth: {
         username,
@@ -75,6 +75,14 @@ class DatabaseService {
     return await DataParser.findOne(dataParserId);
   }
 
+  async getDataPremium(id: number) {
+    const profile = await this.getProfile(id);
+    return await Premium.findOne(
+      { _id: profile?.premium?._id },
+      { status: 1, _id: 0, end_date: 1 },
+    ).lean();
+  }
+
   async getUsersForParse() {
     const users = await User.find({}, { id: 1, profile: 1 }).lean();
     const profiles = await Profile.find(
@@ -92,7 +100,7 @@ class DatabaseService {
       const dataParser = await this.getDataParser(user.id);
       const extendedUrls: IExtendedDataParserItem[] =
         dataParser?.urls.toObject();
-      const urls = extendedUrls.map(
+      const urls = extendedUrls?.map(
         ({ _id, ...rest }) => rest as IDataParserItem,
       );
       return {
@@ -145,48 +153,52 @@ class DatabaseService {
     await User.deleteOne({ id });
     const users = await getUsers();
     const { [id]: _, ...updatedUsers } = users;
-    await cache.setCache('users', { [id]: _, ...updatedUsers }, 43200);
+    await cache.setCache('users', updatedUsers, 43200);
   }
 
   async setUrlKufar(userId: number, url: string, urlId: number) {
     const regex =
       /^(https?:\/\/(?:www\.)?(?:re\.|auto\.)?kufar\.by\/l)[\wа-яА-Я\-_.~!*'();/?:@&=+$,%]*$/;
-    if (url.match(regex)) {
-      const dataUrl = await checkUrlOfKufar(url);
-      if (dataUrl && typeof dataUrl === 'string') {
-        const typeUrlParser = getTypeUrlParser(url);
-        const parser = await this.getParser(userId);
-        const dataParser = await this.getDataParser(userId);
-        const dataParserItem: IDataParserItem = {
-          urlId,
-          url,
-          typeUrlParser,
-          isActive: true,
-        };
-        if (!dataParser) {
-          const dataParser = await DataParser.create({
-            urls: [{ ...dataParserItem }],
-          });
-          await parser?.updateOne({ kufar: { dataParser: dataParser._id } });
-        } else {
-          const kufarObjectIds = parser?.kufar?.kufarAds as [];
-          await KufarAd.deleteMany({
-            _id: { $in: kufarObjectIds },
-          });
-          await Parser.findOneAndUpdate(parser?._id, {
-            $set: { 'kufar.kufarAds': [] },
-          });
-          await DataParser.findOneAndUpdate(dataParser?._id, {
-            urls: [{ ...dataParserItem }],
-          });
-        }
-        await this.addUniqueAds(userId, parserAds(typeUrlParser, dataUrl));
-      } else {
-        return new Error();
-      }
+
+    if (!url.match(regex)) return new Error();
+
+    const dataUrl = await checkUrlOfKufar(url);
+    if (!dataUrl || typeof dataUrl !== 'string') return new Error();
+
+    const typeUrlParser = getTypeUrlParser(url);
+    const parser = await this.getParser(userId);
+    const dataParser = await this.getDataParser(userId);
+
+    const dataParserItem: IDataParserItem = {
+      urlId,
+      url,
+      typeUrlParser,
+      isActive: true,
+    };
+
+    if (!dataParser) {
+      const newDataParser = await DataParser.create({ urls: [dataParserItem] });
+      await parser?.updateOne({ 'kufar.dataParser': newDataParser._id });
     } else {
-      return new Error();
+      const updatedUrls = dataParser.urls.map((u) =>
+        u.urlId === urlId ? dataParserItem : u,
+      );
+
+      if (!dataParser.urls.some((u) => u.urlId === urlId)) {
+        updatedUrls.push(dataParserItem);
+      }
+
+      await DataParser.updateOne(
+        { _id: dataParser._id },
+        { $set: { urls: updatedUrls } },
+      );
+
+      if (dataParser.urls.some((u) => u.urlId === urlId)) {
+        await this.removeKufarAdsByUrlId(userId, urlId);
+      }
     }
+
+    await this.addUniqueAds(userId, parserAds(typeUrlParser, dataUrl), urlId);
   }
 
   async toggleUrlStatus(userId: number, urlId: number) {
@@ -201,10 +213,73 @@ class DatabaseService {
       return url;
     });
 
-    await DataParser.updateOne({ _id: dataParser?._id }, { $set: { urls } });
+    const updatedParser = await DataParser.findOneAndUpdate(
+      { _id: dataParser?._id },
+      { $set: { urls } },
+      { new: true },
+    );
+    const updatedUrl = updatedParser?.urls.find((url) => url.urlId === urlId);
+    return updatedUrl?.isActive;
   }
 
-  async addUniqueAds(id: number, parseAds: IAd[]) {
+  async getUrlInformation(userId: number, urlId: number) {
+    const dataParser = await this.getDataParser(userId);
+    const parser = await db.getParser(userId);
+    const currentUrl = dataParser?.urls.find((url) => url.urlId === urlId);
+    const currentAds = parser?.kufar?.kufarAds.find(
+      (url) => url.urlId === urlId,
+    );
+    return {
+      url: currentUrl?.url,
+      statusUrl: currentUrl?.isActive,
+      numberOfAds: currentAds?.ads.length,
+    };
+  }
+
+  async removeUrlKufar(userId: number, urlId: number) {
+    const dataParser = await this.getDataParser(userId);
+    const statusPremium = await this.getDataPremium(userId);
+
+    if (!dataParser) return;
+
+    const urls = dataParser.urls
+      .filter((url) => url.urlId !== urlId)
+      .map((url, index) => ({
+        urlId:
+          statusPremium?.status === StatusPremium.ACTIVE
+            ? index + 1
+            : url.urlId,
+        url: url.url,
+        typeUrlParser: url.typeUrlParser,
+        isActive: url.isActive,
+        _id: url._id,
+      }));
+
+    if (!urls.length) await DataParser.deleteOne({ _id: dataParser._id });
+    else
+      await DataParser.updateOne({ _id: dataParser._id }, { $set: { urls } });
+
+    await this.removeKufarAdsByUrlId(userId, urlId);
+
+    const updatedParser = await this.getParser(userId);
+
+    await Parser.updateOne(
+      { _id: updatedParser?._id },
+      {
+        $set: {
+          'kufar.kufarAds': updatedParser?.kufar?.kufarAds.map((ad, index) => ({
+            ...ad.toObject(),
+            urlId:
+              statusPremium?.status === StatusPremium.ACTIVE
+                ? index + 1
+                : ad.urlId,
+          })),
+        },
+      },
+    );
+  }
+
+  async addUniqueAds(id: number, parseAds: IAd[], urlId: number) {
     const parser = await this.getParser(id);
     const existingAds = await KufarAd.find(
       { _id: { $in: parser?.kufar?.kufarAds } },
@@ -213,19 +288,46 @@ class DatabaseService {
     const existingIds = existingAds.map((ad) => ad.id);
     const newAds = parseAds.filter((ad) => !existingIds.includes(ad.id));
     const createdAds = await KufarAd.insertMany(newAds);
-    const newIds = createdAds.map((ad) => ad._id);
-    parser?.kufar?.kufarAds.push(...newIds);
+    const ads = createdAds.map((ad) => ad._id);
+    const existingKufarAds = parser?.kufar?.kufarAds.find(
+      (item) => item.urlId === urlId,
+    );
+    existingKufarAds
+      ? existingKufarAds.ads.push(...ads)
+      : parser?.kufar?.kufarAds.push({ urlId, ads });
     await parser?.save();
     return newAds;
+  }
+
+  async removeKufarAdsByUrlId(userId: number, urlId: number) {
+    const parser = await this.getParser(userId);
+    const removedAds = parser?.kufar?.kufarAds.filter(
+      (ad) => ad.urlId === urlId,
+    );
+    const updatedKufarAds = parser?.kufar?.kufarAds.filter(
+      (ad) => ad.urlId !== urlId,
+    );
+    await Parser.updateOne(
+      { _id: parser?._id },
+      { $set: { 'kufar.kufarAds': updatedKufarAds } },
+    );
+
+    if (removedAds) {
+      const kufarObjectIds = removedAds[0]?.ads;
+      await KufarAd.deleteMany({
+        _id: { $in: kufarObjectIds },
+      });
+    }
   }
 
   async clearExpiredAdReferences() {
     const activeAdIds = await KufarAd.find({}, '_id').then((ads) =>
       ads.map((ad) => ad._id),
     );
+
     await Parser.updateMany(
       {},
-      { $pull: { 'kufar.kufarAds': { $nin: activeAdIds } } },
+      { $pull: { 'kufar.kufarAds.$[].ads': { $nin: activeAdIds } } },
     );
   }
 }
