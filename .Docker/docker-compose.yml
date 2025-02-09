@@ -13,7 +13,22 @@ services:
       - mongodb
       - redis
     networks:
-      - patrebna-network  
+      - patrebna-network
+  server:
+    build:
+      context: ../
+      dockerfile: ./.Docker/server/Dockerfile
+    image: server
+    container_name: webhook_server
+    restart: always
+    ports:
+      - "443:3000"
+    depends_on:
+      - mongodb
+    networks:
+      - patrebna-network
+    cap_add:
+      - NET_ADMIN
   mongodb:
     image: mongo:latest
     container_name: mongodb

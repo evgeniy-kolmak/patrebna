@@ -2,6 +2,7 @@ import { type IAd } from 'config/types';
 
 const TITLE_AD_SELECTOR = 'h3[class^="styles_title__"]';
 const PRICE_AD_SELECTOR = 'p[class^=styles_price__] span';
+const DISCOUNT_PRICE_AD_SELECTOR = 'span[class^=styles_price__]';
 const IMAGE_URL_AD_SELECTOR = 'img[class^="styles_image__"]';
 const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
 
@@ -20,9 +21,11 @@ export function parserOthers(items: NodeListOf<Element>): IAd[] {
       node.querySelector(IMAGE_URL_AD_SELECTOR)?.getAttribute('src') ??
       'https://i.ibb.co/NLkvZYG/no-photo.webp';
     const priceAd =
-      node
-        .querySelector(PRICE_AD_SELECTOR)
-        ?.textContent?.replace(/[.]+$/, '') ?? '';
+      (
+        node.querySelector(PRICE_AD_SELECTOR) ??
+        node.querySelector(DISCOUNT_PRICE_AD_SELECTOR)
+      )?.textContent?.replace(/[.]+$/, '') ?? '';
+
     const isNotCompanyAd =
       !node.querySelector(COMPANY_AD_SELECTOR)?.textContent;
 
