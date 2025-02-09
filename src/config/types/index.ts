@@ -27,6 +27,8 @@ export type UsersParserData = Record<
   }
 >;
 
+export type StatusDescription = Record<StatusPremium, { title: string }>;
+
 export interface IAd {
   id: string;
   title: string;
