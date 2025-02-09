@@ -28,7 +28,7 @@ export async function handleRegistration(
       await bot.editMessageText(t('Успех регистрации'), {
         chat_id: chatId,
         message_id: messageId,
-        reply_markup: await keyboard.Profile(chatId),
+        reply_markup: await keyboard.Profile(),
       });
     } catch (error) {
       console.error(error);

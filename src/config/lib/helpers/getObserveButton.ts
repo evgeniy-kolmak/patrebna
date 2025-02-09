@@ -26,7 +26,7 @@ export function getObserveButton(type?: Button, param?: number): IButton[] {
     ],
     [Button.WRAP]: [
       {
-        text: `${t('Обертка для ссылки')} - ${param}`,
+        text: `🔗 ${t('Ссылка')} - ${param}`,
         callback_data: JSON.stringify({ action: 'wrap_link', param }),
       },
     ],

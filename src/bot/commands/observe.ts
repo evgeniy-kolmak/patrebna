@@ -6,7 +6,8 @@ import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 
 export default (): void => {
-  bot.onText(/Отслеживать|Адсочваць/, (ctx) => {
+  const regex = /Отслеживать|Адсочваць/;
+  bot.onText(regex, (ctx) => {
     void (async () => {
       const userId = ctx.chat.id;
       await i18next.changeLanguage(getUserLanguage(userId));

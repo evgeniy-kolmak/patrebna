@@ -26,7 +26,7 @@ export async function handleBuyPremium(
         [
           {
             text: t('Назад'),
-            callback_data: JSON.stringify({ action: 'back' }),
+            callback_data: JSON.stringify({ action: 'back_premium' }),
           },
         ],
       ],

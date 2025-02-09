@@ -3,7 +3,8 @@ import { bot } from 'bot';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 
 export default (): void => {
-  bot.onText(/Язык|Мова/, (ctx) => {
+  const regex = /Язык|Мова/;
+  bot.onText(regex, (ctx) => {
     void (async () => {
       const userID = ctx.chat.id;
       await i18next.changeLanguage(getUserLanguage(userID));
