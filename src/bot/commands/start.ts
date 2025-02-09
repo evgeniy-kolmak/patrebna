@@ -14,6 +14,7 @@ export default (): void => {
       const isRegistred = await db.getUser(userId);
       await bot.sendMessage(userId, t('Приветствие'), {
         parse_mode: 'HTML',
+        disable_web_page_preview: true,
         reply_markup: keyboard.Main(),
       });
       if (isRegistred) {
