@@ -103,7 +103,7 @@ export interface IPremium {
 export interface IOrder {
   orderId: number;
   name: string;
-  qauntityOfDays: number;
+  quantityOfDays: number;
   description: string;
   amount: number;
   messageForBot: string;

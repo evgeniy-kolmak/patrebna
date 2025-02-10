@@ -16,10 +16,10 @@ export async function handleChooseTariff(
     (item) => item.orderId === orderId,
   );
   if (order) {
-    const { qauntityOfDays } = order;
+    const { quantityOfDays } = order;
     const data = JSON.stringify({
       userId: chatId,
-      qauntity: qauntityOfDays,
+      quantity: quantityOfDays,
     });
     const redirectUrl = await createPayment(order, data);
     if (redirectUrl) {
