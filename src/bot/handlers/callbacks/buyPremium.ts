@@ -12,7 +12,7 @@ export async function handleBuyPremium(
     inline_keyboard: [
       ...tariffData.map((tariff, index) => [
         {
-          text: `${t(tariff.name)} — ${tariff.quantityOfDays} ${t('дней')}`,
+          text: `${t(tariff.name)} — ${tariff.quantityOfDays} ${t('Дней')}`,
           callback_data: JSON.stringify({
             action: 'choose_tariff',
             param: index + 1,

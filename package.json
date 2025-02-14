@@ -7,6 +7,7 @@
     "start": "ts-node src/index.ts",
     "start:server": "ts-node src/api/server.ts",
     "dev": "nodemon src/index.ts",
+    "dev:server": "nodemon src/api/server.ts",
     "lint": "eslint \"**/*.{ts,tsx}\""
   },
   "repository": {
