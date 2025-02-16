@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import 'dotenv/config';
 import mongoose from 'mongoose';
 import { User } from 'config/db/models/User';
 import { Profile } from 'config/db/models/Profile';
@@ -26,7 +27,7 @@ class DatabaseService {
   constructor() {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.url = `mongodb://localhost:27017/`;
+    this.url = `mongodb://mongodb:27017/`;
     void mongoose.connect(this.url, {
       auth: {
         username,
@@ -79,8 +80,27 @@ class DatabaseService {
     const profile = await this.getProfile(id);
     return await Premium.findOne(
       { _id: profile?.premium?._id },
-      { status: 1, _id: 0, end_date: 1 },
+      { status: 1, _id: 1, end_date: 1 },
     ).lean();
+  }
+
+  async grantPremium(userId: number, days: number) {
+    const premium = await this.getDataPremium(userId);
+    const now = new Date();
+    const endDate =
+      premium?.end_date && premium.end_date > now
+        ? new Date(premium.end_date)
+        : now;
+    endDate.setDate(endDate.getDate() + days);
+
+    return await Premium.findOneAndUpdate(
+      { _id: premium?._id },
+      {
+        status: StatusPremium.ACTIVE,
+        end_date: endDate,
+      },
+      { upsert: true, new: true },
+    );
   }
 
   async getUsersForParse() {

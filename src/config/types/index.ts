@@ -27,6 +27,8 @@ export type UsersParserData = Record<
   }
 >;
 
+export type LanguageOfUser = Record<number, { language: Languages }>;
+
 export type StatusDescription = Record<StatusPremium, { title: string }>;
 
 export interface IAd {
@@ -107,4 +109,21 @@ export interface IOrder {
   description: string;
   amount: number;
   messageForBot: string;
+}
+
+export interface Transaction {
+  status: StatusTransaction;
+  tracking_id: string;
+}
+
+export interface TrackingData {
+  userId: number;
+  messageId: number;
+  quantity: number;
+}
+
+export enum StatusTransaction {
+  SUCCESSFUL = 'successful',
+  FAILED = 'failed',
+  PENDING = 'pending',
 }

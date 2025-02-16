@@ -2,6 +2,8 @@ import express from 'express';
 import https from 'https';
 import { readFileSync } from 'fs';
 import webhookRoutes from 'api/routes/webhook.routes';
+import 'dotenv/config';
+import 'config/i18n/i18n';
 
 const app = express();
 const PORT = 3000;
