@@ -10,7 +10,7 @@ export async function handleObserveKufar(
   chatId: number,
   messageId: number | undefined,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   const dataParser = await db.getDataParser(chatId);
   const statusPremium = await db.getDataPremium(chatId);
   const quantityUrls = dataParser?.urls.length;

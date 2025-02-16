@@ -11,7 +11,7 @@ export async function handleWrapperForLink(
   messageId: number | undefined,
   callbackData: ICallbackData,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   const dataParser = await db.getDataParser(chatId);
   const urlId: number = callbackData.param;
   const statusUrl = dataParser?.urls.find(

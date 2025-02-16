@@ -12,7 +12,7 @@ export async function handleAddLinkKufar(
   messageId: number | undefined,
   callbackData: ICallbackData,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   const urlId: number = callbackData.param;
   await editMessage(
     chatId,

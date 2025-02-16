@@ -11,7 +11,7 @@ export async function handleChangeUrlStatus(
   messageId: number | undefined,
   callbackData: ICallbackData,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   const urlId: number = callbackData.param;
   const statusUrl = await db.toggleUrlStatus(chatId, urlId);
 

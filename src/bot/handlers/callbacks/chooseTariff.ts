@@ -10,7 +10,7 @@ export async function handleChooseTariff(
   messageId: number | undefined,
   callbackData: ICallbackData,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   const orderId: number = callbackData.param;
   const order: IOrder | undefined = tariffData.find(
     (item) => item.orderId === orderId,

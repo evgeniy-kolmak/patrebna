@@ -7,7 +7,7 @@ export async function handleBuyPremium(
   chatId: number,
   messageId: number | undefined,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   await editMessage(chatId, messageId, t('Сообщение над тарифами'), {
     inline_keyboard: [
       ...tariffData.map((tariff, index) => [

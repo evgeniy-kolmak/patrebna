@@ -28,7 +28,7 @@ export default (): void => {
     const callbackData: ICallbackData = JSON.parse(data ?? '{}');
     const chatId = from.id;
     const messageId = message?.message_id;
-    const language = getUserLanguage(chatId);
+    const language = await getUserLanguage(chatId);
     switch (callbackData.action) {
       case 'registration': {
         await handleRegistration(chatId, from, messageId);

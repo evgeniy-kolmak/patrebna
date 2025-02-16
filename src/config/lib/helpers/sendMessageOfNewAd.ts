@@ -16,7 +16,7 @@ export async function sendMessageOfNewAd({
   url,
   description,
 }: SendMessageOfNewAdProps): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(userId));
+  await i18next.changeLanguage(await getUserLanguage(userId));
   const message = [
     `${t('Появилось новое объявление')}: <b>${title}</b>`,
     `${t('C ценой')} <b>${price}</b>.`,

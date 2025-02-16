@@ -12,7 +12,7 @@ export async function handleRegistration(
   from: User,
   messageId: number | undefined,
 ): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(chatId));
+  await i18next.changeLanguage(await getUserLanguage(chatId));
   const isRegistred = await db.getUser(chatId);
   if (!isRegistred) {
     try {

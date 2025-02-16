@@ -13,7 +13,7 @@ export default (): void => {
   bot.onText(regex, (ctx) => {
     void (async () => {
       const userId = ctx.chat.id;
-      await i18next.changeLanguage(getUserLanguage(userId));
+      await i18next.changeLanguage(await getUserLanguage(userId));
       const isRegistred = await db.getUser(userId);
       if (isRegistred) {
         const profile = await db.getProfile(userId);

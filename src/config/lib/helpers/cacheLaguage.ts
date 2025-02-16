@@ -1,14 +1,27 @@
-import { Languages } from 'config/types';
+import cache from 'config/redis/redisService';
+import { Languages, type LanguageOfUser } from 'config/types';
 
-const userLanguageCache = new Map();
-
-export const getUserLanguage = (chatID: number): Languages => {
-  if (!userLanguageCache.has(chatID)) {
-    userLanguageCache.set(chatID, Languages.Russian);
+export const getUserLanguage = async (userId: number): Promise<Languages> => {
+  const cacheLanguages = await cache.getCache('languages');
+  if (cacheLanguages) {
+    const languages: LanguageOfUser = JSON.parse(cacheLanguages);
+    return languages[userId]?.language ?? Languages.Russian;
   }
-  return userLanguageCache.get(chatID);
+  return Languages.Russian;
 };
 
-export const setUserLanguage = (chatID: number, language: Languages): void => {
-  userLanguageCache.set(chatID, language);
+export const setUserLanguage = async (
+  userId: number,
+  language: Languages,
+): Promise<void> => {
+  const cacheLanguages = await cache.getCache('languages');
+  let languages: LanguageOfUser = {};
+
+  if (cacheLanguages) {
+    languages = JSON.parse(cacheLanguages);
+  }
+
+  languages[userId] = { language };
+
+  await cache.setCache('languages', languages, 60 * 60 * 24 * 30);
 };

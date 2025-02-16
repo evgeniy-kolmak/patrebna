@@ -7,7 +7,7 @@ export default (): void => {
   bot.onText(regex, (ctx) => {
     void (async () => {
       const userID = ctx.chat.id;
-      await i18next.changeLanguage(getUserLanguage(userID));
+      await i18next.changeLanguage(await getUserLanguage(userID));
       await bot.sendMessage(userID, t('Техподдержка'), {
         parse_mode: 'HTML',
       });

@@ -12,12 +12,12 @@ export async function handleChangeLanguage(
   chatId: number,
   message: Message | undefined,
 ): Promise<void> {
-  const language = getUserLanguage(chatId);
+  const language = await getUserLanguage(chatId);
   const newLanguage =
     language === Languages.Belarusian
       ? Languages.Russian
       : Languages.Belarusian;
-  setUserLanguage(chatId, newLanguage);
+  await setUserLanguage(chatId, newLanguage);
   await i18next.changeLanguage(newLanguage);
   await bot.sendMessage(chatId, t('Язык был изменен'), {
     parse_mode: 'HTML',
