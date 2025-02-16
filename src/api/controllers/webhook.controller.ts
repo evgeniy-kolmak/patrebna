@@ -7,7 +7,7 @@ import {
 } from 'config/types';
 import { type Request, type Response } from 'express';
 import i18next, { t } from 'i18next';
-import { TelegramService } from 'services/telegram.service';
+import { TelegramService } from 'config/telegram/telegramServise';
 
 export async function bepaidWebhookHandler(
   req: Request,
