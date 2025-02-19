@@ -32,13 +32,13 @@ export default async function Kufar(usersIds: number[]): Promise<void> {
         const data = parserData.find((ad: IAd) => ad.id === newId);
         if (data) {
           await db.setAdKufar(data, userId);
-          await pause(2500);
+          await pause(500);
           await sendMessageOfNewAd({ userId, ...data });
         }
       }
       if (newIds.length) {
         console.info(
-          `${index}). Добавлено новых объявлений ${newIds.length} в базу`,
+          `${index + 1}). Добавлено новых объявлений ${newIds.length} в базу`,
         );
       }
     }
