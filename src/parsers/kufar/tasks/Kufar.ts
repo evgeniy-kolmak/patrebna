@@ -7,10 +7,7 @@ import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import { type IAd, type TypesParser } from 'config/types';
 
 export default async function Kufar(usersIds: number[]): Promise<void> {
-  console.info(
-    `Время запуска парсера: ${new Date().toLocaleTimeString('ru-RU')}\nКоличество пользователей: ${usersIds.length}`,
-  );
-  for (const [index, userId] of usersIds.entries()) {
+  for (const userId of usersIds) {
     const dataParser = await db.getDataParser(userId);
     const url = dataParser?.url;
     let html = '';
@@ -35,11 +32,6 @@ export default async function Kufar(usersIds: number[]): Promise<void> {
           await pause(500);
           await sendMessageOfNewAd({ userId, ...data });
         }
-      }
-      if (newIds.length) {
-        console.info(
-          `${index + 1}). Добавлено новых объявлений ${newIds.length} в базу`,
-        );
       }
     }
   }

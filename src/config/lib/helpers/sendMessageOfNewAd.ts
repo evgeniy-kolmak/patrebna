@@ -31,8 +31,6 @@ export async function sendMessageOfNewAd({
       }</i><a href="${url}">Подробнее</a>`,
       parse_mode: 'HTML',
     });
-    console.error(
-      'Невалидная ссылка изображения! Уведомление не отправлено или отправлено с ошибками.',
-    );
+    console.error('Уведомление отправлено без изображения.');
   }
 }
