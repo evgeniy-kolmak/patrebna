@@ -24,11 +24,7 @@ async function taskKufar(users: number[]): Promise<void> {
     await Kufar(users);
   } catch (error) {
     const err = error as ErrorTelegram;
-    if (
-      err?.response?.body?.description ===
-        'Forbidden: bot was blocked by the user' &&
-      err?.response?.body?.error_code === 403
-    ) {
+    if (err?.response?.body?.error_code === 403) {
       const url = err?.response?.request?.href;
       const match = url?.match(/chat_id=(\d+)/);
       const chatId = match ? Number(match[1]) : null;
