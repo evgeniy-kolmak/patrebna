@@ -1,18 +1,18 @@
 import cache from 'config/redis/redisService';
 import { User } from 'config/db/models/User';
-import { Profile } from 'config/db/models/Profile';
-import { Premium } from 'config/db/models/Premium';
 import { Parser } from 'config/db/models/Parser';
 import { DataParser } from 'config/db/models/DataParser';
 import { type ObjectId } from 'mongoose';
 import {
   type IExtendedDataParserItem,
   type IDataParserItem,
-  type UsersParserData,
   OperationType,
-  StatusPremium,
+  type IParserData,
 } from 'config/types';
-import { getUsers } from 'config/lib/helpers/getUsers';
+
+import { getUser } from 'config/lib/helpers/getUser';
+import { TelegramService } from 'config/telegram/telegramServise';
+import { getUserIds } from 'config/lib/helpers/getUserIds';
 
 export default (): void => {
   const changeStream = DataParser.watch();
@@ -20,7 +20,6 @@ export default (): void => {
   changeStream.on('change', (change) => {
     void (async () => {
       const TTL = 43200;
-      const users = await getUsers();
       const changedId = change.documentKey._id as ObjectId;
       const parser = await Parser.findOne({ 'kufar.dataParser': changedId });
       const user = await User.findOne(
@@ -30,30 +29,24 @@ export default (): void => {
 
       if (!user) return;
       const userId = user?.id;
-
-      const userProfile = await Profile.findOne(
-        { _id: user?.profile },
-        { premium: 1 },
-      ).lean();
-      const statusPremium = await Premium.findOne(
-        { _id: userProfile?.premium },
-        { status: 1 },
-      ).lean();
+      const userData: IParserData = await getUser(userId);
 
       const operationType: OperationType = change.operationType;
       switch (operationType) {
         case OperationType.INSERT: {
-          const data: UsersParserData = {
-            [userId]: {
-              urls: change.fullDocument.urls.map(
-                ({ _id, ...rest }: IExtendedDataParserItem) => rest,
-              ),
-              status: statusPremium?.status ?? StatusPremium.NONE,
-              referrals: [],
-              canNotify: false,
-            },
-          };
-          await cache.setCache('users', { ...users, ...data }, TTL);
+          const users = await getUserIds();
+          const urls: IDataParserItem[] = change.fullDocument.urls.map(
+            ({ _id, ...rest }: IExtendedDataParserItem) => rest,
+          );
+          userData.urls = urls;
+          await cache.setCache(`user:${userId}`, { ...userData }, TTL);
+          await TelegramService.sendMessageToChat(
+            `${[
+              `🙍 Пользователь с id: <b>${userId}</b> присоединился к боту`,
+              `👥 Всего пользователей: <b>${users.length}</b>
+              `,
+            ].join('\n')}`,
+          );
           break;
         }
         case OperationType.UPDATE: {
@@ -61,18 +54,18 @@ export default (): void => {
             change.updateDescription.updatedFields.urls?.map(
               ({ _id, ...rest }: IExtendedDataParserItem) => rest,
             );
-          users[userId] = {
-            urls,
-            status: statusPremium?.status ?? StatusPremium.NONE,
-            referrals: [],
-            canNotify: false,
-          };
-          await cache.setCache('users', { ...users }, TTL);
+          userData.urls = urls;
+          await cache.setCache(`user:${userId}`, { ...userData }, TTL);
           break;
         }
         case OperationType.DELETE: {
-          const { [userId]: _, ...updatedUsers } = users;
-          await cache.setCache('users', updatedUsers, 43200);
+          const cacheUsers = await cache.getCache('userIds');
+          if (cacheUsers) {
+            const users: number[] = JSON.parse(cacheUsers);
+            const filteredUsers = users.filter((id) => id !== userId);
+            await cache.setCache('ids', filteredUsers, 43200);
+          }
+          await cache.removeCache(`user:${userId}`);
           break;
         }
       }

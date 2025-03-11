@@ -25,11 +25,17 @@ export async function bepaidWebhookHandler(
         messageId,
         t('Сообщение об успехе'),
       );
+      await TelegramService.sendMessageToChat(
+        `✅ Пользователь с id: <b>${userId}</b> приобрел премиум на <b>${quantity}</b> дней.`,
+      );
     } else {
       await TelegramService.editMessageText(
         userId,
         messageId,
         t('Сообщение о неудаче'),
+      );
+      await TelegramService.sendMessageToChat(
+        `❌ Пользователь с id: <b>${userId}</b> не смог приобрести премиум на <b>${quantity}</b> дней.`,
       );
     }
     res.status(200).json({ status: 'ok' });
