@@ -18,10 +18,9 @@ export async function sendMessageOfNewAd({
 }: SendMessageOfNewAdProps): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(userId));
   const message = [
-    `${t('Появилось новое объявление')}: <b>${title}</b>`,
+    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>`,
     `${t('C ценой')} <b>${price}</b>.`,
     description ? `<i>${truncateString(description, 500)}\n</i>` : '',
-    `<a href="${url}">Подробнее</a>`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -29,6 +28,16 @@ export async function sendMessageOfNewAd({
     await bot.sendPhoto(userId, `${img_url}`, {
       caption: message,
       parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: t('Подробнее'),
+              web_app: { url },
+            },
+          ],
+        ],
+      },
     });
   } catch {
     await bot.sendPhoto(userId, 'https://i.ibb.co/NLkvZYG/no-photo.webp', {
