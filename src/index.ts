@@ -5,6 +5,8 @@ import parseKufar from 'parsers/kufar/tasks/parseKufar';
 import { StatusPremium } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { getUser } from 'config/lib/helpers/getUser';
+import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
+import { t } from 'i18next';
 
 void (async () => {
   void scheduleParsing(
@@ -18,7 +20,18 @@ void (async () => {
 
   scheduleJob('0 0 * * *', async () => {
     await db.clearExpiredAdReferences();
-    await db.expirePremium();
+    const expiredUserIds = await db.expirePremium();
+    if (expiredUserIds.length) {
+      for (const id of expiredUserIds) {
+        await notificationOfExpiredPremium(id, t('Подписка уже закончилась'));
+      }
+    }
+    const expiredUserSoonIds = await db.expirePremiumSoon();
+    if (expiredUserSoonIds.length) {
+      for (const id of expiredUserSoonIds) {
+        await notificationOfExpiredPremium(id, t('Подписка скоро закончится'));
+      }
+    }
     const usersFromDatabase = await db.getUsersForParse();
     const inactiveUserIds = usersFromDatabase
       .filter((user) => !user.parser.kufar.dataParser)

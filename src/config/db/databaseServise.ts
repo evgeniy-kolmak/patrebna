@@ -137,6 +137,32 @@ class DatabaseService {
       { status: StatusPremium.ACTIVE, end_date: { $lte: now } },
       { $set: { status: StatusPremium.EXPIRED } },
     );
+
+    return expiredUserIds;
+  }
+
+  async expirePremiumSoon() {
+    const oneDayLater = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const usersWithPremiumEndingSoon = (await User.find()
+      .select('-_id id')
+      .populate({
+        path: 'profile',
+        select: '-_id premium',
+        populate: {
+          path: 'premium',
+          match: {
+            status: StatusPremium.ACTIVE,
+            end_date: { $lte: oneDayLater },
+          },
+        },
+      })
+      .lean()) as unknown as Array<{
+      id: number;
+      profile: { premium: { status: string } | null };
+    }>;
+    return usersWithPremiumEndingSoon
+      .filter((user) => user.profile?.premium !== null)
+      .map((user) => user.id);
   }
 
   async grantPremium(userId: number, days: number) {
