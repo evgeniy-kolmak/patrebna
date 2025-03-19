@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import db from 'config/db/databaseServise';
 import pLimit from 'p-limit';
 import { pause } from 'config/lib/helpers/pause';
@@ -27,7 +27,12 @@ export default async function parseKufar(
             const newAds = await db.addUniqueAds(userId, ads, urlId);
             await notificationOfNewAds(userId, newAds, user);
           } catch (error) {
-            console.error(`Ошибка получения данных - ${url}:`, error);
+            if (error instanceof AxiosError) {
+              const { code, message } = error;
+              console.error(`(${code}) ${message} - ${url}`);
+            } else {
+              console.error(error);
+            }
           }
         }),
       );
