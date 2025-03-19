@@ -10,8 +10,7 @@ export async function notificationOfNewAds(
   user: IParserData,
 ): Promise<void> {
   if (!user.canNotify) {
-    user.canNotify = true;
-    await cache.setCache(`user:${userId}`, user, 43200);
+    await cache.setCache(`user:${userId}`, { ...user, canNotify: true }, 43200);
   }
   for (const ad of newAds) {
     try {
