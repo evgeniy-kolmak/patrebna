@@ -7,7 +7,7 @@ class RedisService {
   constructor() {
     const password = process.env.REDIS_PASSWORD ?? '';
     this.redis = new Redis({
-      host: '185.104.248.223',
+      host: 'redis',
       port: 6379,
       password,
       tls: {
