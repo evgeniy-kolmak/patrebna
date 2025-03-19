@@ -17,15 +17,11 @@ export interface IExtendedDataParserItem {
   _id: string;
 }
 
-export type UsersParserData = Record<
-  number,
-  {
-    urls: IDataParserItem[];
-    status: StatusPremium;
-    referrals: number[];
-    canNotify: boolean;
-  }
->;
+export interface IParserData {
+  urls: IDataParserItem[];
+  status: StatusPremium;
+  canNotify: boolean;
+}
 
 export type LanguageOfUser = Record<number, { language: Languages }>;
 
