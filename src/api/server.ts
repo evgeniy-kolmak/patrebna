@@ -18,5 +18,5 @@ app.use('/webhook', webhookRoutes);
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 https.createServer(options, app).listen(PORT, () => {
-  console.log(`The server is launched on the port ${PORT}`);
+  console.log(`Cервер запущен на порту ${PORT}.`);
 });
