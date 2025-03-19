@@ -7,7 +7,7 @@ class RedisService {
   constructor() {
     const password = process.env.REDIS_PASSWORD ?? '';
     this.redis = new Redis({
-      host: 'redis',
+      host: '185.104.248.223',
       port: 6379,
       password,
       tls: {
@@ -19,12 +19,12 @@ class RedisService {
     });
 
     this.redis.once('connect', () => {
-      console.log('Connected to Redis successfully!');
+      console.log('Успешное подключение к хранилищу кэша.');
     });
 
     this.redis.on(
       'error',
-      console.error.bind(console, 'Error connecting to Redis:'),
+      console.error.bind(console, 'Ошибка подключения к хранилищу кэша:'),
     );
   }
 
@@ -34,6 +34,10 @@ class RedisService {
 
   async getCache(key: string): Promise<string | null> {
     return await this.redis.get(key);
+  }
+
+  async removeCache(key: string): Promise<number> {
+    return await this.redis.del(key);
   }
 }
 
