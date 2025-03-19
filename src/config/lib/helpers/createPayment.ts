@@ -24,7 +24,6 @@ export async function createPayment(
       'https://checkout.bepaid.by/ctp/api/checkouts',
       {
         checkout: {
-          test: true, // Включен тестовый режим для оплаты
           transaction_type: 'payment',
           order: {
             description,
