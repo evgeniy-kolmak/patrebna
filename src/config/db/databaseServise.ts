@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import 'dotenv/config';
-import mongoose from 'mongoose';
+import mongoose, { type ObjectId } from 'mongoose';
 import { User } from 'config/db/models/User';
 import { Profile } from 'config/db/models/Profile';
 import { Parser } from 'config/db/models/Parser';
@@ -8,19 +8,20 @@ import { KufarAd } from 'config/db/models/KufarAd';
 import { DataParser } from 'config/db/models/DataParser';
 import { Premium } from 'config/db/models/Premium';
 import {
-  type UsersParserData,
   type IAd,
   type IProfile,
   type IDataParserItem,
   type IExtendedDataParserItem,
   StatusPremium,
+  type IParserData,
 } from 'config/types';
 import { getTypeUrlParser } from 'config/lib/helpers/getTypeUrlParser';
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
 import dataParserStream from 'config/db/stream/usersParse';
 import cache from 'config/redis/redisService';
 import { parserAds } from 'parsers';
-import { getUsers } from 'config/lib/helpers/getUsers';
+import { getUser } from 'config/lib/helpers/getUser';
+import { TelegramService } from 'config/telegram/telegramServise';
 
 class DatabaseService {
   private readonly url: string;
@@ -44,10 +45,10 @@ class DatabaseService {
 
     connect.on(
       'error',
-      console.error.bind(console, 'Error connecting to MongoDB:'),
+      console.error.bind(console, 'Ошибка подключения к базе данных:'),
     );
     connect.once('open', () => {
-      console.log('Connected to MongoDB successfully!');
+      console.log('Успешное подключение к базе данных.');
     });
 
     dataParserStream();
@@ -84,8 +85,63 @@ class DatabaseService {
     ).lean();
   }
 
+  async expirePremium() {
+    const now = new Date();
+    const expiredUsers = (await User.find()
+      .select('-_id id')
+      .populate({
+        path: 'profile',
+        select: '-_id premium',
+        populate: {
+          path: 'premium',
+          match: {
+            status: StatusPremium.ACTIVE,
+            end_date: { $lte: now },
+          },
+        },
+      })
+      .lean()) as unknown as Array<{
+      id: number;
+      profile: { premium: { status: string } | null };
+    }>;
+    const expiredUserIds = expiredUsers
+      .filter((user) => user.profile?.premium !== null)
+      .map((user) => user.id);
+
+    for (const userId of expiredUserIds) {
+      const user = await getUser(userId);
+      await cache.setCache(
+        `user:${userId}`,
+        { ...user, status: StatusPremium.EXPIRED },
+        43200,
+      );
+      const dataParser = await this.getDataParser(userId);
+      if (!dataParser) continue;
+      const updatedUrls = dataParser.urls.map((url) => {
+        if (url.urlId !== 1 && url.isActive) {
+          return {
+            ...url.toObject(),
+            isActive: false,
+          };
+        }
+        return url;
+      });
+
+      await DataParser.findOneAndUpdate(
+        { _id: dataParser?._id },
+        { $set: { urls: updatedUrls } },
+      );
+    }
+
+    await Premium.updateMany(
+      { status: StatusPremium.ACTIVE, end_date: { $lte: now } },
+      { $set: { status: StatusPremium.EXPIRED } },
+    );
+  }
+
   async grantPremium(userId: number, days: number) {
     const premium = await this.getDataPremium(userId);
+    const user = await getUser(userId);
     const now = new Date();
     const endDate =
       premium?.end_date && premium.end_date > now
@@ -93,7 +149,7 @@ class DatabaseService {
         : now;
     endDate.setDate(endDate.getDate() + days);
 
-    return await Premium.findOneAndUpdate(
+    await Premium.findOneAndUpdate(
       { _id: premium?._id },
       {
         status: StatusPremium.ACTIVE,
@@ -101,46 +157,39 @@ class DatabaseService {
       },
       { upsert: true, new: true },
     );
+
+    await cache.setCache(
+      `user:${userId}`,
+      { ...user, status: StatusPremium.ACTIVE },
+      43200,
+    );
   }
 
   async getUsersForParse() {
-    const users = await User.find({}, { id: 1, profile: 1 }).lean();
-    const profiles = await Profile.find(
-      { _id: { $in: users.map(({ profile }) => profile) } },
-      { premium: 1 },
-    ).lean();
-    const premiums = await Premium.find(
-      { _id: { $in: profiles.map(({ premium }) => premium) } },
-      { status: 1 },
-    ).lean();
+    return (await User.find()
+      .select('-_id id')
+      .populate({
+        path: 'parser',
+        select: '-_id kufar.dataParser',
+      })
+      .lean()) as unknown as Array<{
+      id: number;
+      parser: { kufar: { dataParser: ObjectId } };
+    }>;
+  }
 
-    const promises = users.map(async (user) => {
-      const profile = profiles.find(({ _id }) => _id.equals(user.profile));
-      const premium = premiums.find(({ _id }) => _id.equals(profile?.premium));
-      const dataParser = await this.getDataParser(user.id);
-      const extendedUrls: IExtendedDataParserItem[] =
-        dataParser?.urls.toObject();
-      const urls = extendedUrls?.map(
-        ({ _id, ...rest }) => rest as IDataParserItem,
-      );
-      return {
-        id: user.id,
-        statusPremium: premium?.status ?? StatusPremium.NONE,
-        urls,
-      };
-    });
-
-    return (await Promise.all(promises))
-      .filter(Boolean)
-      .reduce<UsersParserData>((acc, { id, urls, statusPremium }) => {
-        acc[id] = {
-          urls,
-          status: statusPremium ?? StatusPremium.NONE,
-          canNotify: true,
-          referrals: [],
-        };
-        return acc;
-      }, {});
+  async getUserForParse(userId: number): Promise<IParserData> {
+    const premium = await this.getDataPremium(userId);
+    const dataParser = await this.getDataParser(userId);
+    const extendedUrls: IExtendedDataParserItem[] = dataParser?.urls.toObject();
+    const urls = extendedUrls?.map(
+      ({ _id, ...rest }) => rest as IDataParserItem,
+    );
+    return {
+      urls,
+      status: premium?.status ?? StatusPremium.NONE,
+      canNotify: true,
+    };
   }
 
   async setUser(id: number, data: IProfile) {
@@ -166,14 +215,34 @@ class DatabaseService {
     const dataParser = await this.getDataParser(id);
     const kufarObjectIds = parser?.kufar?.kufarAds;
     await KufarAd.deleteMany({ _id: { $in: kufarObjectIds } });
-    await DataParser.deleteOne(dataParser?._id);
+    if (dataParser) await DataParser.deleteOne(dataParser?._id);
     await Parser.deleteOne(parser?._id);
     await Premium.deleteOne(profile?.premium?._id);
     await Profile.deleteOne(profile?._id);
     await User.deleteOne({ id });
-    const users = await getUsers();
-    const { [id]: _, ...updatedUsers } = users;
-    await cache.setCache('users', updatedUsers, 43200);
+    await cache.removeCache(`user:${id}`);
+    const cacheLanguages = await cache.getCache('languages');
+    const cacheUsers = await cache.getCache('ids');
+    if (cacheLanguages) {
+      const parsedLanguages = JSON.parse(cacheLanguages);
+
+      if (parsedLanguages[id]) {
+        const { [id]: _, ...updatedLanguages } = parsedLanguages;
+        await cache.setCache('languages', updatedLanguages, 43200);
+      }
+    }
+    if (cacheUsers) {
+      const userIds: number[] = JSON.parse(cacheUsers);
+      const filteredUsers = userIds.filter((userId) => userId !== id);
+      await cache.setCache('ids', filteredUsers, 43200);
+      await TelegramService.sendMessageToChat(
+        `${[
+          `🗑️ Пользователь с id: <b>${id}</b> был удален`,
+          `👥 Всего пользователей: <b>${filteredUsers.length}</b>
+                    `,
+        ].join('\n')}`,
+      );
+    }
   }
 
   async setUrlKufar(userId: number, url: string, urlId: number) {
@@ -302,7 +371,7 @@ class DatabaseService {
   async addUniqueAds(id: number, parseAds: IAd[], urlId: number) {
     const parser = await this.getParser(id);
     const existingAds = await KufarAd.find(
-      { _id: { $in: parser?.kufar?.kufarAds } },
+      { _id: { $in: parser?.kufar?.kufarAds.flatMap((item) => item.ads) } },
       { id: 1, _id: 0 },
     );
     const existingIds = existingAds.map((ad) => ad.id);
