@@ -9,7 +9,6 @@ const DESCRIPTION_AD_SELECTOR_ANOTHER = `p[class^=styles_info__price__] ~ p`;
 const PRICE_AD_SELECTOR = 'div[class^=styles_info__price__] > span';
 const PRICE_AD_SELECTOR_ANOTHER = 'p[class^=styles_info__price__] > span';
 const IMAGE_URL_AD_SELECTOR = 'img[class^="styles_image__"]';
-const COMPANY_AD_SELECTOR = 'div[class^="styles_badge__"]';
 
 export function parserAuto(items: NodeListOf<Element>): IAd[] {
   const newAds: IAd[] = [];
@@ -41,20 +40,15 @@ export function parserAuto(items: NodeListOf<Element>): IAd[] {
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
 
-    const isNotCompanyAd =
-      !node.querySelector(COMPANY_AD_SELECTOR)?.textContent;
-
-    if (isNotCompanyAd) {
-      newAds.push({
-        img_url: imgUrlAd,
-        id: itemIdAd,
-        title: titleAd,
-        description: descriptionAd,
-        price: priceAd,
-        url: urlAd,
-        createdAt: new Date(),
-      });
-    }
+    newAds.push({
+      img_url: imgUrlAd,
+      id: itemIdAd,
+      title: titleAd,
+      description: descriptionAd,
+      price: priceAd,
+      url: urlAd,
+      createdAt: new Date(),
+    });
   });
 
   return newAds;
