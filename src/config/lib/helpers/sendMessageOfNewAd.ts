@@ -16,21 +16,34 @@ export async function sendMessageOfNewAd({
   url,
   description,
 }: SendMessageOfNewAdProps): Promise<void> {
-  await i18next.changeLanguage(getUserLanguage(userId));
+  await i18next.changeLanguage(await getUserLanguage(userId));
+  const message = [
+    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>`,
+    `${t('C ценой')} <b>${price}</b>.`,
+    description ? `<i>${truncateString(description, 500)}\n</i>` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
   try {
     await bot.sendPhoto(userId, `${img_url}`, {
-      caption: `${t('Появилось новое объявление')}: <b>${title}</b>, ${t('C ценой')} <b>${price}</b>.\n<i>${
-        description ? truncateString(description, 500) + '\n' : ''
-      }</i><a href="${url}">Подробнее</a>`,
+      caption: message,
       parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: t('Подробнее'),
+              web_app: { url },
+            },
+          ],
+        ],
+      },
     });
   } catch {
     await bot.sendPhoto(userId, 'https://i.ibb.co/NLkvZYG/no-photo.webp', {
-      caption: `${t('Появилось новое объявление')}: <b>${title}</b>, ${t('C ценой')} <b>${price}</b>.\n<i>${
-        description ? truncateString(description, 500) + '\n' : ''
-      }</i><a href="${url}">Подробнее</a>`,
+      caption: message,
       parse_mode: 'HTML',
     });
-    console.error('Уведомление отправлено без изображения.');
+    console.error('Невалидная ссылка изображения!');
   }
 }

@@ -1,45 +1,63 @@
 import 'dotenv/config';
 import db from 'config/db/databaseServise';
-import Kufar from 'parsers/kufar/tasks/Kufar';
 import { scheduleJob } from 'node-schedule';
-import { type ErrorTelegram } from 'config/types';
+import parseKufar from 'parsers/kufar/tasks/parseKufar';
+import { StatusPremium } from 'config/types';
+import { getUserIds } from 'config/lib/helpers/getUserIds';
+import { getUser } from 'config/lib/helpers/getUser';
+import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
+import { t } from 'i18next';
 
 void (async () => {
-  scheduleJob('*/15 * * * *', async () => {
-    await taskKufar(await db.getUsersForParse());
-  });
+  void scheduleParsing(
+    '3-59/24 * * * *',
+    (user) => user.status !== StatusPremium.ACTIVE,
+  );
+  void scheduleParsing(
+    '6-59/6 * * * *',
+    (user) => user.status === StatusPremium.ACTIVE,
+  );
+
   scheduleJob('0 0 * * *', async () => {
-    const inactiveUsers = await db.getInactiveUsers();
-    if (inactiveUsers.length) {
-      for (const id of await db.getInactiveUsers()) {
+    await db.clearExpiredAdReferences();
+    const expiredUserIds = await db.expirePremium();
+    if (expiredUserIds.length) {
+      for (const id of expiredUserIds) {
+        await notificationOfExpiredPremium(id, t('Подписка уже закончилась'));
+      }
+    }
+    const expiredUserSoonIds = await db.expirePremiumSoon();
+    if (expiredUserSoonIds.length) {
+      for (const id of expiredUserSoonIds) {
+        await notificationOfExpiredPremium(id, t('Подписка скоро закончится'));
+      }
+    }
+    const usersFromDatabase = await db.getUsersForParse();
+    const inactiveUserIds = usersFromDatabase
+      .filter((user) => !user.parser.kufar.dataParser)
+      .map((user) => user.id);
+    if (inactiveUserIds.length) {
+      for (const id of inactiveUserIds) {
         await db.removeUser(id);
       }
     }
-    await db.clearExpiredAdReferences();
   });
 })();
 
-async function taskKufar(users: number[]): Promise<void> {
-  try {
-    await Kufar(users);
-  } catch (error) {
-    const err = error as ErrorTelegram;
-    if (err?.response?.body?.error_code === 403) {
-      const url = err?.response?.request?.href;
-      const match = url?.match(/chat_id=(\d+)/);
-      const chatId = match ? Number(match[1]) : null;
-      if (chatId) {
-        await db.removeUser(chatId);
-        const indexOfUser = users.findIndex((user) => chatId === user);
-        if (indexOfUser !== users.length - 1) {
-          await taskKufar(users.slice(indexOfUser + 1));
-        }
-        console.log('Заблокированный пользователь был удален!');
-      } else {
-        console.log('Заблокированный пользователь не найден!');
-      }
-    } else {
-      console.error(error);
-    }
-  }
+async function scheduleParsing(
+  cronTime: string,
+  filterFn: (user: { userId: number; status: StatusPremium }) => boolean,
+): Promise<void> {
+  scheduleJob(cronTime, async () => {
+    const userIds = await getUserIds();
+
+    const usersWithStatus = await Promise.all(
+      userIds.map(async (userId) => {
+        const user = await getUser(userId);
+        return { userId, ...user };
+      }),
+    );
+
+    await parseKufar(usersWithStatus.filter(filterFn));
+  });
 }

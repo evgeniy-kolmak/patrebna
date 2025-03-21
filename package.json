@@ -1,12 +1,13 @@
 {
   "name": "patrebna",
-  "version": "3.4.4",
+  "version": "4.0.0",
   "description": "Parser telegram bot for Kufar",
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
     "start:server": "ts-node src/api/server.ts",
     "dev": "nodemon src/index.ts",
+    "dev:server": "nodemon src/api/server.ts",
     "lint": "eslint \"**/*.{ts,tsx}\""
   },
   "repository": {
@@ -49,6 +50,7 @@
     "mongoose": "^8.6.0",
     "node-schedule": "^2.1.1",
     "node-telegram-bot-api": "^0.66.0",
+    "p-limit": "^3.1.0",
     "redis": "^4.7.0"
   }
 }

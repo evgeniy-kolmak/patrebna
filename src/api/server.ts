@@ -2,6 +2,8 @@ import express from 'express';
 import https from 'https';
 import { readFileSync } from 'fs';
 import webhookRoutes from 'api/routes/webhook.routes';
+import 'dotenv/config';
+import 'config/i18n/i18n';
 
 const app = express();
 const PORT = 3000;
@@ -16,5 +18,5 @@ app.use('/webhook', webhookRoutes);
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 https.createServer(options, app).listen(PORT, () => {
-  console.log(`The server is launched on the port ${PORT}`);
+  console.log(`Cервер запущен на порту ${PORT}.`);
 });

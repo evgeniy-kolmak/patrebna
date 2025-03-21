@@ -3,7 +3,7 @@ import { type IAd } from 'config/types';
 const TITLE_AD_SELECTOR = 'div[class^="styles_parameters"]';
 const DESCRIPTION_AD_SELECTOR = 'p[class^="styles_body__"]';
 const PRICE_AD_SELECTOR = 'span[class^=styles_price__]';
-const IMAGE_URL_AD_SELECTOR = 'div[class^=styles_segment__]';
+const IMAGE_URL_AD_SELECTOR = 'div[class^=styles_container__] > img';
 
 export function parserRealOfEstate(items: NodeListOf<Element>): IAd[] {
   const newAds: IAd[] = [];
@@ -22,10 +22,8 @@ export function parserRealOfEstate(items: NodeListOf<Element>): IAd[] {
       .map((e) => e.textContent?.replace(/[*]/g, ''))
       .join(' / ');
     const imgUrlAd =
-      node
-        .querySelector(IMAGE_URL_AD_SELECTOR)
-        ?.getAttribute('data-testid')
-        ?.slice(8) ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp';
+      node.querySelector(IMAGE_URL_AD_SELECTOR)?.getAttribute('src') ??
+      'https://i.ibb.co/NLkvZYG/no-photo.webp';
 
     newAds.push({
       img_url: imgUrlAd,

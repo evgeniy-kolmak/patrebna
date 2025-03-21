@@ -1,210 +1,158 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { bot } from 'bot';
-import keyboard from './keyboard';
-import start from 'bot/commands/start';
-import profile from 'bot/commands/profile';
-import language from 'bot/commands/language';
-import observe from 'bot/commands/observe';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
-import { eventMessage } from 'config/lib/helpers/eventMessage';
-import {
-  getUserLanguage,
-  setUserLanguage,
-} from 'config/lib/helpers/cacheLaguage';
-import { type IUser, Languages } from 'config/types';
+import keyboard from 'bot/keyboard';
+import start from 'bot/commands/start';
+import help from 'bot/commands/help';
+import profile from 'bot/commands/profile';
+import observe from 'bot/commands/observe';
+import premium from 'bot/commands/premium';
+import language from 'bot/commands/language';
+import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { type ICallbackData } from 'config/types';
+import { handleRegistration } from 'bot/handlers/callbacks/registration';
+import { handleAddLinkKufar } from 'bot/handlers/callbacks/addLinkKufar';
+import { handleChangeLanguage } from 'bot/handlers/callbacks/changeLanguage';
+import { handleChooseTariff } from 'bot/handlers/callbacks/chooseTariff';
+import { handleBuyPremium } from 'bot/handlers/callbacks/buyPremium';
+import { handleObserveKufar } from 'bot/handlers/callbacks/observeKufar';
+import { handleChangeUrlStatus } from 'bot/handlers/callbacks/changeUrlStatus';
+import { handleWrapperForLink } from 'bot/handlers/callbacks/wrapperForLink';
+import { handleGetFreePremium } from 'bot/handlers/callbacks/getFreePremium';
+import { editMessage } from 'config/lib/helpers/editMessage';
 
 export default (): void => {
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, message } = query;
-    const chatID = from.id;
-    const messageID = message?.message_id;
-    const language = getUserLanguage(chatID);
-    switch (data) {
+    const callbackData: ICallbackData = JSON.parse(data ?? '{}');
+    const chatId = from.id;
+    const messageId = message?.message_id;
+    const language = await getUserLanguage(chatId);
+    switch (callbackData.action) {
       case 'registration': {
-        await i18next.changeLanguage(language);
-        const isRegistred = await db.getUser(chatID);
-        if (!isRegistred) {
-          try {
-            const { username, first_name, last_name } = from;
-            const profile: IUser = {
-              username,
-              first_name,
-              last_name,
-              premium: 0,
-            };
-            await db.setUser(profile, chatID);
-            await bot.editMessageText(t('Успех регистрации'), {
-              chat_id: chatID,
-              message_id: messageID,
-              reply_markup: await keyboard.Profile(chatID),
-            });
-          } catch (error) {
-            console.error(error);
-            await eventMessage(
-              chatID,
-              t('Ошибка регистрации'),
-              keyboard.Button(t('Регистрация'), 'registration'),
-            );
-            await eventMessage(chatID, t('Помощь'), keyboard.Main());
-          }
-        } else {
-          await bot.editMessageText(t('Пользователь уже зарегистрирован'), {
-            chat_id: chatID,
-            message_id: messageID,
-            parse_mode: 'HTML',
-            reply_markup: keyboard.Observe(),
-          });
-        }
+        await handleRegistration(chatId, from, messageId);
         break;
       }
       case 'change_language': {
-        const newLanguage =
-          language === Languages.Belarusian
-            ? Languages.Russian
-            : Languages.Belarusian;
-        setUserLanguage(chatID, newLanguage);
-        await i18next.changeLanguage(newLanguage);
-        await bot.sendMessage(chatID, t('Язык был изменен'), {
-          parse_mode: 'HTML',
-          reply_markup: keyboard.Main(),
-        });
-
-        if (message && message.text?.includes('🔄'))
-          await bot.deleteMessage(chatID, message.message_id);
-        await bot.sendMessage(chatID, t('Переключить язык приложения'), {
-          reply_markup: keyboard.Button(t('Сменить язык'), 'change_language'),
-        });
+        await handleChangeLanguage(chatId, message);
+        break;
+      }
+      case 'kufar': {
+        await handleObserveKufar(chatId, messageId);
+        break;
+      }
+      case 'add_link_kufar': {
+        await handleAddLinkKufar(chatId, messageId, callbackData);
+        break;
+      }
+      case 'change_status_link_kufar': {
+        await handleChangeUrlStatus(chatId, messageId, callbackData);
         break;
       }
 
+      case 'remove_link_kufar': {
+        await i18next.changeLanguage(language);
+        const urlId: number = callbackData.param;
+        await db.removeUrlKufar(chatId, urlId);
+        await handleObserveKufar(chatId, messageId);
+        await bot.sendMessage(chatId, t('Ссылка удалена'), {
+          parse_mode: 'HTML',
+        });
+        break;
+      }
+      case 'wrap_link': {
+        await handleWrapperForLink(chatId, messageId, callbackData);
+        break;
+      }
+      case 'buy_premium': {
+        await handleBuyPremium(chatId, messageId);
+        break;
+      }
+      case 'choose_tariff': {
+        await handleChooseTariff(chatId, messageId, callbackData);
+        break;
+      }
+      case 'get_free_premium': {
+        await handleGetFreePremium(chatId, messageId);
+        break;
+      }
       case 'remove_me': {
         await i18next.changeLanguage(language);
-        await bot.editMessageText(t('Сообщение об удалении профиля'), {
-          chat_id: chatID,
-          message_id: messageID,
-          parse_mode: 'HTML',
-          reply_markup: keyboard.SomeButtons([
-            [t('Все равно удалить'), 'approve'],
-            [t('В другой раз'), 'reject'],
-          ]),
-        });
+        await editMessage(
+          chatId,
+          messageId,
+          t('Сообщение об удалении профиля'),
+          {
+            inline_keyboard: [
+              [
+                {
+                  text: t('Все равно удалить'),
+                  callback_data: JSON.stringify({ action: 'approve' }),
+                },
+              ],
+              [
+                {
+                  text: t('В другой раз'),
+                  callback_data: JSON.stringify({ action: 'reject' }),
+                },
+              ],
+            ],
+          },
+        );
         break;
       }
       case 'approve': {
         await i18next.changeLanguage(language);
-        await bot.editMessageText(t('Подтвердить удаление'), {
-          chat_id: chatID,
-          message_id: messageID,
-          parse_mode: 'HTML',
-          reply_markup: keyboard.Button(t('Регистрация'), 'registration'),
+        await editMessage(chatId, messageId, t('Подтвердить удаление'), {
+          inline_keyboard: [
+            [
+              {
+                text: t('Регистрация'),
+                callback_data: JSON.stringify({ action: 'registration' }),
+              },
+            ],
+          ],
         });
-        await db.removeUser(chatID);
+        await db.removeUser(chatId);
         break;
       }
       case 'reject': {
         await i18next.changeLanguage(language);
-        await bot.editMessageText(t('Отклонить удаление'), {
-          chat_id: chatID,
-          message_id: messageID,
-          parse_mode: 'HTML',
-          reply_markup: await keyboard.Profile(chatID),
-        });
-        break;
-      }
-      case 'back': {
-        await i18next.changeLanguage(language);
-        await bot.sendMessage(chatID, t('Действие отменено'), {
-          reply_markup: keyboard.Main(),
-        });
-
-        await bot.sendMessage(chatID, t('На главную'));
-
-        await bot.sendMessage(chatID, t('Сообщение об отслеживании'), {
-          reply_markup: keyboard.Observe(),
-        });
+        await editMessage(
+          chatId,
+          messageId,
+          t('Отклонить удаление'),
+          await keyboard.Profile(),
+        );
         break;
       }
       case 'back_observe': {
         await i18next.changeLanguage(language);
-        await bot.editMessageText(t('Сообщение об отслеживании'), {
-          chat_id: chatID,
-          message_id: messageID,
-          parse_mode: 'HTML',
-          reply_markup: keyboard.Observe(),
-        });
-        await bot.sendMessage(chatID, t('Действие отменено'), {
-          reply_markup: keyboard.Main(),
-        });
-        break;
-      }
-      case 'kufar': {
-        await i18next.changeLanguage(language);
-        const dataParser = await db.getDataParser(chatID);
-        await bot.editMessageText(t('Текст для Kufar'), {
-          chat_id: chatID,
-          message_id: messageID,
-          parse_mode: 'HTML',
-          reply_markup: keyboard.SomeButtons([
-            [
-              `${dataParser?.url ? t('Изменить ссылку') : t('Добавить ссылку')}`,
-              'add_link_kufar',
-            ],
-            [t('Назад'), 'back_observe'],
-          ]),
-        });
-        break;
-      }
-      case 'add_link_kufar': {
-        await i18next.changeLanguage(language);
-        await bot.editMessageText(t('Текст для Kufar при добавлении ссылки'), {
-          chat_id: chatID,
-          message_id: messageID,
-          parse_mode: 'HTML',
-        });
-
-        const promptKufar = await bot.sendMessage(
-          chatID,
-          t('Укажите ссылку для Kufar'),
-          {
-            reply_markup: {
-              force_reply: true,
-              input_field_placeholder: t('Плейсхолдер ссылки Kufar'),
-            },
-          },
+        await editMessage(
+          chatId,
+          messageId,
+          t('Сообщение об отслеживании'),
+          keyboard.Observe(),
         );
-
-        const { message_id } = promptKufar;
-        bot.onReplyToMessage(chatID, message_id, (message) => {
-          const { text } = message;
-          void (async () => {
-            if (text) {
-              const data = await db.setUrlKufar(text, chatID);
-              if (data instanceof Error) {
-                await eventMessage(
-                  chatID,
-                  t('Ошибка добавления ссылки'),
-                  keyboard.SomeButtons([
-                    [t('Изменить ссылку'), 'add_link_kufar'],
-                    [t('Назад'), 'back_observe'],
-                  ]),
-                );
-              } else {
-                await eventMessage(
-                  chatID,
-                  t('Сообщение об успехе'),
-                  keyboard.Main(),
-                );
-              }
-            }
-          })();
-        });
+        break;
+      }
+      case 'back_premium': {
+        await i18next.changeLanguage(language);
+        await editMessage(
+          chatId,
+          messageId,
+          t('Описание подписки'),
+          keyboard.Premium(),
+        );
         break;
       }
     }
   });
   start();
+  help();
   profile();
-  language();
   observe();
+  premium();
+  language();
 };

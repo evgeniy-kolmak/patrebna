@@ -1,4 +1,3 @@
-import db from 'config/db/databaseServise';
 import { t } from 'i18next';
 import {
   type InlineKeyboardMarkup,
@@ -9,55 +8,56 @@ class Keyboard {
   Main(): ReplyKeyboardMarkup {
     return {
       keyboard: [
-        [{ text: t('Профиль') }, { text: t('Отслеживать') }],
-        [
-          {
-            text: t('Язык'),
-          },
-        ],
+        [{ text: `👤 ${t('Профиль')}` }, { text: `👁️ ${t('Отслеживать')}` }],
+        [{ text: `⭐️ ${t('Подписка')}` }, { text: `❓ ${t('Помощь')}` }],
+        [{ text: t('Язык') }],
       ],
       resize_keyboard: true,
     };
   }
 
-  async Profile(userID: number): Promise<InlineKeyboardMarkup> {
-    const profile = await db.getProfile(userID);
+  async Profile(): Promise<InlineKeyboardMarkup> {
     return {
       inline_keyboard: [
         [
           {
-            text: `${profile?.link ? t('Изменить ссылку') : t('Добавить ссылку')}`,
-            callback_data: 'add_link_kufar',
-          },
-        ],
-        [
-          {
             text: t('Удалить профиль'),
-            callback_data: 'remove_me',
+            callback_data: JSON.stringify({ action: 'remove_me' }),
           },
         ],
-        [{ text: t('Назад'), callback_data: 'back' }],
       ],
     };
   }
 
   Observe(): InlineKeyboardMarkup {
     return {
-      inline_keyboard: [[{ text: '🧩 Kufar.by', callback_data: 'kufar' }]],
+      inline_keyboard: [
+        [
+          {
+            text: '🧩 Kufar.by',
+            callback_data: JSON.stringify({ action: 'kufar' }),
+          },
+        ],
+      ],
     };
   }
 
-  SomeButtons(data: Array<[string, string]>): InlineKeyboardMarkup {
+  Premium(): InlineKeyboardMarkup {
     return {
-      inline_keyboard: data.map((button) => [
-        { text: button[0], callback_data: button[1] },
-      ]),
-    };
-  }
-
-  Button(text: string, callback_data: string): InlineKeyboardMarkup {
-    return {
-      inline_keyboard: [[{ text, callback_data }]],
+      inline_keyboard: [
+        [
+          {
+            text: t('Купить подписку'),
+            callback_data: JSON.stringify({ action: 'buy_premium' }),
+          },
+        ],
+        [
+          {
+            text: t('Получить подписку'),
+            callback_data: JSON.stringify({ action: 'get_free_premium' }),
+          },
+        ],
+      ],
     };
   }
 }

@@ -4,29 +4,42 @@ import { bot } from 'bot';
 import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
+import { StatusPremium } from 'config/types';
+import { statusDescription } from 'constants/statusDescriptionPremium';
 
 export default (): void => {
-  bot.onText(/Профиль|Профіль/, (ctx) => {
+  const regex = /Профиль|Профіль/;
+  bot.onText(regex, (ctx) => {
     void (async () => {
-      const userID = ctx.chat.id;
-      await i18next.changeLanguage(getUserLanguage(userID));
-      const isUser = await db.getUser(userID);
-      if (isUser) {
-        const profile = await db.getProfile(userID);
-        const dataProfile = `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}${profile?.username ? `\n<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}` : ''}\n<b>${t('Подписка')}</b>: ${profile?.premium ? new Date(profile.premium * 1000).toLocaleDateString('ru-RU') : '➖'} \n<b>${t('Ссылка')}</b>: ${profile?.link ?? '❌'}\n<b>${t('Количество объявлений')}</b>: ${profile?.count_ads ?? 0}`;
-        await bot.sendMessage(userID, dataProfile, {
+      const userId = ctx.chat.id;
+      await i18next.changeLanguage(await getUserLanguage(userId));
+      const isRegistred = await db.getUser(userId);
+      if (isRegistred) {
+        const profile = await db.getProfile(userId);
+        const premium = await db.getDataPremium(userId);
+        const status = premium?.status ?? StatusPremium.NONE;
+        const endDatePremium = premium?.end_date;
+        const options: Intl.DateTimeFormatOptions = {
+          day: 'numeric',
+          month: 'numeric',
+          year: 'numeric',
+          timeZone: 'Europe/Minsk',
+        };
+
+        const dataProfile = [
+          `${t('Сообщение для профиля')}`,
+          '',
+          `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}`,
+          `${profile?.username ? `<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}` : ''}`,
+          `<b>${t('Подписка')}</b>: ${t(statusDescription[status].title)} ${status === StatusPremium.ACTIVE && endDatePremium ? `${t('До')} <i>${new Date(endDatePremium).toLocaleDateString('ru-RU', options)}</i>` : ''}`,
+          `<b>${t('Количество рефералов')}</b>: ${profile?.referrals.length}`,
+        ].join('\n');
+        await bot.sendMessage(userId, dataProfile, {
           parse_mode: 'HTML',
-          disable_web_page_preview: true,
+          reply_markup: await keyboard.Profile(),
         });
-        await bot.sendMessage(userID, t('Помощь'), {
-          parse_mode: 'HTML',
-          reply_markup: await keyboard.Profile(userID),
-        });
-      } else {
-        await bot.sendMessage(userID, t('Сообщение о регистрации'), {
-          reply_markup: keyboard.Button(t('Регистрация'), 'registration'),
-        });
-      }
+      } else await notRegistrationMessage(userId);
     })();
   });
 };

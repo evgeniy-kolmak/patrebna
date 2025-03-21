@@ -1,16 +1,16 @@
-import { TypesParser } from 'config/types';
+import { TypesUrlParser } from 'config/types';
 
-export function getTypeUrlParser(url: string): TypesParser {
+export function getTypeUrlParser(url: string): TypesUrlParser {
   const { host } = new URL(url);
 
-  const typeAds = host.split('.')[0] as TypesParser;
+  const typeAds = host.split('.')[0] as TypesUrlParser;
 
   switch (typeAds) {
     case 're':
-      return TypesParser.RE;
+      return TypesUrlParser.RE;
     case 'auto':
-      return TypesParser.AUTO;
+      return TypesUrlParser.AUTO;
     default:
-      return TypesParser.OTHERS;
+      return TypesUrlParser.OTHERS;
   }
 }
