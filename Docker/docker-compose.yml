@@ -15,7 +15,10 @@ services:
     networks:
       - patrebna-network
     logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   server:
     build:
       context: ../
@@ -30,7 +33,10 @@ services:
     networks:
       - patrebna-network
     logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     cap_add:
       - NET_ADMIN
   mongodb:
@@ -62,7 +68,10 @@ services:
     networks:
       - patrebna-network
     logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   redis:
     image: redis:latest
     container_name: redis
@@ -89,7 +98,10 @@ services:
     networks:
       - patrebna-network
     logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 networks:
   patrebna-network:
     driver: bridge
