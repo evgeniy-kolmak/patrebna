@@ -24,6 +24,7 @@ export default async function parseKufar(
             await pause(200);
             const { data } = await axios.get<string>(url);
             const ads = parserAds(typeUrlParser, data);
+            if (!Array.isArray(ads) || !ads.length) return;
             const newAds = await db.addUniqueAds(userId, ads, urlId);
             await notificationOfNewAds(userId, newAds, user);
           } catch (error) {

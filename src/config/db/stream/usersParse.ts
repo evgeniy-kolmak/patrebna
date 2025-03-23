@@ -13,6 +13,7 @@ import {
 import { getUser } from 'config/lib/helpers/getUser';
 import { TelegramService } from 'config/telegram/telegramServise';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
+import { pause } from 'config/lib/helpers/pause';
 
 export default (): void => {
   const changeStream = DataParser.watch();
@@ -30,10 +31,14 @@ export default (): void => {
       if (!user) return;
       const userId = user?.id;
       const userData: IParserData = await getUser(userId);
-
+      const processedInserts = new Set<number>();
       const operationType: OperationType = change.operationType;
       switch (operationType) {
         case OperationType.INSERT: {
+          if (processedInserts.has(userId)) return;
+          processedInserts.add(userId);
+          await pause(2000);
+          processedInserts.delete(userId);
           const users = await getUserIds();
           const urls: IDataParserItem[] = change.fullDocument.urls.map(
             ({ _id, ...rest }: IExtendedDataParserItem) => rest,
@@ -63,7 +68,7 @@ export default (): void => {
           if (cacheUsers) {
             const users: number[] = JSON.parse(cacheUsers);
             const filteredUsers = users.filter((id) => id !== userId);
-            await cache.setCache('ids', filteredUsers, 43200);
+            await cache.setCache('ids', filteredUsers, TTL);
           }
           await cache.removeCache(`user:${userId}`);
           break;
