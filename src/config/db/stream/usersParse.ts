@@ -9,11 +9,9 @@ import {
   OperationType,
   type IParserData,
 } from 'config/types';
-
 import { getUser } from 'config/lib/helpers/getUser';
 import { TelegramService } from 'config/telegram/telegramServise';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
-import { pause } from 'config/lib/helpers/pause';
 
 export default (): void => {
   const changeStream = DataParser.watch();
@@ -31,21 +29,17 @@ export default (): void => {
       if (!user) return;
       const userId = user?.id;
       const userData: IParserData = await getUser(userId);
-      const processedInserts = new Set<number>();
+
       const operationType: OperationType = change.operationType;
       switch (operationType) {
         case OperationType.INSERT: {
-          if (processedInserts.has(userId)) return;
-          processedInserts.add(userId);
-          await pause(2000);
-          processedInserts.delete(userId);
           const users = await getUserIds();
           const urls: IDataParserItem[] = change.fullDocument.urls.map(
             ({ _id, ...rest }: IExtendedDataParserItem) => rest,
           );
           userData.urls = urls;
           await cache.setCache(`user:${userId}`, { ...userData }, TTL);
-          await TelegramService.sendMessageToChat(
+          await TelegramService.debouncedSendMessageToChat(
             `${[
               `🙍 Пользователь с id: <b>${userId}</b> присоединился к боту`,
               `👥 Всего пользователей: <b>${users.length}</b>

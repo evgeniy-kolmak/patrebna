@@ -261,7 +261,7 @@ class DatabaseService {
       const userIds: number[] = JSON.parse(cacheUsers);
       const filteredUsers = userIds.filter((userId) => userId !== id);
       await cache.setCache('ids', filteredUsers, 43200);
-      await TelegramService.sendMessageToChat(
+      await TelegramService.debouncedSendMessageToChat(
         `${[
           `🗑️ Пользователь с id: <b>${id}</b> был удален`,
           `👥 Всего пользователей: <b>${filteredUsers.length}</b>

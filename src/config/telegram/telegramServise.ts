@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import debounce from 'lodash.debounce';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -25,7 +26,7 @@ export const TelegramService = {
       console.error('Ошибка при отправке сообщения в Telegram:', error);
     }
   },
-  async sendMessageToChat(text: string) {
+  debouncedSendMessageToChat: debounce(async (text: string) => {
     try {
       const url = `${TELEGRAM_API_URL}/sendMessage`;
       await axios.post(url, {
@@ -36,5 +37,5 @@ export const TelegramService = {
     } catch (error) {
       console.error('Ошибка при отправке сообщения в Telegram:', error);
     }
-  },
+  }, 3000),
 };
