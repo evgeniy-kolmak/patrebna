@@ -102,6 +102,25 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    restart: always
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+      - ../certs/portainer/portainer.crt:/certs/portainer.crt
+      - ../certs/portainer/portainer.key:/certs/portainer.key
+    command: --sslcert /certs/portainer.crt --sslkey /certs/portainer.key
+    networks:
+      - patrebna-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 networks:
   patrebna-network:
     driver: bridge
