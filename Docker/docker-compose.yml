@@ -121,6 +121,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+volumes:
+  portainer_data:
 networks:
   patrebna-network:
-    driver: bridge
