@@ -125,3 +125,4 @@ volumes:
   portainer_data:
 networks:
   patrebna-network:
+    driver: bridge
