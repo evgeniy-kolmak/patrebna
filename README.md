@@ -4,12 +4,14 @@
 <h1 align="center">PATREBNA</h1>
 
 <p align="center">
-   <img src="https://img.shields.io/badge/Typescript-%5E5.5.4-blue" alt="Typescript Version">
-   <img src="https://img.shields.io/badge/Node%20telegram%20bot%20api-%5E0.66.0-blueviolet" alt="Node telegram botapi Version">
-  <img src="https://img.shields.io/badge/DB-Mongodb-green" alt="Database">
-   <img src="https://img.shields.io/badge/Languages-2-red" alt="Languages">
-   <img src="https://img.shields.io/badge/Version-v3.3.2-9cf" alt="App Version">
-   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+   <img src="https://img.shields.io/badge/Typescript-%5E5.5.4-%23007acc" alt="Typescript Version">
+   <img src="https://img.shields.io/badge/Node%20telegram%20bot%20api-%5E0.66.0-%230088cc" alt="Node telegram botapi Version">
+  <img src="https://img.shields.io/badge/DB-Mongodb-%233fa037" alt="Database">
+  <img src="https://img.shields.io/badge/Cache-Redis-%23a41e11" alt="Cache">
+   <img src="https://img.shields.io/badge/Languages-2-%23ebab00" alt="Languages">
+   <img src="https://img.shields.io/badge/Payment-bePaid-%23ff8e09" alt="Payment">
+   <img src="https://img.shields.io/badge/Version-v4.0.2-%2300ad64" alt="App Version">
+   <img src="https://img.shields.io/badge/License-MIT-%23a31f34" alt="License">
 </p>
 
 ## Что умеет этот бот?
@@ -36,10 +38,6 @@
 
 <img src="https://i.ibb.co/T00jMgr/IMG-9240.webp" width="400" alt="Пример сообщения">
 
-##### Парсинг коммерчиских объявлений отключен по умолчанию.
-
-Что бы включить -  уберите из кода **src/parsers/kufar/categories/other.ts** (пример)  `isNotCompanyAd`.
-
 ## Документация 
 
 #### Создание окружение
@@ -50,8 +48,12 @@
 MONGO_INITDB_ROOT_USERNAME= ИМЯ_ПОЛЬЗОВАТЕЛЯ_БД
 MONGO_INITDB_ROOT_PASSWORD= ПАРОЛЬ_ПОЛЬЗОВАТЕЛЯ_БД
 TELEGRAM_BOT_TOKEN= ТОКЕН_БОТА_ТЕЛЕГРАМ
+TELEGRAM_CHAT_ID= ID_ГРУППЫ_ТЕЛЕГРАМ
 WEBHOOK_HOST= АДРЕС_СЕРВЕРА (IP)
 WEBHOOK_PORT= ПОРТ (обычно 8443 или 443 для ssl)
+REDIS_PASSWORD= ПАРОЛЬ_ДЛЯ_REDIS
+STORE_ID= ID_МАГАЗИНА
+BEPAID_API_KEY= КЛЮЧ_BEPAID
 ```
 #### Создание SSL сертификатов 
 
@@ -117,6 +119,12 @@ openssl req -new -key mongodb/mongodb-key.pem -out mongodb/mongodb.csr -config c
 openssl x509 -req -in mongodb/mongodb.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out mongodb/mongodb-cert.pem -days 365 -sha256
 cat mongodb/mongodb-cert.pem mongodb/mongodb-key.pem > mongodb/mongodb.pem
 ```
+- Создание keyFile для Mongodb
+
+```
+openssl rand -base64 756 > mongo-keyfile
+```
+
 - Создание клиентского сертификата
 
 ```
@@ -125,7 +133,23 @@ openssl req -new -key client-key.pem -out client.csr -config config.cnf
 openssl x509 -req -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out client-cert.pem -days 365 -sha256
 cat client-cert.pem client-key.pem > client.pem
 ```
-- Создание SSL сертификата для webhook
+
+- Создание  сертификата для Redis
+ 
+```
+openssl genrsa -out redis/redis-key.pem 4096
+openssl req -new -key redis/redis-key.pem -out redis/redis.csr -subj "/CN=IP_СЕРВЕРА"
+openssl x509 -req -in redis/redis.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out redis/redis-cert.pem -days 365 -sha256
+```
+
+- Создание  сертификата для сервера 
+
+```
+openssl req -new -newkey rsa:4096 -nodes -keyout server-key.pem -out server.csr -subj "/CN=IP_СЕРВЕРА"
+openssl x509 -req -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server.pem -days 365 -sha256
+```
+
+- Создание SSL сертификата для телеграмм (что бы использовать webhook)
   
 ```
 openssl req -x509 -newkey rsa:2048 -keyout bot/key.pem -out bot/cert.pem -days 365 -nodes -subj "/CN=IP_СЕРВЕРА"
@@ -136,12 +160,27 @@ openssl req -x509 -newkey rsa:2048 -keyout bot/key.pem -out bot/cert.pem -days 3
 
 Для старта проекта (из корневой папки).
 
-```cd .Docker && docker-compose --env-file ../.env up -d```
+```cd Docker && docker compose --env-file ../.env up -d```
+
+После успешной сборки, заходим в контейнер с базой данных `docker exec -it mongodb bash`.
+
+Выбираем БД `use patrebna`. И подключаемся: 
+
+```
+mongosh "mongodb://имя_пользователя:пароль@mongodb:27017/patrebna?authSource=admin" \
+  --tls \
+  --tlsCAFile /etc/ssl/ca.pem \
+  --tlsCertificateKeyFile /etc/ssl/mongodb.pem \
+  --tlsAllowInvalidHostnames
+```
+Далее инициализируем реплику `rs.initiate({ _id: "rs0", members: [ { _id: 0, host: "mongodb:27017" } ] });`.
 
 ## Дополнительная информация
 
 - Бот - мультиязычный и поддерживает два языка (русский и белорусский).
-- По умолчанию проверка наличия новых объявлений выполняется раз в 15 минут (*/15).
+- К боту можно подключить оплату подписки через bePaid.
+- По умолчанию проверка наличия новых объявлений выполняется раз в 24 минут, в подписке раз в 6 минут.
+- В базовой версии можно добавить только одну ссылку для отслеживания, в премиум версии - 3 ссылки.
 - Директория **.github** нужна только для разработки и деплоя на сервер (ее можно удалить).
 
 ## Разработчик
