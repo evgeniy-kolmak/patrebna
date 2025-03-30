@@ -107,12 +107,17 @@ export interface IOrder {
   messageForBot: string;
 }
 
-export interface Transaction {
+export interface ResponseTransaction {
   status: StatusTransaction;
   tracking_id: string;
 }
+export interface ResponseOrder {
+  tracking_id: string;
+  description: string;
+  amount: number;
+}
 
-export interface TrackingData {
+export interface ITrackingData {
   userId: number;
   messageId: number;
   quantity: number;
