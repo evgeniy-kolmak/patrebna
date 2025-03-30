@@ -9,7 +9,7 @@ interface CheckoutResponse {
 }
 
 export async function createPayment(
-  { description, amount }: IOrder,
+  { description, amount }: Pick<IOrder, 'description' | 'amount'>,
   trakingId: string,
 ): Promise<string | undefined> {
   const storeId = process.env.STORE_ID;
@@ -18,6 +18,7 @@ export async function createPayment(
   const credentials = Buffer.from(`${storeId}:${bepaidApiKey}`).toString(
     'base64',
   );
+  const expiredAtISO = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
   try {
     const { data } = await axios.post<CheckoutResponse>(
@@ -30,6 +31,7 @@ export async function createPayment(
             amount,
             currency: 'BYN',
             tracking_id: trakingId,
+            expired_at: expiredAtISO,
           },
           settings: {
             language: 'ru',
