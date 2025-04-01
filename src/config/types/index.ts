@@ -70,6 +70,11 @@ export enum OperationType {
   DELETE = 'delete',
 }
 
+export enum UserActions {
+  REMOVE = 'remove',
+  NOTIFACTION = 'notification',
+}
+
 export interface IErrorTelegram {
   response: {
     body: {

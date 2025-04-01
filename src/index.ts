@@ -2,11 +2,13 @@ import 'dotenv/config';
 import db from 'config/db/databaseServise';
 import { scheduleJob } from 'node-schedule';
 import parseKufar from 'parsers/kufar/tasks/parseKufar';
-import { StatusPremium } from 'config/types';
+import { StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { getUser } from 'config/lib/helpers/getUser';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
 import { t } from 'i18next';
+import { bot } from 'bot';
+import keyboard from 'bot/keyboard';
 
 void (async () => {
   void scheduleParsing(
@@ -32,17 +34,40 @@ void (async () => {
         await notificationOfExpiredPremium(id, t('Подписка скоро закончится'));
       }
     }
-    const usersFromDatabase = await db.getUsersForParse();
-    const inactiveUserIds = usersFromDatabase
-      .filter((user) => !user.parser.kufar.dataParser)
-      .map((user) => user.id);
-    if (inactiveUserIds.length) {
-      for (const id of inactiveUserIds) {
-        await db.removeUser(id);
-      }
-    }
+  });
+  scheduleJob('0 0 * * 0', async () => {
+    await handleInactiveUsers(UserActions.REMOVE);
+  });
+
+  scheduleJob('12 */8 * * *', async () => {
+    await handleInactiveUsers(UserActions.NOTIFACTION);
   });
 })();
+
+const userActions = {
+  remove: async (id: number) => {
+    await db.removeUser(id);
+  },
+  notification: async (id: number) => {
+    await bot.sendMessage(id, t('Сообщение для неактивных пользователей'), {
+      parse_mode: 'HTML',
+      reply_markup: keyboard.Observe(),
+    });
+  },
+};
+
+async function handleInactiveUsers(action: UserActions): Promise<void> {
+  const usersFromDatabase = await db.getUsersForParse();
+  const inactiveUserIds = usersFromDatabase
+    .filter((user) => !user.parser.kufar.dataParser)
+    .map((user) => user.id);
+
+  if (inactiveUserIds.length) {
+    for (const id of inactiveUserIds) {
+      await userActions[action](id);
+    }
+  }
+}
 
 async function scheduleParsing(
   cronTime: string,
