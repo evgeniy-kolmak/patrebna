@@ -13,6 +13,9 @@ const ProfileSchema = new Schema(
     last_name: {
       type: String,
     },
+    subscribeToChannel: {
+      type: Boolean,
+    },
     premium: { type: Schema.Types.ObjectId, ref: Premium },
     referrals: [{ type: Schema.Types.ObjectId, ref: Referral }],
   },

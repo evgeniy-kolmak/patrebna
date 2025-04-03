@@ -2,6 +2,7 @@ export interface IProfile {
   username?: string;
   first_name?: string;
   last_name?: string;
+  subscribeToChannel: boolean;
   premium: IPremium;
   referrals: string[];
 }

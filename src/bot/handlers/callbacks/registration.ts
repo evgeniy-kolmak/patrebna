@@ -21,6 +21,7 @@ export async function handleRegistration(
         username,
         first_name,
         last_name,
+        subscribeToChannel: false,
         premium: { status: StatusPremium.NONE },
         referrals: [],
       };
