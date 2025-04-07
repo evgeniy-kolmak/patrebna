@@ -39,7 +39,7 @@ export default (): void => {
           );
           userData.urls = urls;
           await cache.setCache(`user:${userId}`, { ...userData }, TTL);
-          await TelegramService.debouncedSendMessageToChat(
+          await TelegramService.sendMessageToChat(
             `${[
               `🙍 Пользователь с id: <b>${userId}</b> присоединился к боту`,
               `👥 Всего пользователей: <b>${users.length}</b>

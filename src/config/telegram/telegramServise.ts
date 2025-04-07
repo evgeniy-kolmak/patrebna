@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
-import debounce from 'lodash.debounce';
+import { type IErrorTelegram } from 'config/types';
+import db from 'config/db/databaseServise';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -23,10 +24,17 @@ export const TelegramService = {
         reply_markup: keyboard,
       });
     } catch (error) {
-      console.error('Ошибка при отправке сообщения в Telegram:', error);
+      const err = error as IErrorTelegram;
+      const { error_code } = err.response.body;
+      if (error_code === 403) {
+        await db.removeUser(chatId);
+        console.error('Заблокированный пользователь был удален!');
+      } else {
+        console.error('Ошибка при отправке сообщения в Telegram:', error);
+      }
     }
   },
-  debouncedSendMessageToChat: debounce(async (text: string) => {
+  async sendMessageToChat(text: string) {
     try {
       const url = `${TELEGRAM_API_URL}/sendMessage`;
       await axios.post(url, {
@@ -37,5 +45,5 @@ export const TelegramService = {
     } catch (error) {
       console.error('Ошибка при отправке сообщения в Telegram:', error);
     }
-  }, 3000),
+  },
 };

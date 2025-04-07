@@ -42,7 +42,7 @@ async function handleTransactionWebhook(
         messageId,
         t('Сообщение об успехе'),
       );
-      await TelegramService.debouncedSendMessageToChat(
+      await TelegramService.sendMessageToChat(
         `✅ Пользователь с id: <b>${userId}</b> приобрел премиум на <b>${quantity}</b> дней.`,
       );
     } else {
@@ -51,7 +51,7 @@ async function handleTransactionWebhook(
         messageId,
         t('Сообщение о неудаче'),
       );
-      await TelegramService.debouncedSendMessageToChat(
+      await TelegramService.sendMessageToChat(
         `❌ Пользователь с id: <b>${userId}</b> не смог приобрести премиум на <b>${quantity}</b> дней.`,
       );
     }
