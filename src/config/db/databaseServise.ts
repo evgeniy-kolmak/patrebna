@@ -272,7 +272,7 @@ class DatabaseService {
       await TelegramService.sendMessageToChat(
         `${[
           `🗑️ Пользователь с id: <b>${id}</b> был удален`,
-          `👥 Всего пользователей: <b>${filteredUsers.length}</b>`,
+          `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
         ].join('\n')}`,
       );
     }
