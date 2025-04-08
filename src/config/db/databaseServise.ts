@@ -25,9 +25,11 @@ import { TelegramService } from 'config/telegram/telegramServise';
 
 class DatabaseService {
   private readonly url: string;
+  private readonly TTL: number;
   constructor() {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
+    this.TTL = 43200;
     this.url = `mongodb://mongodb:27017/`;
     void mongoose.connect(this.url, {
       auth: {
@@ -113,7 +115,7 @@ class DatabaseService {
       await cache.setCache(
         `user:${userId}`,
         { ...user, status: StatusPremium.EXPIRED },
-        43200,
+        this.TTL,
       );
       const dataParser = await this.getDataParser(userId);
       if (!dataParser) continue;
@@ -187,7 +189,7 @@ class DatabaseService {
     await cache.setCache(
       `user:${userId}`,
       { ...user, status: StatusPremium.ACTIVE },
-      43200,
+      this.TTL,
     );
   }
 
@@ -232,6 +234,12 @@ class DatabaseService {
       parser: parser._id,
     });
     await newUser.save();
+    await TelegramService.sendMessageToChat(
+      `${[
+        `🙍 Пользователь с id: <b>${id}</b> присоединился к боту`,
+        `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
+      ].join('\n')}`,
+    );
     return newUser;
   }
 
@@ -254,18 +262,17 @@ class DatabaseService {
 
       if (parsedLanguages[id]) {
         const { [id]: _, ...updatedLanguages } = parsedLanguages;
-        await cache.setCache('languages', updatedLanguages, 43200);
+        await cache.setCache('languages', updatedLanguages, this.TTL);
       }
     }
     if (cacheUsers) {
       const userIds: number[] = JSON.parse(cacheUsers);
       const filteredUsers = userIds.filter((userId) => userId !== id);
-      await cache.setCache('ids', filteredUsers, 43200);
+      await cache.setCache('ids', filteredUsers, this.TTL);
       await TelegramService.sendMessageToChat(
         `${[
           `🗑️ Пользователь с id: <b>${id}</b> был удален`,
-          `👥 Всего пользователей: <b>${filteredUsers.length}</b>
-                    `,
+          `👥 Всего пользователей: <b>${filteredUsers.length}</b>`,
         ].join('\n')}`,
       );
     }

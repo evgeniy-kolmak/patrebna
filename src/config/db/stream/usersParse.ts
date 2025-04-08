@@ -10,8 +10,6 @@ import {
   type IParserData,
 } from 'config/types';
 import { getUser } from 'config/lib/helpers/getUser';
-import { TelegramService } from 'config/telegram/telegramServise';
-import { getUserIds } from 'config/lib/helpers/getUserIds';
 
 export default (): void => {
   const changeStream = DataParser.watch();
@@ -33,19 +31,11 @@ export default (): void => {
       const operationType: OperationType = change.operationType;
       switch (operationType) {
         case OperationType.INSERT: {
-          const users = await getUserIds();
           const urls: IDataParserItem[] = change.fullDocument.urls.map(
             ({ _id, ...rest }: IExtendedDataParserItem) => rest,
           );
           userData.urls = urls;
           await cache.setCache(`user:${userId}`, { ...userData }, TTL);
-          await TelegramService.sendMessageToChat(
-            `${[
-              `🙍 Пользователь с id: <b>${userId}</b> присоединился к боту`,
-              `👥 Всего пользователей: <b>${users.length}</b>
-              `,
-            ].join('\n')}`,
-          );
           break;
         }
         case OperationType.UPDATE: {
