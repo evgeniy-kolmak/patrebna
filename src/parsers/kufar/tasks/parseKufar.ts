@@ -14,7 +14,7 @@ export default async function parseKufar(
 
   for (const user of users) {
     const { urls, userId } = user;
-
+    if (!urls) continue;
     for (const { url, urlId, typeUrlParser } of urls.filter(
       ({ isActive }) => isActive,
     )) {
