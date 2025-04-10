@@ -81,10 +81,7 @@ class DatabaseService {
 
   async getDataPremium(id: number) {
     const profile = await this.getProfile(id);
-    return await Premium.findOne(
-      { _id: profile?.premium?._id },
-      { status: 1, _id: 1, end_date: 1 },
-    ).lean();
+    return await Premium.findOne({ _id: profile?.premium?._id }).lean();
   }
 
   async expirePremium() {

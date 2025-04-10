@@ -20,6 +20,7 @@ export default (): void => {
         const premium = await db.getDataPremium(userId);
         const status = premium?.status ?? StatusPremium.NONE;
         const endDatePremium = premium?.end_date;
+        const createdAtProfile = premium?.createdAt;
         const options: Intl.DateTimeFormatOptions = {
           day: 'numeric',
           month: 'numeric',
@@ -32,6 +33,7 @@ export default (): void => {
           '',
           `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}`,
           `${profile?.username ? `<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}` : ''}`,
+          `<b>${t('Дата регистрации')}</b>: ${createdAtProfile ? `<i>${new Date(createdAtProfile).toLocaleDateString('ru-RU', options)}</i>` : t('Недавно')}`,
           `<b>${t('Подписка')}</b>: ${t(statusDescription[status].title)} ${status === StatusPremium.ACTIVE && endDatePremium ? `${t('До')} <i>${new Date(endDatePremium).toLocaleDateString('ru-RU', options)}</i>` : ''}`,
           `<b>${t('Количество рефералов')}</b>: ${profile?.referrals.length}`,
         ].join('\n');
