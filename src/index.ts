@@ -2,7 +2,7 @@ import 'dotenv/config';
 import db from 'config/db/databaseServise';
 import { scheduleJob } from 'node-schedule';
 import parseKufar from 'parsers/kufar/tasks/parseKufar';
-import { StatusPremium, UserActions } from 'config/types';
+import { type IErrorTelegram, StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { getUser } from 'config/lib/helpers/getUser';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
@@ -49,10 +49,21 @@ const userActions = {
     await db.removeUser(id);
   },
   notification: async (id: number) => {
-    await bot.sendMessage(id, t('Сообщение для неактивных пользователей'), {
-      parse_mode: 'HTML',
-      reply_markup: keyboard.Observe(),
-    });
+    try {
+      await bot.sendMessage(id, t('Сообщение для неактивных пользователей'), {
+        parse_mode: 'HTML',
+        reply_markup: keyboard.Observe(),
+      });
+    } catch (error) {
+      const err = error as IErrorTelegram;
+      const { error_code } = err.response.body;
+      if (error_code === 403) {
+        await db.removeUser(id);
+        console.error('Заблокированный пользователь был удален!');
+      } else {
+        console.log('Ошибка при отправке уведомления:', error);
+      }
+    }
   },
 };
 
