@@ -20,7 +20,7 @@ export async function handleGetFreePremium(
       : [
           [
             {
-              text: t('Подписка на канал'),
+              text: `🔔 ${t('Подписка на канал')}`,
               callback_data: JSON.stringify({ action: 'subscribe_channel' }),
             },
           ],
