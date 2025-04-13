@@ -21,11 +21,23 @@ import { handleChangeUrlStatus } from 'bot/handlers/callbacks/changeUrlStatus';
 import { handleWrapperForLink } from 'bot/handlers/callbacks/wrapperForLink';
 import { handleGetFreePremium } from 'bot/handlers/callbacks/getFreePremium';
 import { editMessage } from 'config/lib/helpers/editMessage';
+import { handleSubscribeToChannel } from 'bot/handlers/callbacks/subscribeToChannel';
+import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSubscribeToChannel';
 
 export default (): void => {
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, message } = query;
-    const callbackData: ICallbackData = JSON.parse(data ?? '{}');
+    let callbackData: ICallbackData;
+    try {
+      const parsed = JSON.parse(data ?? '{}');
+      if (typeof parsed === 'object' && parsed !== null && 'action' in parsed) {
+        callbackData = parsed;
+      } else {
+        throw new Error('Невалидный JSON');
+      }
+    } catch {
+      callbackData = { action: data ?? '' };
+    }
     const chatId = from.id;
     const messageId = message?.message_id;
     const language = await getUserLanguage(chatId);
@@ -75,6 +87,14 @@ export default (): void => {
       }
       case 'get_free_premium': {
         await handleGetFreePremium(chatId, messageId);
+        break;
+      }
+      case 'subscribe_channel': {
+        await handleSubscribeToChannel(chatId, messageId);
+        break;
+      }
+      case 'check_on_subscribe_channel': {
+        await handleChekOnSubscribeToChannel(chatId, messageId);
         break;
       }
       case 'remove_me': {

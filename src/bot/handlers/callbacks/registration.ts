@@ -6,6 +6,7 @@ import { eventMessage } from 'config/lib/helpers/eventMessage';
 import type { User } from 'node-telegram-bot-api';
 import { type IProfile, StatusPremium } from 'config/types';
 import { editMessage } from 'config/lib/helpers/editMessage';
+import { Activity } from 'config/db/models/Activity';
 
 export async function handleRegistration(
   chatId: number,
@@ -16,12 +17,15 @@ export async function handleRegistration(
   const isRegistred = await db.getUser(chatId);
   if (!isRegistred) {
     try {
+      const isChannelSubscriptionRewarded = await Activity.exists({
+        userIdsSubscribedToChannel: chatId,
+      });
       const { username, first_name, last_name } = from;
       const profile: IProfile = {
         username,
         first_name,
         last_name,
-        subscribeToChannel: false,
+        subscribeToChannel: Boolean(isChannelSubscriptionRewarded),
         premium: { status: StatusPremium.NONE },
         referrals: [],
       };

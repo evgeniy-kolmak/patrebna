@@ -7,6 +7,7 @@ import { Parser } from 'config/db/models/Parser';
 import { KufarAd } from 'config/db/models/KufarAd';
 import { DataParser } from 'config/db/models/DataParser';
 import { Premium } from 'config/db/models/Premium';
+import { Activity } from 'config/db/models/Activity';
 import {
   type IAd,
   type IProfile,
@@ -188,6 +189,30 @@ class DatabaseService {
       { ...user, status: StatusPremium.ACTIVE },
       this.TTL,
     );
+  }
+
+  async rewardForChannelSubscription(userId: number) {
+    const profile = await this.getProfile(userId);
+    await Profile.updateMany(
+      { _id: profile?._id },
+      { $set: { subscribeToChannel: true } },
+    );
+    await Activity.updateOne(
+      {},
+      { $addToSet: { userIdsSubscribedToChannel: userId } },
+      { upsert: true },
+    );
+    await this.grantPremium(userId, 7);
+  }
+
+  async isChannelSubscriptionRewarded(userId: number) {
+    const userProfile = await this.getProfile(userId);
+    const [profile, activity] = await Promise.all([
+      Profile.exists({ _id: userProfile?._id, subscribeToChannel: true }),
+      Activity.exists({ userIdsSubscribedToChannel: userId }),
+    ]);
+
+    return Boolean(profile && activity);
   }
 
   async getUsersForParse() {
