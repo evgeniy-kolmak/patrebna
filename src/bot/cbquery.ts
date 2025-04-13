@@ -27,7 +27,17 @@ import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSu
 export default (): void => {
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, message } = query;
-    const callbackData: ICallbackData = JSON.parse(data ?? '{}');
+    let callbackData: ICallbackData;
+    try {
+      const parsed = JSON.parse(data ?? '{}');
+      if (typeof parsed === 'object' && parsed !== null && 'action' in parsed) {
+        callbackData = parsed;
+      } else {
+        throw new Error('Невалидный JSON');
+      }
+    } catch {
+      callbackData = { action: data ?? '' };
+    }
     const chatId = from.id;
     const messageId = message?.message_id;
     const language = await getUserLanguage(chatId);
