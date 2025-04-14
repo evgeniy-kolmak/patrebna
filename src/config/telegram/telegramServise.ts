@@ -1,6 +1,5 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
-import { type IErrorTelegram } from 'config/types';
 import db from 'config/db/databaseServise';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -24,14 +23,16 @@ export const TelegramService = {
         reply_markup: keyboard,
       });
     } catch (error) {
-      const err = error as IErrorTelegram;
-      const { error_code } = err.response.body;
-      if (error_code === 403) {
-        await db.removeUser(chatId);
-        console.error('Заблокированный пользователь был удален!');
-      } else {
-        console.error('Ошибка при отправке сообщения в Telegram:', error);
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 403) {
+          await db.removeUser(chatId);
+          console.error('Заблокированный пользователь был удален!');
+        } else {
+          console.error('Ошибка при отправке сообщения в Telegram:', error);
+        }
+        return;
       }
+      console.error('Неизвестная ошибка:', error);
     }
   },
   async sendMessageToChat(text: string) {

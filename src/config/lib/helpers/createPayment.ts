@@ -51,6 +51,8 @@ export async function createPayment(
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error('Ошибка при оплате подписки:', error.message);
+    } else {
+      console.error('Неизвестная ошибка:', error);
     }
   }
 }

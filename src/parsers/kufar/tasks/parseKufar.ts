@@ -29,10 +29,10 @@ export default async function parseKufar(
             await notificationOfNewAds(userId, newAds, user);
           } catch (error) {
             if (error instanceof AxiosError) {
-              const { code, message } = error;
-              console.error(`(${code}) ${message} - ${url}`);
+              const { response, message } = error;
+              console.error(`(${response?.status}) ${message} - ${url}`);
             } else {
-              console.error(error);
+              console.error('Неизвестная ошибка:', error);
             }
           }
         }),

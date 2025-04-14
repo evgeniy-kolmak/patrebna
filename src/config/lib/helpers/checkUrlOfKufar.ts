@@ -8,9 +8,9 @@ export const checkUrlOfKufar = async (
     return data;
   } catch (error) {
     if (error instanceof AxiosError) {
-      return error.status ?? 404;
+      return error.response?.status ?? 404;
     } else {
-      console.log(error);
+      console.error('Неизвестная ошибка:', error);
     }
   }
   return null;
