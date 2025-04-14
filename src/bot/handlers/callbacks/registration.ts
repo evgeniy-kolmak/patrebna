@@ -12,6 +12,7 @@ export async function handleRegistration(
   chatId: number,
   from: User,
   messageId: number | undefined,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const isRegistred = await db.getUser(chatId);
@@ -34,6 +35,7 @@ export async function handleRegistration(
         chatId,
         messageId,
         t('Успех регистрации'),
+        callbackQueryId,
         await keyboard.Profile(),
       );
     } catch (error) {
@@ -54,6 +56,7 @@ export async function handleRegistration(
       chatId,
       messageId,
       t('Пользователь уже зарегистрирован'),
+      callbackQueryId,
       keyboard.Observe(),
     );
   }

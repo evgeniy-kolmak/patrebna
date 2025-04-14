@@ -9,6 +9,7 @@ export async function handleChooseTariff(
   chatId: number,
   messageId: number | undefined,
   callbackData: ICallbackData,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const orderId: number = callbackData.param;
@@ -24,24 +25,30 @@ export async function handleChooseTariff(
     });
     const redirectUrl = await createPayment(order, data);
     if (redirectUrl) {
-      await editMessage(chatId, messageId, t(order.messageForBot), {
-        inline_keyboard: [
-          [
-            {
-              text: t('Оплатить'),
-              web_app: {
-                url: redirectUrl,
+      await editMessage(
+        chatId,
+        messageId,
+        t(order.messageForBot),
+        callbackQueryId,
+        {
+          inline_keyboard: [
+            [
+              {
+                text: t('Оплатить'),
+                web_app: {
+                  url: redirectUrl,
+                },
               },
-            },
+            ],
+            [
+              {
+                text: t('Назад'),
+                callback_data: JSON.stringify({ action: 'buy_premium' }),
+              },
+            ],
           ],
-          [
-            {
-              text: t('Назад'),
-              callback_data: JSON.stringify({ action: 'buy_premium' }),
-            },
-          ],
-        ],
-      });
+        },
+      );
     }
   }
 }

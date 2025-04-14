@@ -6,6 +6,7 @@ import db from 'config/db/databaseServise';
 export async function handleGetFreePremium(
   chatId: number,
   messageId: number | undefined,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const isSubscribedToChannel = await db.isChannelSubscriptionRewarded(chatId);
@@ -33,5 +34,7 @@ export async function handleGetFreePremium(
     ],
   ];
 
-  await editMessage(chatId, messageId, text, { inline_keyboard });
+  await editMessage(chatId, messageId, text, callbackQueryId, {
+    inline_keyboard,
+  });
 }

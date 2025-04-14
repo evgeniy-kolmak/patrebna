@@ -7,6 +7,7 @@ import { editMessage } from 'config/lib/helpers/editMessage';
 export async function handleChekOnSubscribeToChannel(
   chatId: number,
   messageId: number | undefined,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const { status } = await bot.getChatMember('@patrebna_news', chatId);
@@ -15,6 +16,7 @@ export async function handleChekOnSubscribeToChannel(
       chatId,
       messageId,
       t('Сообщение об успешном выполнении задания'),
+      callbackQueryId,
     );
     await db.rewardForChannelSubscription(chatId);
   } else {

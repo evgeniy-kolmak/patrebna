@@ -11,6 +11,7 @@ export async function handleAddLinkKufar(
   chatId: number,
   messageId: number | undefined,
   callbackData: ICallbackData,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const urlId: number = callbackData.param;
@@ -18,6 +19,7 @@ export async function handleAddLinkKufar(
     chatId,
     messageId,
     t('Текст для Kufar при добавлении ссылки'),
+    callbackQueryId,
   );
   const promptKufar = await bot.sendMessage(
     chatId,

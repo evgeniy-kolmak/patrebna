@@ -1,15 +1,16 @@
-import { bot } from 'bot';
 import i18next from 'i18next';
 import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { getObserveButton } from 'config/lib/helpers/getObserveButton';
 import { Button, type ICallbackData, type IButton } from 'config/types';
 import { getMessageObserve } from 'config/lib/helpers/getMessageObserve';
+import { editMessage } from 'config/lib/helpers/editMessage';
 
 export async function handleChangeUrlStatus(
   chatId: number,
   messageId: number | undefined,
   callbackData: ICallbackData,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const urlId: number = callbackData.param;
@@ -24,11 +25,8 @@ export async function handleChangeUrlStatus(
     getObserveButton(Button.DELETE, urlId),
   );
   const message = await getMessageObserve(chatId, urlId);
-  await bot.editMessageText(message, {
-    chat_id: chatId,
-    message_id: messageId,
-    parse_mode: 'HTML',
-    disable_web_page_preview: true,
-    reply_markup: { inline_keyboard: inlineKeyboard },
+
+  await editMessage(chatId, messageId, message, callbackQueryId, {
+    inline_keyboard: inlineKeyboard,
   });
 }

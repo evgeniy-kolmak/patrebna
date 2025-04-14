@@ -1,6 +1,6 @@
-import { bot } from 'bot';
 import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { editMessage } from 'config/lib/helpers/editMessage';
 import { getMessageObserve } from 'config/lib/helpers/getMessageObserve';
 import { getObserveButton } from 'config/lib/helpers/getObserveButton';
 import { type IButton, Button, StatusPremium } from 'config/types';
@@ -9,6 +9,7 @@ import i18next, { t } from 'i18next';
 export async function handleObserveKufar(
   chatId: number,
   messageId: number | undefined,
+  callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const dataParser = await db.getDataParser(chatId);
@@ -50,11 +51,7 @@ export async function handleObserveKufar(
 
     inlineKeyboard.unshift(...wrapButtons);
   }
-  await bot.editMessageText(message, {
-    chat_id: chatId,
-    message_id: messageId,
-    parse_mode: 'HTML',
-    disable_web_page_preview: true,
-    reply_markup: { inline_keyboard: inlineKeyboard },
+  await editMessage(chatId, messageId, message, callbackQueryId, {
+    inline_keyboard: inlineKeyboard,
   });
 }

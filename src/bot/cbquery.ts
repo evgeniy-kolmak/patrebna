@@ -26,7 +26,7 @@ import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSu
 
 export default (): void => {
   bot.on('callback_query', async (query): Promise<void> => {
-    const { data, from, message } = query;
+    const { data, from, id: callbackQueryId, message } = query;
     let callbackData: ICallbackData;
     try {
       const parsed = JSON.parse(data ?? '{}');
@@ -43,7 +43,7 @@ export default (): void => {
     const language = await getUserLanguage(chatId);
     switch (callbackData.action) {
       case 'registration': {
-        await handleRegistration(chatId, from, messageId);
+        await handleRegistration(chatId, from, messageId, callbackQueryId);
         break;
       }
       case 'change_language': {
@@ -51,15 +51,25 @@ export default (): void => {
         break;
       }
       case 'kufar': {
-        await handleObserveKufar(chatId, messageId);
+        await handleObserveKufar(chatId, messageId, callbackQueryId);
         break;
       }
       case 'add_link_kufar': {
-        await handleAddLinkKufar(chatId, messageId, callbackData);
+        await handleAddLinkKufar(
+          chatId,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
       case 'change_status_link_kufar': {
-        await handleChangeUrlStatus(chatId, messageId, callbackData);
+        await handleChangeUrlStatus(
+          chatId,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
 
@@ -67,34 +77,48 @@ export default (): void => {
         await i18next.changeLanguage(language);
         const urlId: number = callbackData.param;
         await db.removeUrlKufar(chatId, urlId);
-        await handleObserveKufar(chatId, messageId);
+        await handleObserveKufar(chatId, messageId, callbackQueryId);
         await bot.sendMessage(chatId, t('Ссылка удалена'), {
           parse_mode: 'HTML',
         });
         break;
       }
       case 'wrap_link': {
-        await handleWrapperForLink(chatId, messageId, callbackData);
+        await handleWrapperForLink(
+          chatId,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
       case 'buy_premium': {
-        await handleBuyPremium(chatId, messageId);
+        await handleBuyPremium(chatId, messageId, callbackQueryId);
         break;
       }
       case 'choose_tariff': {
-        await handleChooseTariff(chatId, messageId, callbackData);
+        await handleChooseTariff(
+          chatId,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
       case 'get_free_premium': {
-        await handleGetFreePremium(chatId, messageId);
+        await handleGetFreePremium(chatId, messageId, callbackQueryId);
         break;
       }
       case 'subscribe_channel': {
-        await handleSubscribeToChannel(chatId, messageId);
+        await handleSubscribeToChannel(chatId, messageId, callbackQueryId);
         break;
       }
       case 'check_on_subscribe_channel': {
-        await handleChekOnSubscribeToChannel(chatId, messageId);
+        await handleChekOnSubscribeToChannel(
+          chatId,
+          messageId,
+          callbackQueryId,
+        );
         break;
       }
       case 'remove_me': {
@@ -103,6 +127,7 @@ export default (): void => {
           chatId,
           messageId,
           t('Сообщение об удалении профиля'),
+          callbackQueryId,
           {
             inline_keyboard: [
               [
@@ -124,16 +149,22 @@ export default (): void => {
       }
       case 'approve': {
         await i18next.changeLanguage(language);
-        await editMessage(chatId, messageId, t('Подтвердить удаление'), {
-          inline_keyboard: [
-            [
-              {
-                text: t('Регистрация'),
-                callback_data: JSON.stringify({ action: 'registration' }),
-              },
+        await editMessage(
+          chatId,
+          messageId,
+          t('Подтвердить удаление'),
+          callbackQueryId,
+          {
+            inline_keyboard: [
+              [
+                {
+                  text: t('Регистрация'),
+                  callback_data: JSON.stringify({ action: 'registration' }),
+                },
+              ],
             ],
-          ],
-        });
+          },
+        );
         await db.removeUser(chatId);
         break;
       }
@@ -143,6 +174,7 @@ export default (): void => {
           chatId,
           messageId,
           t('Отклонить удаление'),
+          callbackQueryId,
           await keyboard.Profile(),
         );
         break;
@@ -153,6 +185,7 @@ export default (): void => {
           chatId,
           messageId,
           t('Сообщение об отслеживании'),
+          callbackQueryId,
           keyboard.Observe(),
         );
         break;
@@ -163,6 +196,7 @@ export default (): void => {
           chatId,
           messageId,
           t('Описание подписки'),
+          callbackQueryId,
           keyboard.Premium(),
         );
         break;
