@@ -14,22 +14,23 @@ export async function bepaidWebhookHandler(
   req: Request,
   res: Response,
 ): Promise<void> {
-  if (req.body.transaction) {
-    await handleTransactionWebhook(req, res);
-    return;
+  switch (true) {
+    case Boolean(req.body.transaction):
+      await handleTransactionWebhook(req);
+      break;
+
+    case req.body.status === 'expired':
+      await handleTokenExpiredWebhook(req);
+      break;
+
+    default:
+      console.info('Неизвестный webhook:', req.body);
   }
-  if (req.body.status === 'expired') {
-    await handleTokenExpiredWebhook(req, res);
-    return;
-  }
-  console.info(req.body);
+
   res.status(200).json({ status: 'ok' });
 }
 
-async function handleTransactionWebhook(
-  req: Request,
-  res: Response,
-): Promise<void> {
+async function handleTransactionWebhook(req: Request): Promise<void> {
   try {
     const { status, tracking_id }: ResponseTransaction = req.body?.transaction;
     const { userId, quantity, messageId }: ITrackingData =
@@ -57,15 +58,10 @@ async function handleTransactionWebhook(
     }
   } catch (error) {
     console.error('Ошибка обработки вебхука:', error);
-  } finally {
-    res.status(200).json({ status: 'ok' });
   }
 }
 
-async function handleTokenExpiredWebhook(
-  req: Request,
-  res: Response,
-): Promise<void> {
+async function handleTokenExpiredWebhook(req: Request): Promise<void> {
   try {
     const { tracking_id }: ResponseOrder = req.body?.order;
     const { userId, messageId }: ITrackingData = JSON.parse(tracking_id);
@@ -78,7 +74,5 @@ async function handleTokenExpiredWebhook(
     );
   } catch (error) {
     console.error('Ошибка обработки вебхука:', error);
-  } finally {
-    res.status(200).json({ status: 'ok' });
   }
 }
