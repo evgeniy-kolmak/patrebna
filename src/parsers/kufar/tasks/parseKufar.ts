@@ -1,10 +1,22 @@
 import axios, { AxiosError } from 'axios';
+import axiosRetry from 'axios-retry';
 import db from 'config/db/databaseServise';
 import pLimit from 'p-limit';
 import { pause } from 'config/lib/helpers/pause';
 import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 import { parserAds } from 'parsers';
 import { type IParserData } from 'config/types';
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: (retryCount, error) => {
+    console.warn(`Попытка #${retryCount} для ${error?.config?.url}`);
+    return retryCount * 1000;
+  },
+  retryCondition: (error) => {
+    return axiosRetry.isNetworkOrIdempotentRequestError(error);
+  },
+});
 
 export default async function parseKufar(
   users: Array<IParserData & { userId: number }>,
@@ -29,8 +41,10 @@ export default async function parseKufar(
             await notificationOfNewAds(userId, newAds, user);
           } catch (error) {
             if (error instanceof AxiosError) {
-              const { response, message } = error;
-              console.error(`(${response?.status}) ${message} - ${url}`);
+              const { response, message, config } = error;
+              console.error(
+                `(${response?.status}) ${message} - ${config?.url}`,
+              );
             } else {
               console.error('Неизвестная ошибка:', error);
             }
