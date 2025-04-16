@@ -14,8 +14,8 @@ export default (): void => {
     void (async () => {
       const userId = ctx.chat.id;
       await i18next.changeLanguage(await getUserLanguage(userId));
-      const isRegistred = await db.getUser(userId);
-      if (isRegistred) {
+      const isRegistered = await db.getUser(userId);
+      if (isRegistered) {
         const profile = await db.getProfile(userId);
         const premium = await db.getDataPremium(userId);
         const status = premium?.status ?? StatusPremium.NONE;
