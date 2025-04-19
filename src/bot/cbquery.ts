@@ -43,7 +43,13 @@ export default (): void => {
     const language = await getUserLanguage(chatId);
     switch (callbackData.action) {
       case 'registration': {
-        await handleRegistration(chatId, from, messageId, callbackQueryId);
+        await handleRegistration(
+          chatId,
+          from,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
       case 'change_language': {

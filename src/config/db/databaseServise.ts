@@ -256,6 +256,11 @@ class DatabaseService {
       parser: parser._id,
     });
     await newUser.save();
+    await Activity.updateOne(
+      {},
+      { $addToSet: { alreadyRegisteredUserIds: id } },
+      { upsert: true },
+    );
     await TelegramService.sendMessageToChat(
       `${[
         `🙍 Пользователь с id: <b>${id}</b> присоединился к боту`,
@@ -462,6 +467,20 @@ class DatabaseService {
         _id: { $in: kufarObjectIds },
       });
     }
+  }
+
+  async tryAddReferralWithBonus(userId: number, referrerId: number) {
+    const profile = await this.getProfile(referrerId);
+    const activity = await Activity.exists({
+      alreadyRegisteredUserIds: userId,
+    });
+    if (activity) return;
+    const result = await Profile.updateOne(
+      { _id: profile?._id },
+      { $addToSet: { referrals: userId } },
+    );
+
+    if (result.matchedCount) await this.grantPremium(referrerId, 5);
   }
 
   async clearExpiredAdReferences() {

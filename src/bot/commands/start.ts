@@ -7,21 +7,29 @@ import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessag
 
 export default (): void => {
   const regex = /\/start(?: (.+))?/;
-  bot.onText(regex, (ctx) => {
+  bot.onText(regex, (ctx, match) => {
     void (async () => {
       const userId = ctx.chat.id;
+      const payload = match?.[1] ?? null;
+      let referrerId: number | undefined;
+      if (payload?.startsWith('ref')) {
+        const parsed = Number(payload.slice(3));
+        if (!isNaN(parsed)) {
+          referrerId = parsed;
+        }
+      }
       await i18next.changeLanguage(await getUserLanguage(userId));
-      const isRegistred = await db.getUser(userId);
+      const isRegistered = await db.getUser(userId);
       await bot.sendMessage(userId, t('Приветствие'), {
         parse_mode: 'HTML',
         disable_web_page_preview: true,
         reply_markup: keyboard.Main(),
       });
-      if (isRegistred) {
+      if (isRegistered) {
         await bot.sendMessage(userId, t('Сообщение об отслеживании'), {
           reply_markup: keyboard.Observe(),
         });
-      } else await notRegistrationMessage(userId);
+      } else await notRegistrationMessage(userId, referrerId);
     })();
   });
 };
