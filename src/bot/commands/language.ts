@@ -6,9 +6,9 @@ export default (): void => {
   const regex = /Язык|Мова/;
   bot.onText(regex, (ctx) => {
     void (async () => {
-      const userID = ctx.chat.id;
-      await i18next.changeLanguage(await getUserLanguage(userID));
-      await bot.sendMessage(userID, t('Переключить язык приложения'), {
+      const userId = ctx.chat.id;
+      await i18next.changeLanguage(await getUserLanguage(userId));
+      await bot.sendMessage(userId, t('Переключить язык приложения'), {
         reply_markup: {
           inline_keyboard: [
             [

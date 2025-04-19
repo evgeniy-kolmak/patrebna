@@ -11,21 +11,21 @@ export async function handleGetFreePremium(
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const isSubscribedToChannel = await db.isChannelSubscriptionRewarded(chatId);
 
-  const text = isSubscribedToChannel
-    ? t('Сообщение для получение бесплатного премиума')
-    : t('Описание для списка задач бесплатного премиума');
-
   const inline_keyboard = [
-    ...(isSubscribedToChannel
+    isSubscribedToChannel
       ? []
       : [
-          [
-            {
-              text: `🔔 ${t('Подписка на канал')}`,
-              callback_data: JSON.stringify({ action: 'subscribe_channel' }),
-            },
-          ],
-        ]),
+          {
+            text: `🔔 ${t('Подписка на канал')}`,
+            callback_data: JSON.stringify({ action: 'subscribe_channel' }),
+          },
+        ],
+    [
+      {
+        text: `${t('Пригласить друга')}`,
+        callback_data: JSON.stringify({ action: 'invite_referral' }),
+      },
+    ],
     [
       {
         text: t('Назад'),
@@ -34,7 +34,11 @@ export async function handleGetFreePremium(
     ],
   ];
 
-  await editMessage(chatId, messageId, text, callbackQueryId, {
-    inline_keyboard,
-  });
+  await editMessage(
+    chatId,
+    messageId,
+    t('Описание для списка задач бесплатного премиума'),
+    callbackQueryId,
+    { inline_keyboard },
+  );
 }

@@ -20,9 +20,10 @@ import { handleObserveKufar } from 'bot/handlers/callbacks/observeKufar';
 import { handleChangeUrlStatus } from 'bot/handlers/callbacks/changeUrlStatus';
 import { handleWrapperForLink } from 'bot/handlers/callbacks/wrapperForLink';
 import { handleGetFreePremium } from 'bot/handlers/callbacks/getFreePremium';
-import { editMessage } from 'config/lib/helpers/editMessage';
 import { handleSubscribeToChannel } from 'bot/handlers/callbacks/subscribeToChannel';
 import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSubscribeToChannel';
+import { handleInviteReferral } from 'bot/handlers/callbacks/inviteReferral';
+import { editMessage } from 'config/lib/helpers/editMessage';
 
 export default (): void => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -43,7 +44,13 @@ export default (): void => {
     const language = await getUserLanguage(chatId);
     switch (callbackData.action) {
       case 'registration': {
-        await handleRegistration(chatId, from, messageId, callbackQueryId);
+        await handleRegistration(
+          chatId,
+          from,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
       case 'change_language': {
@@ -111,6 +118,10 @@ export default (): void => {
       }
       case 'subscribe_channel': {
         await handleSubscribeToChannel(chatId, messageId, callbackQueryId);
+        break;
+      }
+      case 'invite_referral': {
+        await handleInviteReferral(chatId, messageId, callbackQueryId);
         break;
       }
       case 'check_on_subscribe_channel': {

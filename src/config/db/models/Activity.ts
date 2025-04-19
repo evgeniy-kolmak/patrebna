@@ -1,15 +1,14 @@
 import { Schema, model } from 'mongoose';
-
-const uniqueArrayValidator = {
-  validator: function (arr: number[]) {
-    return Array.isArray(arr) && new Set(arr).size === arr.length;
-  },
-  message: 'Массив должен содержать только уникальные значения.',
-};
+import { uniqueArrayValidator } from 'config/db/validators/uniqueArrayValidator';
 
 const ActivitySchema = new Schema(
   {
     userIdsSubscribedToChannel: {
+      type: [Number],
+      default: [],
+      validate: uniqueArrayValidator,
+    },
+    alreadyRegisteredUserIds: {
       type: [Number],
       default: [],
       validate: uniqueArrayValidator,

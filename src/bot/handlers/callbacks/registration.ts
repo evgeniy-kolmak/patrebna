@@ -4,7 +4,7 @@ import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { eventMessage } from 'config/lib/helpers/eventMessage';
 import type { User } from 'node-telegram-bot-api';
-import { type IProfile, StatusPremium } from 'config/types';
+import { type ICallbackData, type IProfile, StatusPremium } from 'config/types';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { Activity } from 'config/db/models/Activity';
 
@@ -12,6 +12,7 @@ export async function handleRegistration(
   chatId: number,
   from: User,
   messageId: number | undefined,
+  callbackData: ICallbackData,
   callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
@@ -21,6 +22,10 @@ export async function handleRegistration(
       const isChannelSubscriptionRewarded = await Activity.exists({
         userIdsSubscribedToChannel: chatId,
       });
+
+      if (callbackData?.param)
+        await db.tryAddReferralWithBonus(chatId, callbackData?.param as number);
+
       const { username, first_name, last_name } = from;
       const profile: IProfile = {
         username,

@@ -11,8 +11,8 @@ export default (): void => {
     void (async () => {
       const userId = ctx.chat.id;
       await i18next.changeLanguage(await getUserLanguage(userId));
-      const isRegistred = await db.getUser(userId);
-      if (isRegistred) {
+      const isRegistered = await db.getUser(userId);
+      if (isRegistered) {
         await bot.sendMessage(userId, t('Описание подписки'), {
           parse_mode: 'HTML',
           reply_markup: keyboard.Premium(),

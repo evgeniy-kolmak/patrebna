@@ -1,6 +1,6 @@
 {
   "name": "patrebna",
-  "version": "4.1.3",
+  "version": "4.2.0",
   "description": "Parser telegram bot for Kufar",
   "main": "index.js",
   "scripts": {
