@@ -70,7 +70,7 @@ const userActions = {
 async function handleInactiveUsers(action: UserActions): Promise<void> {
   const usersFromDatabase = await db.getUsersForParse();
   const inactiveUserIds = usersFromDatabase
-    .filter((user) => !user.parser.kufar.dataParser)
+    .filter((user) => !user.parser?.kufar?.dataParser)
     .map((user) => user.id);
 
   if (inactiveUserIds.length) {

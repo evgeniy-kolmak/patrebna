@@ -7,7 +7,7 @@ export async function getUserIds(): Promise<number[]> {
 
   const usersFromDatabase = await db.getUsersForParse();
   const userIdsFromDatabase = usersFromDatabase
-    .filter((user) => user.parser.kufar.dataParser)
+    .filter((user) => user.parser?.kufar?.dataParser)
     .map((user) => user.id);
   await cache.setCache('ids', userIdsFromDatabase, 43200);
   return userIdsFromDatabase;

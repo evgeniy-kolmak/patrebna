@@ -388,7 +388,6 @@ class DatabaseService {
   async removeUrlKufar(userId: number, urlId: number) {
     const dataParser = await this.getDataParser(userId);
     const statusPremium = await this.getDataPremium(userId);
-
     if (!dataParser) return;
 
     const urls = dataParser.urls
@@ -404,8 +403,13 @@ class DatabaseService {
         _id: url._id,
       }));
 
-    if (!urls.length) await DataParser.deleteOne({ _id: dataParser._id });
-    else
+    if (!urls.length) {
+      await DataParser.deleteOne({ _id: dataParser._id });
+      await Parser.updateMany(
+        { 'kufar.dataParser': dataParser._id },
+        { $unset: { 'kufar.dataParser': '' } },
+      );
+    } else
       await DataParser.updateOne({ _id: dataParser._id }, { $set: { urls } });
 
     await this.removeKufarAdsByUrlId(userId, urlId);
