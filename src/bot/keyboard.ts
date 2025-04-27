@@ -3,6 +3,7 @@ import {
   type InlineKeyboardMarkup,
   type ReplyKeyboardMarkup,
 } from 'node-telegram-bot-api';
+import { dataFaq } from 'constants/faq';
 
 class Keyboard {
   Main(): ReplyKeyboardMarkup {
@@ -38,6 +39,22 @@ class Keyboard {
             callback_data: JSON.stringify({ action: 'kufar' }),
           },
         ],
+      ],
+    };
+  }
+
+  Faq(): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        ...dataFaq.map(({ question }, index) => [
+          {
+            text: t(question),
+            callback_data: JSON.stringify({
+              action: 'faq_question_open',
+              param: index,
+            }),
+          },
+        ]),
       ],
     };
   }

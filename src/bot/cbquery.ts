@@ -23,6 +23,7 @@ import { handleGetFreePremium } from 'bot/handlers/callbacks/getFreePremium';
 import { handleSubscribeToChannel } from 'bot/handlers/callbacks/subscribeToChannel';
 import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSubscribeToChannel';
 import { handleInviteReferral } from 'bot/handlers/callbacks/inviteReferral';
+import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { editMessage } from 'config/lib/helpers/editMessage';
 
 export default (): void => {
@@ -132,6 +133,15 @@ export default (): void => {
         );
         break;
       }
+      case 'faq_question_open': {
+        await handleOpenQuestionFaq(
+          chatId,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
+        break;
+      }
       case 'remove_me': {
         await i18next.changeLanguage(language);
         await editMessage(
@@ -209,6 +219,17 @@ export default (): void => {
           t('Описание подписки'),
           callbackQueryId,
           keyboard.Premium(),
+        );
+        break;
+      }
+      case 'back_faq': {
+        await i18next.changeLanguage(language);
+        await editMessage(
+          chatId,
+          messageId,
+          t('Сообщение для FAQ'),
+          callbackQueryId,
+          keyboard.Faq(),
         );
         break;
       }

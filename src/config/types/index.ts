@@ -76,6 +76,11 @@ export enum UserActions {
   NOTIFACTION = 'notification',
 }
 
+export interface IFaq {
+  question: string;
+  answer: string;
+}
+
 export interface IErrorTelegram {
   response: {
     body: {
