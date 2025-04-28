@@ -25,6 +25,7 @@ import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSu
 import { handleInviteReferral } from 'bot/handlers/callbacks/inviteReferral';
 import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { editMessage } from 'config/lib/helpers/editMessage';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 
 export default (): void => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -55,7 +56,7 @@ export default (): void => {
         break;
       }
       case 'change_language': {
-        await handleChangeLanguage(chatId, message);
+        await handleChangeLanguage(chatId, message, callbackQueryId);
         break;
       }
       case 'kufar': {
@@ -86,9 +87,7 @@ export default (): void => {
         const urlId: number = callbackData.param;
         await db.removeUrlKufar(chatId, urlId);
         await handleObserveKufar(chatId, messageId, callbackQueryId);
-        await bot.sendMessage(chatId, t('Ссылка удалена'), {
-          parse_mode: 'HTML',
-        });
+        await sendMessage(chatId, t('Ссылка удалена'));
         break;
       }
       case 'wrap_link': {

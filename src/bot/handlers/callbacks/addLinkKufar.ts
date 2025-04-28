@@ -3,9 +3,9 @@ import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { type ICallbackData } from 'config/types';
 import db from 'config/db/databaseServise';
-import { eventMessage } from 'config/lib/helpers/eventMessage';
-import keyboard from 'bot/keyboard';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { editMessage } from 'config/lib/helpers/editMessage';
+import keyboard from 'bot/keyboard';
 
 export async function handleAddLinkKufar(
   chatId: number,
@@ -21,16 +21,11 @@ export async function handleAddLinkKufar(
     t('Текст для Kufar при добавлении ссылки'),
     callbackQueryId,
   );
-  const promptKufar = await bot.sendMessage(
-    chatId,
-    t('Укажите ссылку для Kufar'),
-    {
-      reply_markup: {
-        force_reply: true,
-        input_field_placeholder: t('Плейсхолдер ссылки Kufar'),
-      },
-    },
-  );
+
+  const promptKufar = await sendMessage(chatId, t('Укажите ссылку для Kufar'), {
+    force_reply: true,
+    input_field_placeholder: t('Плейсхолдер ссылки Kufar'),
+  });
 
   const { message_id } = promptKufar;
   bot.onReplyToMessage(chatId, message_id, (message) => {
@@ -39,7 +34,7 @@ export async function handleAddLinkKufar(
       if (text) {
         const data = await db.setUrlKufar(chatId, text, urlId);
         if (data instanceof Error) {
-          await eventMessage(chatId, t('Ошибка добавления ссылки'), {
+          await sendMessage(chatId, t('Ошибка добавления ссылки'), {
             inline_keyboard: [
               [
                 {
@@ -61,7 +56,7 @@ export async function handleAddLinkKufar(
             ],
           });
         } else {
-          await eventMessage(chatId, t('Сообщение об успехе'), keyboard.Main());
+          await sendMessage(chatId, t('Сообщение об успехе'), keyboard.Main());
         }
       }
     })();

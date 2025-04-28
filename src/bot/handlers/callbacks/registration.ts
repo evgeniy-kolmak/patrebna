@@ -2,7 +2,7 @@ import keyboard from 'bot/keyboard';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
-import { eventMessage } from 'config/lib/helpers/eventMessage';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 import type { User } from 'node-telegram-bot-api';
 import { type ICallbackData, type IProfile, StatusPremium } from 'config/types';
 import { editMessage } from 'config/lib/helpers/editMessage';
@@ -45,7 +45,7 @@ export async function handleRegistration(
       );
     } catch (error) {
       console.error(error);
-      await eventMessage(chatId, t('Ошибка регистрации'), {
+      await sendMessage(chatId, t('Ошибка регистрации'), {
         inline_keyboard: [
           [
             {

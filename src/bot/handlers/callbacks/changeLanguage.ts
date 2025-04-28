@@ -7,10 +7,13 @@ import {
   setUserLanguage,
 } from 'config/lib/helpers/cacheLaguage';
 import keyboard from 'bot/keyboard';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
+import { deleteMessage } from 'config/lib/helpers/deleteMessage';
 
 export async function handleChangeLanguage(
   chatId: number,
   message: Message | undefined,
+  callbackQueryId: string,
 ): Promise<void> {
   const language = await getUserLanguage(chatId);
   const newLanguage =
@@ -19,23 +22,18 @@ export async function handleChangeLanguage(
       : Languages.Belarusian;
   await setUserLanguage(chatId, newLanguage);
   await i18next.changeLanguage(newLanguage);
-  await bot.sendMessage(chatId, t('Язык был изменен'), {
-    parse_mode: 'HTML',
-    reply_markup: keyboard.Main(),
-  });
+  await sendMessage(chatId, t('Язык был изменен'), keyboard.Main());
 
   if (message?.text?.includes('🔄'))
-    await bot.deleteMessage(chatId, message.message_id);
-  await bot.sendMessage(chatId, t('Переключить язык приложения'), {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: t('Сменить язык'),
-            callback_data: JSON.stringify({ action: 'change_language' }),
-          },
-        ],
+    await deleteMessage(chatId, message?.message_id, callbackQueryId);
+  await sendMessage(chatId, t('Переключить язык приложения'), {
+    inline_keyboard: [
+      [
+        {
+          text: t('Сменить язык'),
+          callback_data: JSON.stringify({ action: 'change_language' }),
+        },
       ],
-    },
+    ],
   });
 }

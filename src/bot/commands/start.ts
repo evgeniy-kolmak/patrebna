@@ -4,6 +4,7 @@ import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 
 export default (): void => {
   const regex = /\/start(?: (.+))?/;
@@ -20,15 +21,13 @@ export default (): void => {
       }
       await i18next.changeLanguage(await getUserLanguage(userId));
       const isRegistered = await db.getUser(userId);
-      await bot.sendMessage(userId, t('Приветствие'), {
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-        reply_markup: keyboard.Main(),
-      });
+      await sendMessage(userId, t('Приветствие'), keyboard.Main());
       if (isRegistered) {
-        await bot.sendMessage(userId, t('Сообщение об отслеживании'), {
-          reply_markup: keyboard.Observe(),
-        });
+        await sendMessage(
+          userId,
+          t('Сообщение об отслеживании'),
+          keyboard.Observe(),
+        );
       } else await notRegistrationMessage(userId, referrerId);
     })();
   });

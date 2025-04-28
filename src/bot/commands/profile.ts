@@ -7,6 +7,7 @@ import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { StatusPremium } from 'config/types';
 import { statusDescription } from 'constants/statusDescriptionPremium';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 
 export default (): void => {
   const regex = /Профиль|Профіль/;
@@ -38,10 +39,7 @@ export default (): void => {
           `<b>${t('Подписка на канал')}</b>: ${profile?.subscribeToChannel ? '☑️' : '✖️'}`,
           `<b>${t('Количество рефералов')}</b>: ${profile?.referrals.length}`,
         ].join('\n');
-        await bot.sendMessage(userId, dataProfile, {
-          parse_mode: 'HTML',
-          reply_markup: await keyboard.Profile(),
-        });
+        await sendMessage(userId, dataProfile, await keyboard.Profile());
       } else await notRegistrationMessage(userId);
     })();
   });

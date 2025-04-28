@@ -1,6 +1,7 @@
 import { bot } from 'bot';
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 import keyboard from 'bot/keyboard';
 
 export default (): void => {
@@ -9,13 +10,8 @@ export default (): void => {
     void (async () => {
       const userId = ctx.chat.id;
       await i18next.changeLanguage(await getUserLanguage(userId));
-      await bot.sendMessage(userId, t('Сообщение для FAQ'), {
-        parse_mode: 'HTML',
-        reply_markup: keyboard.Faq(),
-      });
-      await bot.sendMessage(userId, t('Техподдержка'), {
-        parse_mode: 'HTML',
-      });
+      await sendMessage(userId, t('Сообщение для FAQ'), keyboard.Faq());
+      await sendMessage(userId, t('Техподдержка'));
     })();
   });
 };

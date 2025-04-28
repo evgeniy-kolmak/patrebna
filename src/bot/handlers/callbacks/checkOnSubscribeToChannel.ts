@@ -3,6 +3,7 @@ import { bot } from 'bot';
 import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { editMessage } from 'config/lib/helpers/editMessage';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 
 export async function handleChekOnSubscribeToChannel(
   chatId: number,
@@ -20,10 +21,6 @@ export async function handleChekOnSubscribeToChannel(
     );
     await db.rewardForChannelSubscription(chatId);
   } else {
-    await bot.sendMessage(
-      chatId,
-      t('Сообщение о неудачном выполнении задания'),
-      { parse_mode: 'HTML' },
-    );
+    await sendMessage(chatId, t('Сообщение о неудачном выполнении задания'));
   }
 }

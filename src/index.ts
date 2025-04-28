@@ -1,13 +1,14 @@
 import 'dotenv/config';
+import { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import { scheduleJob } from 'node-schedule';
 import parseKufar from 'parsers/kufar/tasks/parseKufar';
 import { type IErrorTelegram, StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { getUser } from 'config/lib/helpers/getUser';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
-import { t } from 'i18next';
-import { bot } from 'bot';
+
 import keyboard from 'bot/keyboard';
 
 void (async () => {
@@ -50,10 +51,11 @@ const userActions = {
   },
   notification: async (id: number) => {
     try {
-      await bot.sendMessage(id, t('Сообщение для неактивных пользователей'), {
-        parse_mode: 'HTML',
-        reply_markup: keyboard.Observe(),
-      });
+      await sendMessage(
+        id,
+        t('Сообщение для неактивных пользователей'),
+        keyboard.Observe(),
+      );
     } catch (error) {
       const err = error as IErrorTelegram;
       const { error_code } = err.response.body;
