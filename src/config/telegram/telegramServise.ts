@@ -1,7 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 import db from 'config/db/databaseServise';
-import cache from 'config/redis/redisService';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -15,9 +14,6 @@ export const TelegramService = {
     keyboard?: InlineKeyboardMarkup,
   ) {
     try {
-      const key = `edited:${chatId}-${messageId}`;
-      const wasEdited = await cache.getCache(key);
-      if (wasEdited && JSON.parse(wasEdited)) return;
       const url = `${TELEGRAM_API_URL}/editMessageText`;
       await axios.post(url, {
         chat_id: chatId,
@@ -26,16 +22,21 @@ export const TelegramService = {
         parse_mode: 'HTML',
         reply_markup: keyboard,
       });
-      await cache.setCache(key, true, 1500);
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 403) {
           await db.removeUser(chatId);
           console.error('Заблокированный пользователь был удален!');
-        } else {
-          console.error('Ошибка при отправке сообщения в Telegram:', error);
+          return;
         }
-        return;
+        if (
+          error.response?.data?.description.includes(
+            'Bad Request: message is not modified',
+          )
+        )
+          return;
+
+        console.error('Ошибка при отправке сообщения в Telegram:', error);
       }
       console.error('Неизвестная ошибка:', error);
     }
