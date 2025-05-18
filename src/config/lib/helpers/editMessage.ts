@@ -1,7 +1,8 @@
 import { bot } from 'bot';
+import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
 import { type IErrorTelegram } from 'config/types';
 import { t } from 'i18next';
-import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 export async function editMessage(
   chatId: number,
@@ -22,13 +23,13 @@ export async function editMessage(
     const err = error as IErrorTelegram;
     const { description } = err.response.body;
     if (description.includes('Bad Request: message is not modified')) {
-      await bot.answerCallbackQuery(callbackQueryId, {
+      await safeAnswerCallbackQuery(callbackQueryId, {
         text: t('Ошибка редактирования сообщения'),
         show_alert: true,
       });
       return;
     }
-    await bot.answerCallbackQuery(callbackQueryId, {
+    await safeAnswerCallbackQuery(callbackQueryId, {
       text: t('Неизвестная ошибка'),
       show_alert: true,
     });
