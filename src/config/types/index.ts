@@ -12,6 +12,7 @@ export interface IDataParserItem {
   url: string;
   typeUrlParser: TypesUrlParser;
   isActive: boolean;
+  ids: number[];
 }
 
 export interface IExtendedDataParserItem {

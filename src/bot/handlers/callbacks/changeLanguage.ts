@@ -1,4 +1,3 @@
-import { bot } from 'bot';
 import { type Message } from 'node-telegram-bot-api';
 import i18next, { t } from 'i18next';
 import { Languages } from 'config/types';

@@ -7,15 +7,15 @@ class RedisService {
   constructor() {
     const password = process.env.REDIS_PASSWORD ?? '';
     this.redis = new Redis({
-      host: 'redis',
+      host: 'localhost',
       port: 6379,
-      password,
-      tls: {
-        ca: readFileSync('certs/ca.pem'),
-        cert: readFileSync('certs/client-cert.pem'),
-        key: readFileSync('certs/client-key.pem'),
-        rejectUnauthorized: false,
-      },
+      // password,
+      // tls: {
+      //   ca: readFileSync('certs/ca.pem'),
+      //   cert: readFileSync('certs/client-cert.pem'),
+      //   key: readFileSync('certs/client-key.pem'),
+      //   rejectUnauthorized: false,
+      // },
     });
 
     this.redis.once('connect', () => {

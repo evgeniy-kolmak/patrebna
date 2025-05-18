@@ -31,17 +31,17 @@ class DatabaseService {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
     this.TTL = 43200;
-    this.url = `mongodb://mongodb:27017/`;
+    this.url = `mongodb://localhost:27017/`;
     void mongoose.connect(this.url, {
-      auth: {
-        username,
-        password,
-      },
-      tls: true,
+      // auth: {
+      //   username,
+      //   password,
+      // },
+      // tls: true,
       dbName: 'patrebna',
       authSource: 'admin',
-      tlsAllowInvalidCertificates: true,
-      tlsCertificateKeyFile: './certs/client.pem',
+      // tlsAllowInvalidCertificates: true,
+      // tlsCertificateKeyFile: './certs/client.pem',
     });
 
     const connect = mongoose.connection;
@@ -233,8 +233,13 @@ class DatabaseService {
     const dataParser = await this.getDataParser(userId);
     const extendedUrls: IExtendedDataParserItem[] = dataParser?.urls.toObject();
     const urls = extendedUrls?.map(
-      ({ _id, ...rest }) => rest as IDataParserItem,
+      ({ _id, ...rest }) =>
+        ({
+          ...rest,
+          ids: [],
+        }) as unknown as IDataParserItem,
     );
+
     return {
       urls,
       status: premium?.status ?? StatusPremium.NONE,
@@ -318,7 +323,7 @@ class DatabaseService {
     const parser = await this.getParser(userId);
     const dataParser = await this.getDataParser(userId);
 
-    const dataParserItem: IDataParserItem = {
+    const dataParserItem: Omit<IDataParserItem, 'ids'> = {
       urlId,
       url,
       typeUrlParser,
@@ -434,6 +439,7 @@ class DatabaseService {
 
   async addUniqueAds(id: number, parseAds: IAd[], urlId: number) {
     const parser = await this.getParser(id);
+    const user = await getUser(id);
     const existingAds = await KufarAd.find(
       { _id: { $in: parser?.kufar?.kufarAds.flatMap((item) => item.ads) } },
       { id: 1, _id: 0 },
@@ -449,6 +455,12 @@ class DatabaseService {
       ? existingKufarAds.ads.push(...ads)
       : parser?.kufar?.kufarAds.push({ urlId, ads });
     await parser?.save();
+    user.urls[urlId].ids = user.urls[urlId].ids.concat(
+      newAds.map((ad) => +ad.id),
+    );
+    // console.log(user.urls);
+    // console.log(urlId);
+    await cache.setCache(`user:${id}`, { ...user }, 43200);
     return newAds;
   }
 

@@ -27,12 +27,14 @@ export default (): void => {
       if (!user) return;
       const userId = user?.id;
       const userData: IParserData = await getUser(userId);
-
       const operationType: OperationType = change.operationType;
       switch (operationType) {
         case OperationType.INSERT: {
           const urls: IDataParserItem[] = change.fullDocument.urls.map(
-            ({ _id, ...rest }: IExtendedDataParserItem) => rest,
+            ({ _id, ...rest }: IExtendedDataParserItem) => ({
+              ...rest,
+              ids: [],
+            }),
           );
           userData.urls = urls;
           await cache.setCache(`user:${userId}`, { ...userData }, TTL);
@@ -41,7 +43,10 @@ export default (): void => {
         case OperationType.UPDATE: {
           const urls: IDataParserItem[] =
             change.updateDescription.updatedFields.urls?.map(
-              ({ _id, ...rest }: IExtendedDataParserItem) => rest,
+              ({ _id, ...rest }: IExtendedDataParserItem) => ({
+                ...rest,
+                ids: [],
+              }),
             );
           userData.urls = urls;
           await cache.setCache(`user:${userId}`, { ...userData }, TTL);
