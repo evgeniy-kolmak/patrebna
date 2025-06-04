@@ -22,11 +22,11 @@ import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 
 void (async () => {
   void scheduleParsing(
-    '3-59/24 * * * *',
+    '3-59/30 * * * *',
     (user) => user.status !== StatusPremium.ACTIVE,
   );
   void scheduleParsing(
-    '6-59/6 * * * *',
+    '6-59/5 * * * *',
     (user) => user.status === StatusPremium.ACTIVE,
   );
 
