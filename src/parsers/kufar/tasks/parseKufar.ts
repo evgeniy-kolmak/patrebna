@@ -3,9 +3,21 @@ import axiosRetry from 'axios-retry';
 import db from 'config/db/databaseServise';
 import pLimit from 'p-limit';
 import { pause } from 'config/lib/helpers/pause';
-import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 import { parserAds } from 'parsers';
-import { type IParserData } from 'config/types';
+import { type IProcessMessage, type IParserData } from 'config/types';
+
+process.on('message', (message: IProcessMessage) => {
+  void (async () => {
+    const users = message.payload as Array<IParserData & { userId: number }>;
+    try {
+      await parseKufar(users);
+      process.exit(0);
+    } catch (err) {
+      console.error('Ошибка парсера:', err);
+      process.exit(1);
+    }
+  })();
+});
 
 axiosRetry(axios, {
   retries: 3,
@@ -18,7 +30,7 @@ axiosRetry(axios, {
   },
 });
 
-export default async function parseKufar(
+async function parseKufar(
   users: Array<IParserData & { userId: number }>,
 ): Promise<void> {
   const limit = pLimit(10);
@@ -38,7 +50,10 @@ export default async function parseKufar(
             const ads = parserAds(typeUrlParser, data);
             if (!Array.isArray(ads) || !ads.length) return;
             const newAds = await db.addUniqueAds(userId, ads, urlId);
-            await notificationOfNewAds(userId, newAds, user);
+            process.send?.({
+              type: 'newAds',
+              payload: { user, newAds },
+            });
           } catch (error) {
             if (error instanceof AxiosError) {
               const { response, message, config } = error;

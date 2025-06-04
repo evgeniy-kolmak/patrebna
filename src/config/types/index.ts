@@ -93,6 +93,11 @@ export interface IErrorTelegram {
   };
 }
 
+export interface IProcessMessage {
+  type?: string;
+  payload: unknown;
+}
+
 export interface ICallbackData {
   action: string;
   param?: any;

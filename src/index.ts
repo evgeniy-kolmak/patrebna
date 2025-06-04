@@ -1,15 +1,24 @@
 import 'dotenv/config';
+import { fork } from 'child_process';
 import { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import { scheduleJob } from 'node-schedule';
-import parseKufar from 'parsers/kufar/tasks/parseKufar';
-import { type IErrorTelegram, StatusPremium, UserActions } from 'config/types';
+import {
+  type IAd,
+  type IErrorTelegram,
+  type IParserData,
+  type IProcessMessage,
+  StatusPremium,
+  UserActions,
+} from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { getUser } from 'config/lib/helpers/getUser';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
 
 import keyboard from 'bot/keyboard';
+import path from 'path';
+import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 
 void (async () => {
   void scheduleParsing(
@@ -96,6 +105,30 @@ async function scheduleParsing(
       }),
     );
 
-    await parseKufar(usersWithStatus.filter(filterFn));
+    const filteredUsers = usersWithStatus.filter(filterFn);
+    const child = fork(
+      path.resolve(__dirname, 'parsers/kufar/tasks/parseKufar.ts'),
+      {
+        execArgv: ['-r', 'ts-node/register'],
+      },
+    );
+    child.send({ payload: filteredUsers });
+    child.on('message', (message: IProcessMessage) => {
+      void (async () => {
+        const type = message?.type;
+        const { user, newAds } = message?.payload as {
+          user: IParserData & {
+            userId: number;
+          };
+          newAds: IAd[];
+        };
+        if (type && type === 'newAds') {
+          await notificationOfNewAds(user, newAds);
+        }
+      })();
+    });
+    child.on('error', (err) => {
+      console.error('Ошибка запуска воркера:', err);
+    });
   });
 }
