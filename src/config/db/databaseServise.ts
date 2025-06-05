@@ -50,9 +50,12 @@ class DatabaseService {
       'error',
       console.error.bind(console, 'Ошибка подключения к базе данных:'),
     );
-    connect.once('open', () => {
-      console.log('Успешное подключение к базе данных.');
-    });
+
+    if (!process.send) {
+      connect.once('open', () => {
+        console.log('Успешное подключение к базе данных.');
+      });
+    }
 
     dataParserStream();
   }
