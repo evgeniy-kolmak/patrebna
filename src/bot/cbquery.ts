@@ -195,7 +195,11 @@ export default (): void => {
           messageId,
           t('Отклонить удаление'),
           callbackQueryId,
-          await keyboard.Profile(),
+        );
+        await sendMessage(
+          chatId,
+          t('Сообщение об отслеживании'),
+          keyboard.Observe(),
         );
         break;
       }

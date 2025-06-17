@@ -41,7 +41,11 @@ export async function handleRegistration(
         messageId,
         t('Успех регистрации'),
         callbackQueryId,
-        await keyboard.Profile(),
+      );
+      await sendMessage(
+        chatId,
+        t('Сообщение об отслеживании'),
+        keyboard.Observe(),
       );
     } catch (error) {
       console.error(error);
