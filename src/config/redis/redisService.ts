@@ -41,6 +41,10 @@ class RedisService {
   async removeCache(key: string): Promise<number> {
     return await this.redis.del(key);
   }
+
+  async closeConnection(): Promise<void> {
+    await this.redis.quit();
+  }
 }
 
 const cache = new RedisService();

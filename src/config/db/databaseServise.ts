@@ -54,10 +54,9 @@ class DatabaseService {
     if (!process.send) {
       connect.once('open', () => {
         console.log('Успешное подключение к базе данных.');
+        dataParserStream();
       });
     }
-
-    dataParserStream();
   }
 
   async getUser(id: number) {
@@ -258,7 +257,6 @@ class DatabaseService {
       profile: profile._id,
       parser: parser._id,
     });
-    await newUser.save();
     await Activity.updateOne(
       {},
       { $addToSet: { alreadyRegisteredUserIds: id } },
@@ -443,6 +441,7 @@ class DatabaseService {
     );
     const existingIds = existingAds.map((ad) => ad.id);
     const newAds = parseAds.filter((ad) => !existingIds.includes(ad.id));
+    if (!newAds.length) return [];
     const createdAds = await KufarAd.insertMany(newAds);
     const ads = createdAds.map((ad) => ad._id);
     const existingKufarAds = parser?.kufar?.kufarAds.find(
@@ -499,6 +498,10 @@ class DatabaseService {
       {},
       { $pull: { 'kufar.kufarAds.$[].ads': { $nin: activeAdIds } } },
     );
+  }
+
+  async closeConnection(): Promise<void> {
+    await mongoose.disconnect();
   }
 }
 

@@ -95,7 +95,7 @@ export interface IErrorTelegram {
 
 export interface IProcessMessage {
   type?: string;
-  payload: unknown;
+  payload?: unknown;
 }
 
 export interface ICallbackData {

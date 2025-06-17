@@ -116,15 +116,16 @@ async function scheduleParsing(
     child.on('message', (message: IProcessMessage) => {
       void (async () => {
         const type = message?.type;
-        const { user, newAds } = message?.payload as {
-          user: IParserData & {
-            userId: number;
+
+        if (type === 'newAds' && message?.payload) {
+          const { user, newAds } = message.payload as {
+            user: IParserData & { userId: number };
+            newAds: IAd[];
           };
-          newAds: IAd[];
-        };
-        if (type && type === 'newAds') {
           await notificationOfNewAds(user, newAds);
         }
+
+        if (type === 'done') child.disconnect();
       })();
     });
     child.on('error', (err) => {
