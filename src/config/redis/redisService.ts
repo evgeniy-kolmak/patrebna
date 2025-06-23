@@ -34,6 +34,10 @@ class RedisService {
     await this.redis.set(key, JSON.stringify(value), 'EX', ttl);
   }
 
+  async setCacheNotExists(key: string, value: any): Promise<string | null> {
+    return await this.redis.set(key, JSON.stringify(value), 'NX');
+  }
+
   async getCache(key: string): Promise<string | null> {
     return await this.redis.get(key);
   }
