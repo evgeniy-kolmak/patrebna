@@ -81,18 +81,6 @@ export interface IFaq {
   answer: string;
 }
 
-export interface IErrorTelegram {
-  response: {
-    body: {
-      error_code: number;
-      description: string;
-    };
-    request: {
-      href: string;
-    };
-  };
-}
-
 export interface IProcessMessage {
   type?: string;
   payload?: unknown;
@@ -143,4 +131,14 @@ export enum StatusTransaction {
   SUCCESSFUL = 'successful',
   FAILED = 'failed',
   PENDING = 'pending',
+}
+
+export function isTelegramError(error: unknown): error is {
+  response: { body: { error_code: number; description: string } };
+} {
+  const body = (error as any)?.response?.body;
+  return (
+    typeof body?.error_code === 'number' &&
+    typeof body?.description === 'string'
+  );
 }

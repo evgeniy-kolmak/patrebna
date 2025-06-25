@@ -27,38 +27,43 @@ export async function handleAddLinkKufar(
     input_field_placeholder: t('Плейсхолдер ссылки Kufar'),
   });
 
-  const { message_id } = promptKufar;
-  bot.onReplyToMessage(chatId, message_id, (message) => {
-    const { text } = message;
-    void (async () => {
-      if (text) {
-        const data = await db.setUrlKufar(chatId, text, urlId);
-        if (data instanceof Error) {
-          await sendMessage(chatId, t('Ошибка добавления ссылки'), {
-            inline_keyboard: [
-              [
-                {
-                  text: t('Добавить ссылку'),
-                  callback_data: JSON.stringify({
-                    action: 'add_link_kufar',
-                    param: urlId,
-                  }),
-                },
+  if (promptKufar) {
+    bot.onReplyToMessage(chatId, promptKufar?.message_id, (message) => {
+      const { text } = message;
+      void (async () => {
+        if (text) {
+          const data = await db.setUrlKufar(chatId, text, urlId);
+          if (data instanceof Error) {
+            await sendMessage(chatId, t('Ошибка добавления ссылки'), {
+              inline_keyboard: [
+                [
+                  {
+                    text: t('Добавить ссылку'),
+                    callback_data: JSON.stringify({
+                      action: 'add_link_kufar',
+                      param: urlId,
+                    }),
+                  },
+                ],
+                [
+                  {
+                    text: t('Назад'),
+                    callback_data: JSON.stringify({
+                      action: 'back_observe',
+                    }),
+                  },
+                ],
               ],
-              [
-                {
-                  text: t('Назад'),
-                  callback_data: JSON.stringify({
-                    action: 'back_observe',
-                  }),
-                },
-              ],
-            ],
-          });
-        } else {
-          await sendMessage(chatId, t('Сообщение об успехе'), keyboard.Main());
+            });
+          } else {
+            await sendMessage(
+              chatId,
+              t('Сообщение об успехе'),
+              keyboard.Main(),
+            );
+          }
         }
-      }
-    })();
-  });
+      })();
+    });
+  }
 }

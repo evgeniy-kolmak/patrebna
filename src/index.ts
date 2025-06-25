@@ -5,7 +5,6 @@ import db from 'config/db/databaseServise';
 import { scheduleJob } from 'node-schedule';
 import {
   type IAd,
-  type IErrorTelegram,
   type IParserData,
   type IProcessMessage,
   StatusPremium,
@@ -59,22 +58,11 @@ const userActions = {
     await db.removeUser(id);
   },
   notification: async (id: number) => {
-    try {
-      await sendMessage(
-        id,
-        t('Сообщение для неактивных пользователей'),
-        keyboard.Observe(),
-      );
-    } catch (error) {
-      const err = error as IErrorTelegram;
-      const { error_code } = err.response.body;
-      if (error_code === 403) {
-        await db.removeUser(id);
-        console.error('Заблокированный пользователь был удален!');
-      } else {
-        console.log('Ошибка при отправке уведомления:', error);
-      }
-    }
+    await sendMessage(
+      id,
+      t('Сообщение для неактивных пользователей'),
+      keyboard.Observe(),
+    );
   },
 };
 
