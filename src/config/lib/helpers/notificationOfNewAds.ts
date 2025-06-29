@@ -19,7 +19,7 @@ export async function notificationOfNewAds(
   }
   for (const ad of newAds) {
     try {
-      await pause(200);
+      await pause(1000);
       await sendMessageOfNewAd({ userId: user?.userId, ...ad });
     } catch (error) {
       if (isTelegramError(error)) {
