@@ -27,7 +27,7 @@ import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 
-export default (): void => {
+export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, id: callbackQueryId, message } = query;
     let callbackData: ICallbackData;
@@ -238,6 +238,7 @@ export default (): void => {
       }
     }
   });
+  await db.openConnection();
   start();
   help();
   profile();

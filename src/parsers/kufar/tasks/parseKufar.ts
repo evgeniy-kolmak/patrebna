@@ -11,6 +11,7 @@ process.on('message', (message: IProcessMessage) => {
   void (async () => {
     const users = message.payload as Array<IParserData & { userId: number }>;
     try {
+      await db.openConnection();
       await parseKufar(users);
     } catch (err) {
       console.error('Ошибка парсера:', err);

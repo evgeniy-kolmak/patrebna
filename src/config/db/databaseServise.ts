@@ -28,11 +28,27 @@ class DatabaseService {
   private readonly url: string;
   private readonly TTL: number;
   constructor() {
-    const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
-    const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
     this.TTL = 43200;
     this.url = `mongodb://mongodb:27017/`;
-    void mongoose.connect(this.url, {
+  }
+
+  async openConnection() {
+    const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
+    const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
+
+    const connect = mongoose.connection;
+    connect.on(
+      'error',
+      console.error.bind(console, 'Ошибка подключения к базе данных:'),
+    );
+    if (!process.send) {
+      connect.once('open', () => {
+        console.log('Успешное подключение к базе данных.');
+        dataParserStream();
+      });
+    }
+
+    await mongoose.connect(this.url, {
       auth: {
         username,
         password,
@@ -43,20 +59,6 @@ class DatabaseService {
       tlsAllowInvalidCertificates: true,
       tlsCertificateKeyFile: './certs/client.pem',
     });
-
-    const connect = mongoose.connection;
-
-    connect.on(
-      'error',
-      console.error.bind(console, 'Ошибка подключения к базе данных:'),
-    );
-
-    if (!process.send) {
-      connect.once('open', () => {
-        console.log('Успешное подключение к базе данных.');
-        dataParserStream();
-      });
-    }
   }
 
   async getUser(id: number) {

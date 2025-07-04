@@ -31,4 +31,4 @@ void (async () => {
   }
 })();
 
-cbquery();
+void cbquery();
