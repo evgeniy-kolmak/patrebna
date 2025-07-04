@@ -1,5 +1,5 @@
 import { bot } from 'bot';
-import { type IAd } from 'config/types';
+import { isTelegramError, type IAd } from 'config/types';
 import { truncateString } from 'config/lib/helpers/truncateString';
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
@@ -44,7 +44,16 @@ export async function sendMessageOfNewAd({
   try {
     await bot.sendPhoto(userId, img_url, messageOptions);
   } catch (error) {
-    await bot.sendPhoto(userId, defaultImage, messageOptions);
-    console.error('Невалидная ссылка изображения!', error);
+    if (isTelegramError(error)) {
+      const { description } = error.response.body;
+      if (
+        description.includes('Bad Request: wrong type of the web page content')
+      ) {
+        await bot.sendPhoto(userId, defaultImage, messageOptions);
+        console.error('Невалидная ссылка изображения!');
+        return;
+      }
+      console.error('Ошибка при отправке уведомления:', error);
+    }
   }
 }
