@@ -4,6 +4,7 @@ import { truncateString } from 'config/lib/helpers/truncateString';
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { type SendPhotoOptions } from 'node-telegram-bot-api';
+
 interface SendMessageOfNewAdProps extends IAd {
   userId: number;
 }
@@ -15,7 +16,7 @@ export async function sendMessageOfNewAd({
   title,
   url,
   description,
-}: SendMessageOfNewAdProps): Promise<void> {
+}: SendMessageOfNewAdProps): Promise<string | undefined> {
   await i18next.changeLanguage(await getUserLanguage(userId));
   const caption = [
     `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>`,
@@ -45,7 +46,8 @@ export async function sendMessageOfNewAd({
     await bot.sendPhoto(userId, img_url, messageOptions);
   } catch (error) {
     if (isTelegramError(error)) {
-      const { description } = error.response.body;
+      const { error_code, description } = error.response.body;
+      if (error_code === 403) return 'User is blocked';
       if (
         description.includes('Bad Request: wrong type of the web page content')
       ) {
@@ -54,6 +56,8 @@ export async function sendMessageOfNewAd({
         return;
       }
       console.error('Ошибка при отправке уведомления:', error);
+    } else {
+      console.error('Неизвестная ошибка при отправке уведомлений:', error);
     }
   }
 }

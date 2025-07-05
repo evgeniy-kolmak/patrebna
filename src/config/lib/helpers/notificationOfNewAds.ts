@@ -18,20 +18,15 @@ export async function notificationOfNewAds(
     );
   }
   for (const ad of newAds) {
-    try {
-      await pause(1000);
-      await sendMessageOfNewAd({ userId: user?.userId, ...ad });
-    } catch (error) {
-      if (isTelegramError(error)) {
-        const { error_code } = error.response.body;
-        if (error_code === 403) {
-          await db.removeUser(user?.userId);
-          console.error('Заблокированный пользователь был удален!');
-          return;
-        } else {
-          console.error('Ошибка при отправке уведомления:', error);
-        }
-      }
+    await pause(1000);
+    const stateOfUser = await sendMessageOfNewAd({
+      userId: user?.userId,
+      ...ad,
+    });
+    if (stateOfUser === 'User is blocked') {
+      await db.removeUser(user?.userId);
+      console.error('Заблокированный пользователь был удален!');
+      break;
     }
   }
 }
