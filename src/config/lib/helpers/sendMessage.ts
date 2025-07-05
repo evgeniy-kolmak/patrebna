@@ -22,10 +22,8 @@ export async function sendMessage(
   } catch (error) {
     if (isTelegramError(error)) {
       const { error_code } = error.response.body;
-      if (error_code === 403) {
-        await db.removeUser(id);
-        console.error('Заблокированный пользователь был удален!');
-      } else {
+      if (error_code === 403) await db.removeUser(id);
+      else {
         console.error('Ошибка при отправке уведомления:', error);
       }
     }

@@ -26,7 +26,6 @@ export const TelegramService = {
       if (error instanceof AxiosError) {
         if (error.response?.status === 403) {
           await db.removeUser(chatId);
-          console.error('Заблокированный пользователь был удален!');
           return;
         }
         if (

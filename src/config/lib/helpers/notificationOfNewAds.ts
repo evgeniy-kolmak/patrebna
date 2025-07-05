@@ -1,5 +1,5 @@
 import cache from 'config/redis/redisService';
-import { isTelegramError, type IAd, type IParserData } from 'config/types';
+import { type IAd, type IParserData } from 'config/types';
 import { pause } from 'config/lib/helpers/pause';
 import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import db from 'config/db/databaseServise';
@@ -25,8 +25,7 @@ export async function notificationOfNewAds(
     });
     if (stateOfUser === 'User is blocked') {
       await db.removeUser(user?.userId);
-      console.error('Заблокированный пользователь был удален!');
-      break;
+      return;
     }
   }
 }
