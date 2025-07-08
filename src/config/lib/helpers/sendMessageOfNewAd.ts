@@ -42,15 +42,18 @@ export async function sendMessageOfNewAd({
   };
 
   const defaultImage = 'https://i.ibb.co/NLkvZYG/no-photo.webp';
+  const errorMessages = [
+    'Bad Request: wrong type of the web page content',
+    'Bad Request: failed to get HTTP URL content',
+  ];
+
   try {
     await bot.sendPhoto(userId, img_url, messageOptions);
   } catch (error) {
     if (isTelegramError(error)) {
       const { error_code, description } = error.response.body;
       if (error_code === 403) return 'User is blocked';
-      if (
-        description.includes('Bad Request: wrong type of the web page content')
-      ) {
+      if (errorMessages.some((sub) => description.includes(sub))) {
         await bot.sendPhoto(userId, defaultImage, messageOptions);
         console.error('Невалидная ссылка изображения!');
         return;
