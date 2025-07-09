@@ -58,6 +58,8 @@ class DatabaseService {
       authSource: 'admin',
       tlsAllowInvalidCertificates: true,
       tlsCertificateKeyFile: './certs/client.pem',
+      serverSelectionTimeoutMS: 60000,
+      socketTimeoutMS: 120000,
     });
   }
 
