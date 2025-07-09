@@ -29,11 +29,18 @@ export async function editMessage(
         });
         return;
       }
+      if (description.includes('Bad Request: message to edit not found')) {
+        await safeAnswerCallbackQuery(callbackQueryId, {
+          text: t('Cообщение для редактирования не найдено'),
+          show_alert: true,
+        });
+        return;
+      }
     }
     await safeAnswerCallbackQuery(callbackQueryId, {
       text: t('Неизвестная ошибка'),
       show_alert: true,
     });
-    console.error(error);
+    console.error('Ошибка при редактировании сообщения', error);
   }
 }
