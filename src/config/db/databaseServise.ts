@@ -221,6 +221,10 @@ class DatabaseService {
     return Boolean(profile && activity);
   }
 
+  async isUserBlocked(userId: number) {
+    return await Activity.exists({ blacklist: userId });
+  }
+
   async getUsersForParse() {
     return (await User.find()
       .select('-_id id')

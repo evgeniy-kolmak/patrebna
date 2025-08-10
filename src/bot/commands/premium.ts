@@ -12,6 +12,14 @@ export default (): void => {
     void (async () => {
       const userId = ctx.chat.id;
       await i18next.changeLanguage(await getUserLanguage(userId));
+      const isBlocked = await db.isUserBlocked(userId);
+      if (isBlocked) {
+        await sendMessage(
+          userId,
+          t('Сообщение для заблокированного пользователя'),
+        );
+        return;
+      }
       const isRegistered = await db.getUser(userId);
       if (isRegistered) {
         await sendMessage(userId, t('Описание подписки'), keyboard.Premium());

@@ -10,6 +10,7 @@ import observe from 'bot/commands/observe';
 import premium from 'bot/commands/premium';
 import language from 'bot/commands/language';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { type ICallbackData } from 'config/types';
 import { handleRegistration } from 'bot/handlers/callbacks/registration';
 import { handleAddLinkKufar } from 'bot/handlers/callbacks/addLinkKufar';
@@ -30,6 +31,20 @@ import { sendMessage } from 'config/lib/helpers/sendMessage';
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, id: callbackQueryId, message } = query;
+    const chatId = from.id;
+    const isRegistered = await db.getUser(chatId);
+    const isBlocked = await db.isUserBlocked(chatId);
+    if (isBlocked) {
+      await sendMessage(
+        chatId,
+        t('Сообщение для заблокированного пользователя'),
+      );
+      return;
+    }
+    if (!isRegistered) {
+      await notRegistrationMessage(chatId);
+      return;
+    }
     let callbackData: ICallbackData;
     try {
       const parsed = JSON.parse(data ?? '{}');
@@ -41,7 +56,7 @@ export default async (): Promise<void> => {
     } catch {
       callbackData = { action: data ?? '' };
     }
-    const chatId = from.id;
+
     const messageId = message?.message_id;
     const language = await getUserLanguage(chatId);
     switch (callbackData.action) {
