@@ -41,10 +41,6 @@ export default async (): Promise<void> => {
       );
       return;
     }
-    if (!isRegistered) {
-      await notRegistrationMessage(chatId);
-      return;
-    }
     let callbackData: ICallbackData;
     try {
       const parsed = JSON.parse(data ?? '{}');
@@ -55,6 +51,11 @@ export default async (): Promise<void> => {
       }
     } catch {
       callbackData = { action: data ?? '' };
+    }
+
+    if (!isRegistered && callbackData?.action !== 'registration') {
+      await notRegistrationMessage(chatId);
+      return;
     }
 
     const messageId = message?.message_id;
