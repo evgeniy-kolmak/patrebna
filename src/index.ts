@@ -68,9 +68,16 @@ const userActions = {
 
 async function handleInactiveUsers(action: UserActions): Promise<void> {
   const usersFromDatabase = await db.getUsersForParse();
-  const inactiveUserIds = usersFromDatabase
-    .filter((user) => !user.parser?.kufar?.dataParser)
-    .map((user) => user.id);
+  const inactiveUserIds = (
+    await Promise.all(
+      usersFromDatabase
+        .filter((user) => !user.parser?.kufar?.dataParser)
+        .map(async (user) => {
+          const dataPremium = await db.getDataPremium(user.id);
+          return dataPremium?.end_date ? null : user.id;
+        }),
+    )
+  ).filter((id): id is number => id !== null);
 
   if (inactiveUserIds.length) {
     for (const id of inactiveUserIds) {
