@@ -6,6 +6,7 @@ import { type IAd, type TypesUrlParser } from 'config/types';
 const { JSDOM } = jsdom;
 
 const SELECTOR_AD_SECTION = 'div[class^="styles_wrapper__"] > div > section';
+const MAIN_REGION_SELECTOR = 'span[class^="styles_region-label__inner__"] span';
 
 export function parserAds(typeAds: TypesUrlParser, html: string): IAd[] {
   const { document } = new JSDOM(html, {
@@ -18,7 +19,13 @@ export function parserAds(typeAds: TypesUrlParser, html: string): IAd[] {
       return parserRealOfEstate(nodeList);
     case 'auto':
       return parserAuto(nodeList);
-    default:
-      return parserOthers(nodeList);
+    default: {
+      const mainRegion = document
+        .querySelector(MAIN_REGION_SELECTOR)
+        ?.textContent?.trim();
+      if (!mainRegion || mainRegion === 'Вся Беларусь')
+        return parserOthers(nodeList);
+      return parserOthers(nodeList, mainRegion);
+    }
   }
 }

@@ -16,11 +16,11 @@ export async function sendMessageOfNewAd({
   title,
   url,
   description,
+  region,
 }: SendMessageOfNewAdProps): Promise<string | undefined> {
   await i18next.changeLanguage(await getUserLanguage(userId));
   const caption = [
-    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>`,
-    `${t('C ценой')} <b>${price}</b>.`,
+    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, ${region ? `в городе <b>${region}</b>, ` : ''}${t('C ценой')} <b>${price}</b>.`,
     description ? `<i>${truncateString(description, 500)}\n</i>` : '',
   ]
     .filter(Boolean)

@@ -34,6 +34,7 @@ export interface IAd {
   url: string;
   img_url: string;
   description?: string | null;
+  region?: string;
   price: string;
   createdAt: Date;
 }
