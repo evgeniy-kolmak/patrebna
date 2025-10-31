@@ -56,6 +56,7 @@ class DatabaseService {
       tls: true,
       dbName: 'patrebna',
       authSource: 'admin',
+      replicaSet: 'rs0',
       tlsAllowInvalidCertificates: true,
       tlsCertificateKeyFile: './certs/client.pem',
       serverSelectionTimeoutMS: 60000,
