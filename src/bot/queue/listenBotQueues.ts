@@ -1,5 +1,5 @@
-import Redis from 'ioredis';
 import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
+import cache from 'config/redis/redisService';
 import {
   type IBotAdsMessage,
   type IBotNotificationMessage,
@@ -7,10 +7,7 @@ import {
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { pause } from 'config/lib/helpers/pause';
 
-const redis = new Redis({
-  host: 'redis',
-  port: 6379,
-});
+const redis = cache.getClient();
 
 export async function listenBotQueues(): Promise<void> {
   while (true) {

@@ -32,6 +32,10 @@ class RedisService {
     );
   }
 
+  getClient(): Redis {
+    return this.redis;
+  }
+
   async sendAdsToBot({ ...data }: IBotAdsMessage): Promise<void> {
     await this.redis.rpush('bot_queue_ads', JSON.stringify({ ...data }));
   }
