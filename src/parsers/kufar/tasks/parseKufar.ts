@@ -38,6 +38,7 @@ export async function parseKufar(
             const ads = parserAds(typeUrlParser, data);
             if (!Array.isArray(ads) || !ads.length) return;
             const newAds = await db.addUniqueAds(userId, ads, urlId);
+            if (!newAds.length) return;
             await cache.sendAdsToBot({ userId, newAds });
           } catch (error) {
             if (error instanceof AxiosError) {
