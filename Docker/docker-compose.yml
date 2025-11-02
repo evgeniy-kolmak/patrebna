@@ -5,7 +5,7 @@ services:
       context: ../
       dockerfile: ./Docker/bot/Dockerfile
     image: bot
-    container_name: patrebna_bot
+    container_name: bot
     restart: always
     ports:
       - "8443:8443"

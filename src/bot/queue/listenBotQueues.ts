@@ -11,29 +11,34 @@ const redis = cache.getClient();
 
 export async function listenBotQueues(): Promise<void> {
   while (true) {
-    const result = await redis.blpop(
-      ['bot_queue_ads', 'bot_queue_notifications'],
-      0,
-    );
-    if (!result) continue;
+    try {
+      const result = await redis.blpop(
+        ['bot_queue_ads', 'bot_queue_notifications'],
+        0,
+      );
+      if (!result) continue;
 
-    const [queue, payload] = result;
-    const data = JSON.parse(payload);
+      const [queue, payload] = result;
+      const data = JSON.parse(payload);
 
-    switch (queue) {
-      case 'bot_queue_ads': {
-        const { userId, newAds } = data as IBotAdsMessage;
-        for (const ad of newAds) {
-          await pause(1200);
-          await sendMessageOfNewAd({ userId, ...ad });
+      switch (queue) {
+        case 'bot_queue_ads': {
+          const { userId, newAds } = data as IBotAdsMessage;
+          for (const ad of newAds) {
+            await pause(1200);
+            await sendMessageOfNewAd({ userId, ...ad });
+          }
+          break;
         }
-        break;
+        case 'bot_queue_notifications': {
+          const { userId, text, keyboard } = data as IBotNotificationMessage;
+          await sendMessage(userId, text, keyboard);
+          break;
+        }
       }
-      case 'bot_queue_notifications': {
-        const { userId, text, keyboard } = data as IBotNotificationMessage;
-        await sendMessage(userId, text, keyboard);
-        break;
-      }
+    } catch (error) {
+      console.error('Ошибка слушителя', error);
+      await pause(3000);
     }
   }
 }
