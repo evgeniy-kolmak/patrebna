@@ -1,3 +1,18 @@
+import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+
+interface IBaseMessage {
+  userId: number;
+}
+
+export interface IBotAdsMessage extends IBaseMessage {
+  newAds: IAd[];
+}
+
+export interface IBotNotificationMessage extends IBaseMessage {
+  text: string;
+  keyboard?: InlineKeyboardMarkup;
+}
+
 export interface IProfile {
   username?: string;
   first_name?: string;
@@ -80,11 +95,6 @@ export enum UserActions {
 export interface IFaq {
   question: string;
   answer: string;
-}
-
-export interface IProcessMessage {
-  type?: string;
-  payload?: unknown;
 }
 
 export interface ICallbackData {

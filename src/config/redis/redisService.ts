@@ -1,6 +1,10 @@
 import 'dotenv/config';
 import Redis from 'ioredis';
 import { readFileSync } from 'fs';
+import {
+  type IBotNotificationMessage,
+  type IBotAdsMessage,
+} from 'config/types';
 
 class RedisService {
   private readonly redis: Redis;
@@ -18,15 +22,26 @@ class RedisService {
       },
     });
 
-    if (!process.send) {
-      this.redis.once('connect', () => {
-        console.log('Успешное подключение к хранилищу кэша.');
-      });
-    }
+    this.redis.once('connect', () => {
+      console.log('Успешное подключение к хранилищу кэша.');
+    });
 
     this.redis.on(
       'error',
       console.error.bind(console, 'Ошибка подключения к хранилищу кэша:'),
+    );
+  }
+
+  async sendAdsToBot({ ...data }: IBotAdsMessage): Promise<void> {
+    await this.redis.rpush('bot_queue_ads', JSON.stringify({ ...data }));
+  }
+
+  async sendNotificationToBot({
+    ...data
+  }: IBotNotificationMessage): Promise<void> {
+    await this.redis.rpush(
+      'bot_queue_notifications',
+      JSON.stringify({ ...data }),
     );
   }
 
@@ -44,10 +59,6 @@ class RedisService {
 
   async removeCache(key: string): Promise<number> {
     return await this.redis.del(key);
-  }
-
-  async closeConnection(): Promise<void> {
-    await this.redis.quit();
   }
 }
 

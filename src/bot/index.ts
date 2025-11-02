@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import 'config/i18n/i18n';
 import cbquery from 'bot/cbquery';
+import { listenBotQueues } from './queue/listenBotQueues';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const PORT = Number(process.env.WEBHOOK_PORT) ?? 8443;
@@ -31,4 +32,5 @@ void (async () => {
   }
 })();
 
+listenBotQueues().catch(console.error);
 void cbquery();

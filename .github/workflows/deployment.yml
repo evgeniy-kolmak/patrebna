@@ -16,5 +16,5 @@ jobs:
             cd patrebna
             git pull origin main
             cd Docker
-            docker compose up -d --build --no-deps bot
+            docker compose up -d --build --no-deps bot parser
             docker image prune -f

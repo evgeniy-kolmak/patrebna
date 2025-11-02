@@ -1,25 +1,18 @@
 import 'dotenv/config';
-import { fork } from 'child_process';
+import 'config/i18n/i18n';
 import { t } from 'i18next';
 import db from 'config/db/databaseServise';
+import cache from 'config/redis/redisService';
 import { scheduleJob } from 'node-schedule';
-import {
-  type IAd,
-  type IParserData,
-  type IProcessMessage,
-  StatusPremium,
-  UserActions,
-} from 'config/types';
+import { StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
-import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { getUser } from 'config/lib/helpers/getUser';
+import { parseKufar } from 'parsers/kufar/tasks/parseKufar';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
-
 import keyboard from 'bot/keyboard';
-import path from 'path';
-import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 
 void (async () => {
+  await db.openConnection();
   void scheduleParsing(
     '2/30 * * * *',
     (user) => user.status !== StatusPremium.ACTIVE,
@@ -54,15 +47,15 @@ void (async () => {
 })();
 
 const userActions = {
-  remove: async (id: number) => {
-    await db.removeUser(id);
+  remove: async (userId: number) => {
+    await db.removeUser(userId);
   },
-  notification: async (id: number) => {
-    await sendMessage(
-      id,
-      t('Сообщение для неактивных пользователей'),
-      keyboard.Observe(),
-    );
+  notification: async (userId: number) => {
+    await cache.sendNotificationToBot({
+      userId,
+      text: t('Сообщение для неактивных пользователей'),
+      keyboard: keyboard.Observe(),
+    });
   },
 };
 
@@ -101,30 +94,6 @@ async function scheduleParsing(
     );
 
     const filteredUsers = usersWithStatus.filter(filterFn);
-    const child = fork(
-      path.resolve(__dirname, 'parsers/kufar/tasks/parseKufar.ts'),
-      {
-        execArgv: ['-r', 'ts-node/register'],
-      },
-    );
-    child.send({ payload: filteredUsers });
-    child.on('message', (message: IProcessMessage) => {
-      void (async () => {
-        const type = message?.type;
-
-        if (type === 'newAds' && message?.payload) {
-          const { user, newAds } = message.payload as {
-            user: IParserData & { userId: number };
-            newAds: IAd[];
-          };
-          await notificationOfNewAds(user, newAds);
-        }
-
-        if (type === 'done') child.disconnect();
-      })();
-    });
-    child.on('error', (err) => {
-      console.error('Ошибка запуска воркера:', err);
-    });
+    await parseKufar(filteredUsers);
   });
 }

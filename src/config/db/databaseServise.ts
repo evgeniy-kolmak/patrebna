@@ -41,12 +41,10 @@ class DatabaseService {
       'error',
       console.error.bind(console, 'Ошибка подключения к базе данных:'),
     );
-    if (!process.send) {
-      connect.once('open', () => {
-        console.log('Успешное подключение к базе данных.');
-        dataParserStream();
-      });
-    }
+    connect.once('open', () => {
+      console.log('Успешное подключение к базе данных.');
+      dataParserStream();
+    });
 
     await mongoose.connect(this.url, {
       auth: {
@@ -513,10 +511,6 @@ class DatabaseService {
       {},
       { $pull: { 'kufar.kufarAds.$[].ads': { $nin: activeAdIds } } },
     );
-  }
-
-  async closeConnection(): Promise<void> {
-    await mongoose.disconnect();
   }
 }
 
