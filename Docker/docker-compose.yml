@@ -5,10 +5,29 @@ services:
       context: ../
       dockerfile: ./Docker/bot/Dockerfile
     image: bot
-    container_name: patrebna_bot
+    container_name: bot
     restart: always
     ports:
       - "8443:8443"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - patrebna-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  parser:
+    build: 
+      context: ../
+      dockerfile: ./Docker/parser/Dockerfile
+    image: parser
+    container_name: parser
+    restart: always
+    ports:
+      - "3001:3001"
     depends_on:
       - mongodb
       - redis

@@ -1,3 +1,18 @@
+import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+
+interface IBaseMessage {
+  userId: number;
+}
+
+export interface IBotAdsMessage extends IBaseMessage {
+  newAds: IAd[];
+}
+
+export interface IBotNotificationMessage extends IBaseMessage {
+  text: string;
+  keyboard?: InlineKeyboardMarkup;
+}
+
 export interface IProfile {
   username?: string;
   first_name?: string;
@@ -35,6 +50,7 @@ export interface IAd {
   url: string;
   img_url: string;
   description?: string | null;
+  region?: string;
   price: string;
   createdAt: Date;
 }
@@ -82,18 +98,6 @@ export interface IFaq {
   answer: string;
 }
 
-export interface IErrorTelegram {
-  response: {
-    body: {
-      error_code: number;
-      description: string;
-    };
-    request: {
-      href: string;
-    };
-  };
-}
-
 export interface ICallbackData {
   action: string;
   param?: any;
@@ -139,4 +143,14 @@ export enum StatusTransaction {
   SUCCESSFUL = 'successful',
   FAILED = 'failed',
   PENDING = 'pending',
+}
+
+export function isTelegramError(error: unknown): error is {
+  response: { body: { error_code: number; description: string } };
+} {
+  const body = (error as any)?.response?.body;
+  return (
+    typeof body?.error_code === 'number' &&
+    typeof body?.description === 'string'
+  );
 }

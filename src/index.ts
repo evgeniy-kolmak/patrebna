@@ -1,23 +1,24 @@
 import 'dotenv/config';
+import 'config/i18n/i18n';
 import { t } from 'i18next';
 import db from 'config/db/databaseServise';
+import cache from 'config/redis/redisService';
 import { scheduleJob } from 'node-schedule';
-import parseKufar from 'parsers/kufar/tasks/parseKufar';
-import { type IErrorTelegram, StatusPremium, UserActions } from 'config/types';
+import { StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
-import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { getUser } from 'config/lib/helpers/getUser';
+import { parseKufar } from 'parsers/kufar/tasks/parseKufar';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
-
 import keyboard from 'bot/keyboard';
 
 void (async () => {
+  await db.openConnection();
   void scheduleParsing(
-    '3-59/24 * * * *',
+    '2/30 * * * *',
     (user) => user.status !== StatusPremium.ACTIVE,
   );
   void scheduleParsing(
-    '6-59/6 * * * *',
+    '*/5 * * * *',
     (user) => user.status === StatusPremium.ACTIVE,
   );
 
@@ -46,34 +47,30 @@ void (async () => {
 })();
 
 const userActions = {
-  remove: async (id: number) => {
-    await db.removeUser(id);
+  remove: async (userId: number) => {
+    await db.removeUser(userId);
   },
-  notification: async (id: number) => {
-    try {
-      await sendMessage(
-        id,
-        t('Сообщение для неактивных пользователей'),
-        keyboard.Observe(),
-      );
-    } catch (error) {
-      const err = error as IErrorTelegram;
-      const { error_code } = err.response.body;
-      if (error_code === 403) {
-        await db.removeUser(id);
-        console.error('Заблокированный пользователь был удален!');
-      } else {
-        console.log('Ошибка при отправке уведомления:', error);
-      }
-    }
+  notification: async (userId: number) => {
+    await cache.sendNotificationToBot({
+      userId,
+      text: t('Сообщение для неактивных пользователей'),
+      keyboard: keyboard.Observe(),
+    });
   },
 };
 
 async function handleInactiveUsers(action: UserActions): Promise<void> {
   const usersFromDatabase = await db.getUsersForParse();
-  const inactiveUserIds = usersFromDatabase
-    .filter((user) => !user.parser?.kufar?.dataParser)
-    .map((user) => user.id);
+  const inactiveUserIds = (
+    await Promise.all(
+      usersFromDatabase
+        .filter((user) => !user.parser?.kufar?.dataParser)
+        .map(async (user) => {
+          const dataPremium = await db.getDataPremium(user.id);
+          return dataPremium?.end_date ? null : user.id;
+        }),
+    )
+  ).filter((id): id is number => id !== null);
 
   if (inactiveUserIds.length) {
     for (const id of inactiveUserIds) {
@@ -96,6 +93,7 @@ async function scheduleParsing(
       }),
     );
 
-    await parseKufar(usersWithStatus.filter(filterFn));
+    const filteredUsers = usersWithStatus.filter(filterFn);
+    await parseKufar(filteredUsers);
   });
 }

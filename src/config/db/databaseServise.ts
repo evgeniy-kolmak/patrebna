@@ -28,33 +28,38 @@ class DatabaseService {
   private readonly url: string;
   private readonly TTL: number;
   constructor() {
+    this.TTL = 43200;
+    this.url = `mongodb://mongodb:27017/`;
+  }
+
+  async openConnection() {
     const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
     const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
-    this.TTL = 43200;
-    this.url = `mongodb://localhost:27017/`;
-    void mongoose.connect(this.url, {
-      // auth: {
-      //   username,
-      //   password,
-      // },
-      // tls: true,
-      dbName: 'patrebna',
-      authSource: 'admin',
-      // tlsAllowInvalidCertificates: true,
-      // tlsCertificateKeyFile: './certs/client.pem',
-    });
 
     const connect = mongoose.connection;
-
     connect.on(
       'error',
       console.error.bind(console, 'Ошибка подключения к базе данных:'),
     );
     connect.once('open', () => {
       console.log('Успешное подключение к базе данных.');
+      dataParserStream();
     });
 
-    dataParserStream();
+    await mongoose.connect(this.url, {
+      auth: {
+        username,
+        password,
+      },
+      tls: true,
+      dbName: 'patrebna',
+      authSource: 'admin',
+      replicaSet: 'rs0',
+      tlsAllowInvalidCertificates: true,
+      tlsCertificateKeyFile: './certs/client.pem',
+      serverSelectionTimeoutMS: 60000,
+      socketTimeoutMS: 120000,
+    });
   }
 
   async getUser(id: number) {
@@ -215,6 +220,10 @@ class DatabaseService {
     return Boolean(profile && activity);
   }
 
+  async isUserBlocked(userId: number) {
+    return await Activity.exists({ blacklist: userId });
+  }
+
   async getUsersForParse() {
     return (await User.find()
       .select('-_id id')
@@ -260,7 +269,6 @@ class DatabaseService {
       profile: profile._id,
       parser: parser._id,
     });
-    await newUser.save();
     await Activity.updateOne(
       {},
       { $addToSet: { alreadyRegisteredUserIds: id } },
@@ -276,38 +284,44 @@ class DatabaseService {
   }
 
   async removeUser(id: number) {
-    const parser = await this.getParser(id);
-    const profile = await this.getProfile(id);
-    const dataParser = await this.getDataParser(id);
-    const kufarObjectIds = parser?.kufar?.kufarAds;
-    await KufarAd.deleteMany({ _id: { $in: kufarObjectIds } });
-    if (dataParser) await DataParser.deleteOne(dataParser?._id);
-    await Parser.deleteOne(parser?._id);
-    await Premium.deleteOne(profile?.premium?._id);
-    await Profile.deleteOne(profile?._id);
-    await User.deleteOne({ id });
-    await cache.removeCache(`user:${id}`);
-    const cacheLanguages = await cache.getCache('languages');
-    const cacheUsers = await cache.getCache('ids');
-    if (cacheLanguages) {
-      const parsedLanguages = JSON.parse(cacheLanguages);
-
-      if (parsedLanguages[id]) {
-        const { [id]: _, ...updatedLanguages } = parsedLanguages;
-        await cache.setCache('languages', updatedLanguages, this.TTL);
+    const user = await this.getUser(id);
+    if (user) {
+      const parser = await this.getParser(id);
+      const profile = await this.getProfile(id);
+      const dataParser = await this.getDataParser(id);
+      const kufarObjectIds = parser?.kufar?.kufarAds;
+      await KufarAd.deleteMany({ _id: { $in: kufarObjectIds } });
+      await User.deleteOne({ id });
+      if (profile) {
+        await Premium.deleteOne(profile?.premium?._id);
+        await Profile.deleteOne(profile?._id);
       }
-    }
-    if (cacheUsers) {
-      const userIds: number[] = JSON.parse(cacheUsers);
-      const filteredUsers = userIds.filter((userId) => userId !== id);
-      await cache.setCache('ids', filteredUsers, this.TTL);
-      await TelegramService.sendMessageToChat(
-        `${[
-          `🗑️ Пользователь с id: <b>${id}</b> был удален`,
-          `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
-        ].join('\n')}`,
-      );
-    }
+      if (parser) await Parser.deleteOne(parser?._id);
+      if (dataParser) await DataParser.deleteOne(dataParser?._id);
+
+      await cache.removeCache(`user:${id}`);
+      const cacheLanguages = await cache.getCache('languages');
+      const cacheUsers = await cache.getCache('ids');
+      if (cacheLanguages) {
+        const parsedLanguages = JSON.parse(cacheLanguages);
+        if (parsedLanguages[id]) {
+          const { [id]: _, ...updatedLanguages } = parsedLanguages;
+          await cache.setCache('languages', updatedLanguages, this.TTL);
+        }
+      }
+      if (cacheUsers) {
+        const userIds: number[] = JSON.parse(cacheUsers);
+        const filteredUsers = userIds.filter((userId) => userId !== id);
+        await cache.setCache('ids', filteredUsers, this.TTL);
+        await TelegramService.sendMessageToChat(
+          `${[
+            `🗑️ Пользователь с id: <b>${id}</b> был удален`,
+            `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
+          ].join('\n')}`,
+        );
+      }
+      console.error(`Заблокированный пользователь c ID:${id} был удален!`);
+    } else console.error(`Пользователь c ID:${id} не был найден.`);
   }
 
   async setUrlKufar(userId: number, url: string, urlId: number) {
@@ -446,6 +460,7 @@ class DatabaseService {
     );
     const existingIds = existingAds.map((ad) => ad.id);
     const newAds = parseAds.filter((ad) => !existingIds.includes(ad.id));
+    if (!newAds.length) return [];
     const createdAds = await KufarAd.insertMany(newAds);
     const ads = createdAds.map((ad) => ad._id);
     const existingKufarAds = parser?.kufar?.kufarAds.find(

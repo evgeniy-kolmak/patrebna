@@ -11,6 +11,15 @@ export default (): void => {
   bot.onText(regex, (ctx, match) => {
     void (async () => {
       const userId = ctx.chat.id;
+      await i18next.changeLanguage(await getUserLanguage(userId));
+      const isBlocked = await db.isUserBlocked(userId);
+      if (isBlocked) {
+        await sendMessage(
+          userId,
+          t('Сообщение для заблокированного пользователя'),
+        );
+        return;
+      }
       const payload = match?.[1] ?? null;
       let referrerId: number | undefined;
       if (payload?.startsWith('ref')) {
@@ -19,7 +28,6 @@ export default (): void => {
           referrerId = parsed;
         }
       }
-      await i18next.changeLanguage(await getUserLanguage(userId));
       const isRegistered = await db.getUser(userId);
       await sendMessage(userId, t('Приветствие'), keyboard.Main());
       if (isRegistered) {

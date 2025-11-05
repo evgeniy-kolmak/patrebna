@@ -1,12 +1,14 @@
 {
   "name": "patrebna",
-  "version": "4.2.1",
+  "version": "4.3.1",
   "description": "Parser telegram bot for Kufar",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start:parser": "ts-node src/index.ts",
+    "start:bot": "ts-node src/bot/index.ts",
     "start:server": "ts-node src/api/server.ts",
-    "dev": "nodemon src/index.ts",
+    "dev:parser": "nodemon src/index.ts",
+    "dev:bot": "nodemon src/bot/index.ts",
     "dev:server": "nodemon src/api/server.ts",
     "lint": "eslint \"**/*.{ts,tsx}\""
   },

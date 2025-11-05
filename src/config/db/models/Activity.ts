@@ -13,6 +13,11 @@ const ActivitySchema = new Schema(
       default: [],
       validate: uniqueArrayValidator,
     },
+    blacklist: {
+      type: [Number],
+      default: [],
+      validate: uniqueArrayValidator,
+    },
   },
   {
     versionKey: false,

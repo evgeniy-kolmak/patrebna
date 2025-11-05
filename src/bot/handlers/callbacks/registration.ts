@@ -6,7 +6,9 @@ import { sendMessage } from 'config/lib/helpers/sendMessage';
 import type { User } from 'node-telegram-bot-api';
 import { type ICallbackData, type IProfile, StatusPremium } from 'config/types';
 import { editMessage } from 'config/lib/helpers/editMessage';
+import { deleteMessage } from 'config/lib/helpers/deleteMessage';
 import { Activity } from 'config/db/models/Activity';
+import cache from 'config/redis/redisService';
 
 export async function handleRegistration(
   chatId: number,
@@ -17,7 +19,14 @@ export async function handleRegistration(
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const isRegistred = await db.getUser(chatId);
+
   if (!isRegistred) {
+    const lockKey = `registering:${chatId}`;
+    const isLocked = await cache.setCacheNotExists(lockKey, true);
+    if (!isLocked) {
+      if (messageId) await deleteMessage(chatId, messageId, callbackQueryId);
+      return;
+    }
     try {
       const isChannelSubscriptionRewarded = await Activity.exists({
         userIdsSubscribedToChannel: chatId,
@@ -41,7 +50,11 @@ export async function handleRegistration(
         messageId,
         t('Успех регистрации'),
         callbackQueryId,
-        await keyboard.Profile(),
+      );
+      await sendMessage(
+        chatId,
+        t('Сообщение об отслеживании'),
+        keyboard.Observe(),
       );
     } catch (error) {
       console.error(error);
@@ -55,6 +68,8 @@ export async function handleRegistration(
           ],
         ],
       });
+    } finally {
+      await cache.removeCache(lockKey);
     }
   } else {
     await editMessage(

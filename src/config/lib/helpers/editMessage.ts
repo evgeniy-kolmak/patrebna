@@ -1,7 +1,8 @@
 import { bot } from 'bot';
-import { type IErrorTelegram } from 'config/types';
-import { t } from 'i18next';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
+import { isTelegramError } from 'config/types';
+import { t } from 'i18next';
 
 export async function editMessage(
   chatId: number,
@@ -19,19 +20,27 @@ export async function editMessage(
       disable_web_page_preview: true,
     });
   } catch (error) {
-    const err = error as IErrorTelegram;
-    const { description } = err.response.body;
-    if (description.includes('Bad Request: message is not modified')) {
-      await bot.answerCallbackQuery(callbackQueryId, {
-        text: t('Ошибка редактирования сообщения'),
-        show_alert: true,
-      });
-      return;
+    if (isTelegramError(error)) {
+      const { description } = error.response.body;
+      if (description.includes('Bad Request: message is not modified')) {
+        await safeAnswerCallbackQuery(callbackQueryId, {
+          text: t('Ошибка редактирования сообщения'),
+          show_alert: true,
+        });
+        return;
+      }
+      if (description.includes('Bad Request: message to edit not found')) {
+        await safeAnswerCallbackQuery(callbackQueryId, {
+          text: t('Cообщение для редактирования не найдено'),
+          show_alert: true,
+        });
+        return;
+      }
     }
-    await bot.answerCallbackQuery(callbackQueryId, {
+    await safeAnswerCallbackQuery(callbackQueryId, {
       text: t('Неизвестная ошибка'),
       show_alert: true,
     });
-    console.error(error);
+    console.error('Ошибка при редактировании сообщения', error);
   }
 }

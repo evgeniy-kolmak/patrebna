@@ -1,9 +1,9 @@
 import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import db from 'config/db/databaseServise';
+import cache from 'config/redis/redisService';
 import pLimit from 'p-limit';
 import { pause } from 'config/lib/helpers/pause';
-import { notificationOfNewAds } from 'config/lib/helpers/notificationOfNewAds';
 import { parserAds } from 'parsers';
 import { type IParserData } from 'config/types';
 
@@ -18,7 +18,7 @@ axiosRetry(axios, {
   },
 });
 
-export default async function parseKufar(
+export async function parseKufar(
   users: Array<IParserData & { userId: number }>,
 ): Promise<void> {
   const limit = pLimit(10);
@@ -38,7 +38,8 @@ export default async function parseKufar(
             const ads = parserAds(typeUrlParser, data);
             if (!Array.isArray(ads) || !ads.length) return;
             const newAds = await db.addUniqueAds(userId, ads, urlId);
-            await notificationOfNewAds(userId, newAds, user);
+            if (!newAds.length) return;
+            await cache.sendAdsToBot({ userId, newAds });
           } catch (error) {
             if (error instanceof AxiosError) {
               const { response, message, config } = error;
@@ -46,7 +47,7 @@ export default async function parseKufar(
                 `(${response?.status}) ${message} - ${config?.url}`,
               );
             } else {
-              console.error('Неизвестная ошибка:', error);
+              console.error('Неизвестная ошибка парсинга:', error);
             }
           }
         }),
