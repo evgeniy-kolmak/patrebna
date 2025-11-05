@@ -1,7 +1,15 @@
+import path from 'path';
+import { fork } from 'child_process';
 import TelegramBot from 'node-telegram-bot-api';
 import 'config/i18n/i18n';
 import cbquery from 'bot/cbquery';
-import { listenBotQueues } from 'bot/queue/listenBotQueues';
+import { pause } from 'config/lib/helpers/pause';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
+import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
+import {
+  type IBotAdsMessage,
+  type IBotNotificationMessage,
+} from 'config/types';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const PORT = Number(process.env.WEBHOOK_PORT) ?? 8443;
@@ -32,5 +40,31 @@ void (async () => {
   }
 })();
 
-void listenBotQueues();
+const listener = fork(path.resolve(__dirname, 'queue', 'listenBotQueues.ts'), {
+  execArgv: ['-r', 'ts-node/register'],
+});
+
+listener.on('message', (message: [string, string]) => {
+  void (async () => {
+    const [queue, payload] = message;
+    const data = JSON.parse(payload);
+
+    switch (queue) {
+      case 'bot_queue_ads': {
+        const { userId, newAds } = data as IBotAdsMessage;
+        for (const ad of newAds) {
+          await pause(1200);
+          await sendMessageOfNewAd({ userId, ...ad });
+        }
+        break;
+      }
+      case 'bot_queue_notifications': {
+        const { userId, text, keyboard } = data as IBotNotificationMessage;
+        await sendMessage(userId, text, keyboard);
+        break;
+      }
+    }
+  })();
+});
+
 void cbquery();

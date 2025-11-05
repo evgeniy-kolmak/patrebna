@@ -22,9 +22,11 @@ class RedisService {
       },
     });
 
-    this.redis.once('connect', () => {
-      console.log('Успешное подключение к хранилищу кэша.');
-    });
+    if (!process.send) {
+      this.redis.once('connect', () => {
+        console.log('Успешное подключение к хранилищу кэша.');
+      });
+    }
 
     this.redis.on(
       'error',
