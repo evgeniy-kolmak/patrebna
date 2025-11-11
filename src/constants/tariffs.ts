@@ -7,7 +7,7 @@ export const tariffData: IOrder[] = [
     quantityOfDays: 1,
     messageForBot: 'Cообщение для пробного',
     description: 'Доступ к премиум-подписке на 1 день',
-    amount: 200,
+    amount: 150,
   },
   {
     orderId: 2,
@@ -15,7 +15,7 @@ export const tariffData: IOrder[] = [
     quantityOfDays: 3,
     messageForBot: 'Cообщение для минимального',
     description: 'Доступ к премиум-подписке на 3 дня.',
-    amount: 500,
+    amount: 400,
   },
   {
     orderId: 3,
@@ -23,7 +23,7 @@ export const tariffData: IOrder[] = [
     quantityOfDays: 7,
     messageForBot: 'Cообщение для оптимального',
     description: 'Доступ к премиум-подписке на 7 дней.',
-    amount: 900,
+    amount: 750,
   },
   {
     orderId: 4,
@@ -31,7 +31,7 @@ export const tariffData: IOrder[] = [
     quantityOfDays: 15,
     messageForBot: 'Cообщение для расширенного',
     description: 'Доступ к премиум-подписке на 15 дней.',
-    amount: 1200,
+    amount: 900,
   },
   {
     orderId: 5,
@@ -39,6 +39,6 @@ export const tariffData: IOrder[] = [
     quantityOfDays: 30,
     messageForBot: 'Cообщение для максимального',
     description: 'Доступ к премиум-подписке на 30 дней.',
-    amount: 1500,
+    amount: 1250,
   },
 ];

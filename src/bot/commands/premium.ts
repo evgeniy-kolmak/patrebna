@@ -22,6 +22,10 @@ export default (): void => {
       }
       const isRegistered = await db.getUser(userId);
       if (isRegistered) {
+        await bot.sendPhoto(userId, 'https://ibb.co/cRWDpZm', {
+          caption: t('Черная пятница'),
+          parse_mode: 'HTML',
+        });
         await sendMessage(userId, t('Описание подписки'), keyboard.Premium());
       } else await notRegistrationMessage(userId);
     })();
