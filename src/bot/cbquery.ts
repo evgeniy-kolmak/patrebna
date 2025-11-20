@@ -132,6 +132,13 @@ export default async (): Promise<void> => {
         await handleGetFreePremium(chatId, messageId, callbackQueryId);
         break;
       }
+      case 'on_map': {
+        const [latitude, longitude]: [number, number] = callbackData.param;
+        await bot.sendLocation(chatId, latitude, longitude, {
+          reply_to_message_id: messageId,
+        });
+        break;
+      }
       case 'subscribe_channel': {
         await handleSubscribeToChannel(chatId, messageId, callbackQueryId);
         break;
