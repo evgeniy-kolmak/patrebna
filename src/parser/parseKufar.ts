@@ -25,12 +25,9 @@ export async function parseKufar(
         limit(async () => {
           try {
             await pause(200);
-            const { data } = await axios.get<IAd[]>(
-              `http://${HOST}:3000/api/ads`,
-              {
-                params: { url },
-              },
-            );
+            const { data } = await axios.get<IAd[]>(`https://${HOST}/api/ads`, {
+              params: { url },
+            });
 
             if (!Array.isArray(data) || !data.length) return;
             const newAds = await db.addUniqueAds(userId, data, urlId);
@@ -39,7 +36,7 @@ export async function parseKufar(
             if (status === StatusPremium.ACTIVE) {
               for (const ad of newAds as ExtendedAdForDescription[]) {
                 const { data } = await axios.get<string>(
-                  `http://${HOST}:3000/api/ad`,
+                  `https://${HOST}/api/ad`,
                   {
                     params: { ad_id: ad.id },
                   },

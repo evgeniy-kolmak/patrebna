@@ -14,7 +14,7 @@ import {
 import { sendExpendedMessageOfNewAd } from 'config/lib/helpers/sendExpendedMessageOfNewAd';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
-const PORT = Number(process.env.PORT) ?? 8443;
+const PORT = Number(process.env.WEBHOOK_URL) ?? 8443;
 const HOST = process.env.HOST ?? '';
 const WEBHOOK_URL = `${HOST}:${PORT}/bot${TOKEN}`;
 
