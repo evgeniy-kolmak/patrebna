@@ -16,11 +16,9 @@ import {
   StatusPremium,
   type IParserData,
 } from 'config/types';
-import { getTypeUrlParser } from 'config/lib/helpers/getTypeUrlParser';
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
 import dataParserStream from 'config/db/stream/usersParse';
 import cache from 'config/redis/redisService';
-import { parserAds } from 'parsers';
 import { getUser } from 'config/lib/helpers/getUser';
 import { TelegramService } from 'config/telegram/telegramServise';
 
@@ -326,16 +324,14 @@ class DatabaseService {
     if (!url.match(regex)) return new Error();
 
     const dataUrl = await checkUrlOfKufar(url);
-    if (!dataUrl || typeof dataUrl !== 'string') return new Error();
+    if (!dataUrl) return new Error();
 
-    const typeUrlParser = getTypeUrlParser(url);
     const parser = await this.getParser(userId);
     const dataParser = await this.getDataParser(userId);
 
     const dataParserItem: IDataParserItem = {
       urlId,
       url,
-      typeUrlParser,
       isActive: true,
     };
 
@@ -361,7 +357,8 @@ class DatabaseService {
       }
     }
 
-    await this.addUniqueAds(userId, parserAds(typeUrlParser, dataUrl), urlId);
+    await this.addUniqueAds(userId, dataUrl, urlId);
+    return dataUrl.length;
   }
 
   async toggleUrlStatus(userId: number, urlId: number) {
@@ -412,7 +409,6 @@ class DatabaseService {
             ? index + 1
             : url.urlId,
         url: url.url,
-        typeUrlParser: url.typeUrlParser,
         isActive: url.isActive,
         _id: url._id,
       }));

@@ -1,17 +1,17 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
+import { type IAd } from 'config/types';
+
+const HOST = process.env.HOST ?? '';
 
 export const checkUrlOfKufar = async (
   url: string,
-): Promise<string | number | null> => {
+): Promise<IAd[] | undefined> => {
   try {
-    const { data } = await axios.get(url);
+    const { data } = await axios.get<IAd[]>(`http://${HOST}:3000/api/ads`, {
+      params: { url },
+    });
     return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      return error.response?.status ?? 404;
-    } else {
-      console.error('Неизвестная ошибка:', error);
-    }
+    console.error('Ошибка при добавлении ссылки:', error);
   }
-  return null;
 };

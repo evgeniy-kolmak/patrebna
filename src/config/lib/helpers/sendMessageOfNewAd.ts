@@ -1,6 +1,5 @@
 import { bot } from 'bot';
 import { isTelegramError, type IAd } from 'config/types';
-import { truncateString } from 'config/lib/helpers/truncateString';
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { type SendPhotoOptions } from 'node-telegram-bot-api';
@@ -15,17 +14,16 @@ export async function sendMessageOfNewAd({
   price,
   title,
   url,
-  description,
+
   region,
 }: SendMessageOfNewAdProps): Promise<string | undefined> {
   await i18next.changeLanguage(await getUserLanguage(userId));
+  const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
   const caption = [
-    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, ${region ? `в городе <b>${region}</b>, ` : ''}${t('C ценой')} <b>${price}</b>.`,
-    description ? `<i>${truncateString(description, 500)}\n</i>` : '',
+    `${t('Появилось')}<a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, в локации <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
   ]
     .filter(Boolean)
     .join('\n');
-
   const messageOptions: SendPhotoOptions = {
     caption,
     parse_mode: 'HTML',
@@ -41,7 +39,6 @@ export async function sendMessageOfNewAd({
     },
   };
 
-  const defaultImage = 'https://i.ibb.co/NLkvZYG/no-photo.webp';
   const errorMessages = [
     'Bad Request: wrong type of the web page content',
     'Bad Request: failed to get HTTP URL content',
