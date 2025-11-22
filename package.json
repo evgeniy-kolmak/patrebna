@@ -1,8 +1,8 @@
 {
   "name": "patrebna",
-  "version": "4.3.2",
+  "version": "4.4.0-beta",
   "description": "Parser telegram bot for Kufar",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "start:parser": "ts-node src/index.ts",
     "start:bot": "ts-node src/bot/index.ts",

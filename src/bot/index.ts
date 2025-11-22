@@ -9,11 +9,13 @@ import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import {
   type IBotAdsMessage,
   type IBotNotificationMessage,
+  type ExtendedAdForDescription,
 } from 'config/types';
+import { sendExpendedMessageOfNewAd } from 'config/lib/helpers/sendExpendedMessageOfNewAd';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
-const PORT = Number(process.env.WEBHOOK_PORT) ?? 8443;
-const HOST = process.env.WEBHOOK_HOST ?? '';
+const PORT = Number(process.env.PORT) ?? 8443;
+const HOST = process.env.HOST ?? '';
 const WEBHOOK_URL = `${HOST}:${PORT}/bot${TOKEN}`;
 
 const options = {
@@ -53,8 +55,19 @@ listener.on('message', (message: [string, string]) => {
       case 'bot_queue_ads': {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
-          await pause(1200);
+          await pause(1500);
           await sendMessageOfNewAd({ userId, ...ad });
+        }
+        break;
+      }
+      case 'bot_queue_extended_ads': {
+        const { userId, newAds } = data as IBotAdsMessage;
+        for (const ad of newAds) {
+          await sendExpendedMessageOfNewAd({
+            userId,
+            ...(ad as ExtendedAdForDescription),
+          });
+          await pause(3000);
         }
         break;
       }
