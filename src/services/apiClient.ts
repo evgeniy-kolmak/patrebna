@@ -1,15 +1,17 @@
 import https from 'https';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import axios, { AxiosError } from 'axios';
 
 const HOST = process.env.HOST ?? '';
-const agent = new https.Agent({
-  ca: readFileSync('/usr/local/share/ca-certificates/ca.crt'),
-});
+let agent: https.Agent | undefined;
+const caPath = '/usr/local/share/ca-certificates/ca.crt';
+if (existsSync(caPath)) {
+  agent = new https.Agent({ ca: readFileSync(caPath) });
+}
 
 export const api = axios.create({
-  baseURL: `https://${HOST}/api/`,
-  httpsAgent: agent,
+  baseURL: `https://${HOST}/api`,
+  ...(agent ? { httpsAgent: agent } : {}),
 });
 
 api.interceptors.response.use(
