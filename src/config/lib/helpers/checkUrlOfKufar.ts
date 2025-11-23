@@ -1,13 +1,11 @@
-import axios from 'axios';
+import { api } from 'services/apiClient';
 import { type IAd } from 'config/types';
-
-const HOST = process.env.HOST ?? '';
 
 export const checkUrlOfKufar = async (
   url: string,
 ): Promise<IAd[] | undefined> => {
   try {
-    const { data } = await axios.get<IAd[]>(`https://${HOST}/api/ads`, {
+    const { data } = await api.get<IAd[]>('ads', {
       params: { url },
     });
     return data;
