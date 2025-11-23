@@ -45,7 +45,7 @@ export async function sendExpendedMessageOfNewAd(
   } = parameters;
 
   const message = [
-    `${t('Появилось')}<a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, в локации <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
+    `${t('Появилось')}<a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, ${t('В локации')} <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
     `<i>${truncateString(description, 500)}</i>`,
     size ? `<b>${t('Общая площадь')}</b>: ${size}м²` : '',
     square_meter ? `<b>${t('Цена')} за м²</b>: ${square_meter}$` : '',
@@ -67,10 +67,12 @@ export async function sendExpendedMessageOfNewAd(
       ? `<b>${t('Объем')}</b>: ${cars_capacity.replace(/\D+/g, '')}л.`
       : '',
     condition ? `<b>${t('Состояние товара')}</b>: ${condition}` : '',
-    safedeal_enabled
+    safedeal_enabled && safedeal_enabled !== '-'
       ? `<b>${t('Безопасная сделка')}</b>: ${safedeal_enabled}`
       : '',
-    delivery_enabled ? `<b>${t('Доставка')}</b>: ${delivery_enabled}` : '',
+    delivery_enabled && delivery_enabled !== '-'
+      ? `<b>${t('Доставка')}</b>: ${delivery_enabled}`
+      : '',
   ]
     .filter(Boolean)
     .join('\n');
