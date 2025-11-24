@@ -45,7 +45,7 @@ export async function sendExpendedMessageOfNewAd(
   } = parameters;
 
   const message = [
-    `${t('Появилось')}<a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, ${t('В локации')} <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
+    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>\u00A0: <b>${title}</b>, ${t('В локации')} <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
     `<i>${truncateString(description, 500)}</i>`,
     size ? `<b>${t('Общая площадь')}</b>: ${size}м²` : '',
     square_meter ? `<b>${t('Цена')} за м²</b>: ${square_meter}$` : '',
@@ -53,19 +53,15 @@ export async function sendExpendedMessageOfNewAd(
     floor && re_number_floors
       ? `<b>${t('Этаж')}</b>: ${floor} из ${re_number_floors}`
       : '',
-    year_built
-      ? `<b>${t('Год постройки')}</b>: ${year_built.replace(/\D+/g, '')}г.`
+    year_built ? `<b>${t('Год постройки')}</b>: ${year_built}` : '',
+    regdate ? `<b>${t('Год выпуска')}</b>: ${regdate}` : '',
+    mileage
+      ? `<b>${t('Пробег')}</b>: ${mileage.toString().replace(/\D+/g, '')}км`
       : '',
-    regdate
-      ? `<b>${t('Год выпуска')}</b>: ${regdate.replace(/\D+/g, '')}г.`
-      : '',
-    mileage ? `<b>${t('Пробег')}</b>: ${mileage.replace(/\D+/g, '')}км.` : '',
     cars_type ? `<b>${t('Тип кузова')}</b>: ${cars_type}` : '',
     cars_gearbox ? `<b>${t('Коробка передач')}</b>: ${cars_gearbox}` : '',
     cars_engine ? `<b>${t('Тип двигателя')}</b>: ${cars_engine}` : '',
-    cars_capacity
-      ? `<b>${t('Объем')}</b>: ${cars_capacity.replace(/\D+/g, '')}л.`
-      : '',
+    cars_capacity ? `<b>${t('Объем')}</b>: ${cars_capacity}.` : '',
     condition ? `<b>${t('Состояние товара')}</b>: ${condition}` : '',
     safedeal_enabled && safedeal_enabled !== '-'
       ? `<b>${t('Безопасная сделка')}</b>: ${safedeal_enabled}`

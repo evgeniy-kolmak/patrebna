@@ -20,7 +20,7 @@ export async function sendMessageOfNewAd({
   await i18next.changeLanguage(await getUserLanguage(userId));
   const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
   const caption = [
-    `${t('Появилось')}<a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>, ${t('В локации')}  <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
+    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>\u00A0, ${t('В локации')}  <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
   ]
     .filter(Boolean)
     .join('\n');
