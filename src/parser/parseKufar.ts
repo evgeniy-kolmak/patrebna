@@ -37,6 +37,7 @@ export async function parseKufar(
                 params: { ad_id: ad.id },
               });
               ad.description = data;
+              await pause(300);
             }
           }
           await cache.sendAdsToBot({

@@ -21,7 +21,7 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
       index,
     ) => ({
       id: String(ad_id),
-      title: subject,
+      title: subject.trim(),
       url: ad_link,
       img_url: allImages[index][0]?.media ?? defaultImage,
       images: allImages[index],
