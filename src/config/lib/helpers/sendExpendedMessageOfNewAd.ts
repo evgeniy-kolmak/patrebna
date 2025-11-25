@@ -1,4 +1,5 @@
 import { bot } from 'bot';
+import db from 'config/db/databaseServise';
 import { type ExtendedAdForDescription, isTelegramError } from 'config/types';
 import { truncateString } from 'config/lib/helpers/truncateString';
 import i18next, { t } from 'i18next';
@@ -10,6 +11,8 @@ import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 interface SendMessageOfNewAdProps extends ExtendedAdForDescription {
   userId: number;
 }
+
+const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
 
 export async function sendExpendedMessageOfNewAd(
   ad: SendMessageOfNewAdProps,
@@ -96,12 +99,22 @@ export async function sendExpendedMessageOfNewAd(
   };
 
   try {
+    if (!images.length) {
+      await bot.sendPhoto(userId, defaultImage, {
+        caption: message,
+        parse_mode: 'HTML',
+        reply_markup: keyboardForMessage,
+      });
+    }
     await bot.sendMediaGroup(userId, images);
     await sendMessage(userId, message, keyboardForMessage);
   } catch (error) {
     if (isTelegramError(error)) {
       const { error_code, parameters: errorParams } = error.response.body;
-      if (error_code === 403) return 'User is blocked';
+      if (error_code === 403) {
+        await db.removeUser(userId);
+        return;
+      }
       if (error_code === 429) {
         const wait = (errorParams?.retry_after ?? 1) * 1000;
         console.warn(`Слишком много запросов, ждем ${wait}ms`);

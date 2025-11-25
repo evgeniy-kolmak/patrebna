@@ -6,14 +6,7 @@ const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
 
 export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
   const allImages: InputMedia[][] = rawAds.map(({ images }) => {
-    if (!images.length) {
-      return [
-        {
-          type: 'photo',
-          media: defaultImage,
-        },
-      ];
-    }
+    if (!images.length) return [];
 
     return images.slice(0, 10).map(({ path, media_storage }) => ({
       type: 'photo',

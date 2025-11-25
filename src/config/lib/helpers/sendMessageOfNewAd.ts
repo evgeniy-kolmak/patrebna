@@ -1,4 +1,5 @@
 import { bot } from 'bot';
+import db from 'config/db/databaseServise';
 import { isTelegramError, type IAd } from 'config/types';
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
@@ -49,7 +50,10 @@ export async function sendMessageOfNewAd({
   } catch (error) {
     if (isTelegramError(error)) {
       const { error_code, description } = error.response.body;
-      if (error_code === 403) return 'User is blocked';
+      if (error_code === 403) {
+        await db.removeUser(userId);
+        return;
+      }
       if (errorMessages.some((sub) => description.includes(sub))) {
         await bot.sendPhoto(userId, defaultImage, messageOptions);
         console.error('Невалидная ссылка изображения!');
