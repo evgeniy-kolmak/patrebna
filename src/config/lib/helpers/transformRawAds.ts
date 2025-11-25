@@ -2,14 +2,24 @@ import { type RawAd, type IExtendedAd, AdParameters } from 'config/types';
 import { getParametersOfAd } from 'config/lib/helpers/getParametersOfAd';
 import { type InputMedia } from 'node-telegram-bot-api';
 
+const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
+
 export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
-  const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
-  const allImages: InputMedia[][] = rawAds.map(({ images }) =>
-    images.slice(0, 10).map(({ path, media_storage }) => ({
+  const allImages: InputMedia[][] = rawAds.map(({ images }) => {
+    if (!images.length) {
+      return [
+        {
+          type: 'photo',
+          media: defaultImage,
+        },
+      ];
+    }
+
+    return images.slice(0, 10).map(({ path, media_storage }) => ({
       type: 'photo',
       media: `https://${media_storage}.kufar.by/v1/list_thumbs_2x/${path}`,
-    })),
-  );
+    }));
+  });
 
   const formatPrice = (value: string): string => {
     const num = Math.round(+value / 100);
