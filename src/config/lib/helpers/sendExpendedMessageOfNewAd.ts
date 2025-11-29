@@ -5,20 +5,23 @@ import { truncateString } from 'config/lib/helpers/truncateString';
 import i18next, { t } from 'i18next';
 import { pause } from 'config/lib/helpers/pause';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { sendPhoto } from 'config/lib/helpers/sendPhoto';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import { getUserLock } from 'config/lib/helpers/userMessageLock';
 
 interface SendMessageOfNewAdProps extends ExtendedAdForDescription {
   userId: number;
 }
 
-const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
-
 export async function sendExpendedMessageOfNewAd(
   ad: SendMessageOfNewAdProps,
-): Promise<string | undefined> {
+): Promise<void> {
+  const errorMessage =
+    'Bad Request: failed to send message #1 with the error message "WEBPAGE_MEDIA_EMPTY"';
   const {
     userId,
+    img_url,
     images,
     price,
     title,
@@ -47,7 +50,9 @@ export async function sendExpendedMessageOfNewAd(
     safedeal_enabled,
   } = parameters;
 
-  const message = [
+  const lock = getUserLock(userId);
+
+  const caption = [
     `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>\u2060, ${t('В локации')} <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
     `<i>${truncateString(description, 500)}</i>`,
     size ? `<b>${t('Общая площадь')}</b>: ${size}м²` : '',
@@ -97,33 +102,38 @@ export async function sendExpendedMessageOfNewAd(
       ],
     ],
   };
-
-  try {
-    if (!images.length) {
-      await bot.sendPhoto(userId, defaultImage, {
-        caption: message,
-        parse_mode: 'HTML',
-        reply_markup: keyboardForMessage,
-      });
-    }
-    await bot.sendMediaGroup(userId, images);
-    await sendMessage(userId, message, keyboardForMessage);
-  } catch (error) {
-    if (isTelegramError(error)) {
-      const { error_code, parameters: errorParams } = error.response.body;
-      if (error_code === 403) {
-        await db.removeUser(userId);
+  await lock.runExclusive(async () => {
+    try {
+      if (!images.length) {
+        await sendPhoto(userId, caption, keyboardForMessage);
         return;
       }
-      if (error_code === 429) {
-        const wait = (errorParams?.retry_after ?? 1) * 1000;
-        console.warn(`Слишком много запросов, ждем ${wait}ms`);
-        await pause(wait);
-        return await sendExpendedMessageOfNewAd(ad);
+      await bot.sendMediaGroup(userId, images);
+      await sendMessage(userId, caption, keyboardForMessage);
+    } catch (error) {
+      if (isTelegramError(error)) {
+        const {
+          error_code,
+          parameters: errorParams,
+          description,
+        } = error.response.body;
+        if (error_code === 400 && description === errorMessage) {
+          await sendPhoto(userId, caption, keyboardForMessage, img_url);
+          return;
+        }
+        if (error_code === 403) {
+          await db.removeUser(userId);
+          return;
+        }
+        if (error_code === 429) {
+          const wait = (errorParams?.retry_after ?? 1) * 1000;
+          console.warn(`Слишком много запросов, ждем ${wait}ms`);
+          await pause(wait);
+          await sendExpendedMessageOfNewAd(ad);
+          return;
+        }
+        console.error('Неизвестная ошибка при отправке уведомлений:', error);
       }
-      console.error('Ошибка при отправке уведомления:', error);
-    } else {
-      console.error('Неизвестная ошибка при отправке уведомлений:', error);
     }
-  }
+  });
 }

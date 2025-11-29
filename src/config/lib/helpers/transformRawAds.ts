@@ -2,8 +2,6 @@ import { type RawAd, type IExtendedAd, AdParameters } from 'config/types';
 import { getParametersOfAd } from 'config/lib/helpers/getParametersOfAd';
 import { type InputMedia } from 'node-telegram-bot-api';
 
-const defaultImage = process.env.DEFAULT_IMAGE_URL ?? '';
-
 export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
   const allImages: InputMedia[][] = rawAds.map(({ images }) => {
     if (!images.length) return [];
@@ -26,9 +24,12 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
       id: String(ad_id),
       title: subject.trim(),
       url: ad_link,
-      img_url: allImages[index][0]?.media ?? defaultImage,
+      img_url: allImages[index][0]?.media,
       images: allImages[index],
-      price: `${formatPrice(price_byn)}р. / ${formatPrice(price_usd)}$`,
+      price:
+        price_byn !== '0' && price_usd !== '0'
+          ? `${formatPrice(price_byn)}р. / ${formatPrice(price_usd)}$`
+          : 'Договорная',
       region: getParametersOfAd(ad_parameters, AdParameters.Area)?.area,
       coordinates: getParametersOfAd(ad_parameters, AdParameters.Coordinates)
         ?.coordinates?.reverse()
