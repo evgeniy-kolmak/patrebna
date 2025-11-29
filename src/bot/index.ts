@@ -13,6 +13,8 @@ import {
 } from 'config/types';
 import { sendExpendedMessageOfNewAd } from 'config/lib/helpers/sendExpendedMessageOfNewAd';
 
+(process as any).noDeprecation = true;
+
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const PORT = Number(process.env.WEBHOOK_PORT) ?? 8443;
 const HOST = process.env.HOST ?? '';
@@ -55,8 +57,8 @@ listener.on('message', (message: [string, string]) => {
       case 'bot_queue_ads': {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
-          await pause(1500);
           await sendMessageOfNewAd({ userId, ...ad });
+          await pause(1500);
         }
         break;
       }
