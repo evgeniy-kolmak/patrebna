@@ -108,6 +108,10 @@ export async function sendExpendedMessageOfNewAd(
         await sendPhoto(userId, caption, keyboardForMessage);
         return;
       }
+      if (images.length === 1) {
+        await sendPhoto(userId, caption, keyboardForMessage, img_url);
+        return;
+      }
       await bot.sendMediaGroup(userId, images);
       await sendMessage(userId, caption, keyboardForMessage);
     } catch (error) {
