@@ -38,12 +38,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-  server:
+  api:
     build:
       context: ../
-      dockerfile: ./Docker/server/Dockerfile
-    image: server
-    container_name: webhook_server
+      dockerfile: ./Docker/api/Dockerfile
+    image: api
+    container_name: api
     restart: always
     ports:
       - "443:3000"

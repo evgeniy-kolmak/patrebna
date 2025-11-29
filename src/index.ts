@@ -7,7 +7,7 @@ import { scheduleJob } from 'node-schedule';
 import { StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { getUser } from 'config/lib/helpers/getUser';
-import { parseKufar } from 'parsers/kufar/tasks/parseKufar';
+import { parseKufar } from 'parser/parseKufar';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
 import keyboard from 'bot/keyboard';
 

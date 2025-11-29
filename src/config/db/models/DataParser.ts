@@ -15,10 +15,6 @@ const DataParserSchema = new Schema(
             trim: true,
             required: true,
           },
-          typeUrlParser: {
-            type: String,
-            required: true,
-          },
           isActive: {
             type: Boolean,
             required: true,

@@ -10,7 +10,7 @@ import { type Request, type Response } from 'express';
 import i18next, { t } from 'i18next';
 import { TelegramService } from 'config/telegram/telegramServise';
 
-export async function bepaidWebhookHandler(
+export async function bepaidHandler(
   req: Request,
   res: Response,
 ): Promise<void> {

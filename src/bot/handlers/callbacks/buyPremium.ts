@@ -18,7 +18,7 @@ export async function handleBuyPremium(
       inline_keyboard: [
         ...tariffData.map((tariff, index) => [
           {
-            text: `${t(tariff.name)} — ${tariff.quantityOfDays} ${t('Дней')} (💥 -50%)`,
+            text: `${t(tariff.name)} — ${tariff.quantityOfDays} ${t('Дней')} (🎄 -26%)`,
             callback_data: JSON.stringify({
               action: 'choose_tariff',
               param: index + 1,

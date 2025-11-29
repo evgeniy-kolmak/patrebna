@@ -1,11 +1,15 @@
-import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import {
+  type InputMedia,
+  type InlineKeyboardMarkup,
+} from 'node-telegram-bot-api';
 
 interface IBaseMessage {
   userId: number;
 }
 
 export interface IBotAdsMessage extends IBaseMessage {
-  newAds: IAd[];
+  newAds: IAd[] | IExtendedAd[];
+  key: string;
 }
 
 export interface IBotNotificationMessage extends IBaseMessage {
@@ -25,7 +29,6 @@ export interface IProfile {
 export interface IDataParserItem {
   urlId: number;
   url: string;
-  typeUrlParser: TypesUrlParser;
   isActive: boolean;
 }
 
@@ -48,10 +51,8 @@ export interface IAd {
   title: string;
   url: string;
   img_url: string;
-  description?: string | null;
-  region?: string;
+  region: string;
   price: string;
-  createdAt: Date;
 }
 
 export enum Languages {
@@ -73,12 +74,6 @@ export enum Button {
   STOP_OBSERVE = 'stop_observe',
   DELETE = 'delete',
   BACK = 'back',
-}
-
-export enum TypesUrlParser {
-  OTHERS = 'others',
-  AUTO = 'auto',
-  RE = 're',
 }
 
 export enum OperationType {
@@ -145,7 +140,13 @@ export enum StatusTransaction {
 }
 
 export function isTelegramError(error: unknown): error is {
-  response: { body: { error_code: number; description: string } };
+  response: {
+    body: {
+      error_code: number;
+      description: string;
+      parameters?: { retry_after?: number };
+    };
+  };
 } {
   const body = (error as any)?.response?.body;
   return (
@@ -153,3 +154,59 @@ export function isTelegramError(error: unknown): error is {
     typeof body?.description === 'string'
   );
 }
+
+export interface IExtendedAd extends IAd {
+  images: InputMedia[];
+  coordinates?: number[];
+  parameters: ParameterMap;
+}
+export type ExtendedAdForDescription = IExtendedAd & {
+  description: string;
+};
+export type ParamValue =
+  | string
+  | number
+  | boolean
+  | Array<string | number | boolean>
+  | [number, number];
+
+export interface RawParam {
+  vl: ParamValue;
+  p: string;
+  v: ParamValue;
+}
+export interface RawImage {
+  path: string;
+  media_storage: string;
+}
+export interface RawAd {
+  ad_id: number;
+  subject: string;
+  ad_link: string;
+  body_short: string | null;
+  price_byn: string;
+  price_usd: string;
+  images: RawImage[];
+  ad_parameters: RawParam[];
+}
+export enum AdParameters {
+  Area = 'area',
+  CarsCapacity = 'cars_capacity',
+  CarsEngine = 'cars_engine',
+  CarsGearbox = 'cars_gearbox',
+  CarsType = 'cars_type',
+  Сondition = 'condition',
+  Coordinates = 'coordinates',
+  Delivery = 'delivery_enabled',
+  Floor = 'floor',
+  Mileage = 'mileage',
+  ReNumberFloors = 're_number_floors',
+  RegDate = 'regdate',
+  Rooms = 'rooms',
+  Safedeal = 'safedeal_enabled',
+  Size = 'size',
+  SquareMeter = 'square_meter',
+  YearBuilt = 'year_built',
+}
+
+export type ParameterMap = Partial<Record<AdParameters, any>>;
