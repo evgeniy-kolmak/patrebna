@@ -24,7 +24,8 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
       id: String(ad_id),
       title: subject.trim(),
       url: ad_link,
-      img_url: allImages[index][0]?.media,
+      img_url:
+        allImages[index][0]?.media ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp',
       images: allImages[index],
       price:
         price_byn !== '0' && price_usd !== '0'
