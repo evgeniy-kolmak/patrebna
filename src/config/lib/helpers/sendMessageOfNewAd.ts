@@ -14,7 +14,8 @@ export async function sendMessageOfNewAd(
   const { userId, img_url, price, title, url, region } = ad;
   await i18next.changeLanguage(await getUserLanguage(userId));
   const caption = [
-    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b>\u2060 , ${t('В локации')}  <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
+    `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>:`,
+    `<b>${title}</b>\u2060 , ${t('В локации')}  <b>${region}</b>, ${t('C ценой')} <b>${price}</b>.`,
   ]
     .filter(Boolean)
     .join('\n');
