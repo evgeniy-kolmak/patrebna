@@ -125,7 +125,10 @@ export async function sendExpendedMessageOfNewAd(
           await sendPhoto(userId, caption, keyboardForMessage, img_url);
           return;
         }
-        if (error_code === 403) {
+        if (
+          error_code === 403 ||
+          (error_code === 400 && description.includes('USER_IS_BLOCKED'))
+        ) {
           await db.removeUser(userId);
           return;
         }
