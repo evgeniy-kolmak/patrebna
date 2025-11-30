@@ -1,8 +1,8 @@
 {
   "name": "patrebna",
-  "version": "4.3.2",
+  "version": "4.4.0",
   "description": "Parser telegram bot for Kufar",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "start:parser": "ts-node src/index.ts",
     "start:bot": "ts-node src/bot/index.ts",
@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@types/jsdom": "^21.1.7",
+    "async-mutex": "^0.5.0",
     "axios": "^1.7.6",
     "axios-retry": "^4.5.0",
     "dotenv": "^16.4.5",

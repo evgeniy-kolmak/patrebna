@@ -56,6 +56,10 @@ export async function handleAddLinkKufar(
               ],
             });
           } else {
+            if (!data) {
+              await sendMessage(chatId, t('Нулевая ссылка'), keyboard.Main());
+              return;
+            }
             await sendMessage(
               chatId,
               t('Сообщение об успехе'),
