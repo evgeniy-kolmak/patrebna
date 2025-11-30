@@ -1,6 +1,7 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 import db from 'config/db/databaseServise';
+import { isTelegramError } from 'config/types';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -23,16 +24,16 @@ export const TelegramService = {
         reply_markup: keyboard,
       });
     } catch (error) {
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 403) {
+      if (isTelegramError(error)) {
+        const { error_code, description } = error.response.body;
+        if (
+          error_code === 403 ||
+          (error_code === 400 && description.includes('USER_IS_BLOCKED'))
+        ) {
           await db.removeUser(chatId);
           return;
         }
-        if (
-          error.response?.data?.description.includes(
-            'Bad Request: message is not modified',
-          )
-        )
+        if (description.includes('Bad Request: message is not modified'))
           return;
 
         console.error('Ошибка при отправке сообщения в Telegram:', error);

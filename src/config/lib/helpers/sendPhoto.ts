@@ -27,7 +27,10 @@ export async function sendPhoto(
   } catch (error) {
     if (isTelegramError(error)) {
       const { error_code, description } = error.response.body;
-      if (error_code === 403) {
+      if (
+        error_code === 403 ||
+        (error_code === 400 && description.includes('USER_IS_BLOCKED'))
+      ) {
         await db.removeUser(id);
         return;
       }
