@@ -17,8 +17,7 @@ interface SendMessageOfNewAdProps extends ExtendedAdForDescription {
 export async function sendExpendedMessageOfNewAd(
   ad: SendMessageOfNewAdProps,
 ): Promise<void> {
-  const errorMessage =
-    'Bad Request: failed to send message #1 with the error message "WEBPAGE_MEDIA_EMPTY"';
+  const errorMessages = ['WEBPAGE_MEDIA_EMPTY', 'WEBPAGE_CURL_FAILED'];
   const {
     userId,
     img_url,
@@ -121,9 +120,17 @@ export async function sendExpendedMessageOfNewAd(
           parameters: errorParams,
           description,
         } = error.response.body;
-        if (error_code === 400 && description === errorMessage) {
-          await sendPhoto(userId, caption, keyboardForMessage, img_url);
-          return;
+        if (
+          error_code === 400 &&
+          errorMessages.some((e) => description.includes(e))
+        ) {
+          const match = description.match(/message\s+#(\d+)/i);
+          const failedIndex = match ? Number(match[1]) - 1 : null;
+          if (failedIndex !== null && images[failedIndex]) {
+            images.splice(failedIndex, 1);
+            await sendExpendedMessageOfNewAd(ad);
+            return;
+          }
         }
         if (
           error_code === 403 ||
