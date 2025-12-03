@@ -156,9 +156,11 @@ export function isTelegramError(error: unknown): error is {
 }
 
 export interface IExtendedAd extends IAd {
+  saller_id: string;
+  saller_name: string;
   images: InputMedia[];
   coordinates?: number[];
-  parameters: ParameterMap;
+  ad_parameters: ParameterMap;
 }
 export type ExtendedAdForDescription = IExtendedAd & {
   description: string;
@@ -180,6 +182,8 @@ export interface RawImage {
   media_storage: string;
 }
 export interface RawAd {
+  account_id: string;
+  account_parameters: RawParam[];
   ad_id: number;
   subject: string;
   ad_link: string;
@@ -200,6 +204,7 @@ export enum AdParameters {
   Delivery = 'delivery_enabled',
   Floor = 'floor',
   Mileage = 'mileage',
+  NAME = 'name',
   ReNumberFloors = 're_number_floors',
   RegDate = 'regdate',
   Rooms = 'rooms',

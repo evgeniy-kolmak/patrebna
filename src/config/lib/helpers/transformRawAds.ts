@@ -18,9 +18,23 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
   };
   const extendedAds: IExtendedAd[] = rawAds.map(
     (
-      { ad_id, subject, ad_link, price_byn, price_usd, ad_parameters },
+      {
+        account_id,
+        ad_id,
+        subject,
+        ad_link,
+        price_byn,
+        price_usd,
+        ad_parameters,
+        account_parameters,
+      },
       index,
     ) => ({
+      saller_id: account_id,
+      saller_name: getParametersOfAd(
+        account_parameters,
+        AdParameters.NAME,
+      )?.name.trim(),
       id: String(ad_id),
       title: subject.trim(),
       url: ad_link,
@@ -35,7 +49,7 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
       coordinates: getParametersOfAd(ad_parameters, AdParameters.Coordinates)
         ?.coordinates?.reverse()
         .map((item: number) => Number(item.toFixed(8))),
-      parameters: getParametersOfAd(ad_parameters, [
+      ad_parameters: getParametersOfAd(ad_parameters, [
         AdParameters.Сondition,
         AdParameters.Delivery,
         AdParameters.Safedeal,

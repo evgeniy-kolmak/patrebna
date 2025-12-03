@@ -38,7 +38,9 @@ export async function sendMessageOfNewAd(
 
       if (error_code === 429) {
         const wait = (parameters?.retry_after ?? 1) * 1000;
-        console.warn(`Слишком много запросов, ждем ${wait}ms`);
+        console.warn(
+          `Слишком много запросов, повтор через ${wait / 1000}секунд`,
+        );
         await pause(wait);
         await sendMessageOfNewAd(ad);
         return;

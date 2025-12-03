@@ -19,6 +19,8 @@ export async function sendExpendedMessageOfNewAd(
 ): Promise<void> {
   const errorMessages = ['WEBPAGE_MEDIA_EMPTY', 'WEBPAGE_CURL_FAILED'];
   const {
+    saller_id,
+    saller_name,
     userId,
     img_url,
     images,
@@ -28,7 +30,7 @@ export async function sendExpendedMessageOfNewAd(
     coordinates,
     description,
     region,
-    parameters,
+    ad_parameters,
   } = ad;
   await i18next.changeLanguage(await getUserLanguage(userId));
   const {
@@ -47,9 +49,10 @@ export async function sendExpendedMessageOfNewAd(
     condition,
     delivery_enabled,
     safedeal_enabled,
-  } = parameters;
+  } = ad_parameters;
 
   const lock = getUserLock(userId);
+  const sellerProfileUrl = `https://www.kufar.by/user/${saller_id}`;
 
   const caption = [
     `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b> ${t('В локации')} <b>${region}</b> ${t('C ценой')} <b>${price}</b>.`.trim(),
@@ -69,6 +72,9 @@ export async function sendExpendedMessageOfNewAd(
     cars_gearbox ? `<b>${t('Коробка передач')}</b>: ${cars_gearbox}` : '',
     cars_engine ? `<b>${t('Тип двигателя')}</b>: ${cars_engine}` : '',
     cars_capacity ? `<b>${t('Объем')}</b>: ${cars_capacity}.` : '',
+    saller_id && saller_name
+      ? `<b>${t('Продавец')}</b>: <a href="${sellerProfileUrl}">${saller_name}</a>`
+      : '',
     condition ? `<b>${t('Состояние товара')}</b>: ${condition}` : '',
     safedeal_enabled && safedeal_enabled !== '-'
       ? `<b>${t('Безопасная сделка')}</b>: ${safedeal_enabled}`
@@ -115,11 +121,7 @@ export async function sendExpendedMessageOfNewAd(
       await sendMessage(userId, caption, keyboardForMessage);
     } catch (error) {
       if (isTelegramError(error)) {
-        const {
-          error_code,
-          parameters: errorParams,
-          description,
-        } = error.response.body;
+        const { error_code, parameters, description } = error.response.body;
         if (
           error_code === 400 &&
           errorMessages.some((e) => description.includes(e))
@@ -140,8 +142,10 @@ export async function sendExpendedMessageOfNewAd(
           return;
         }
         if (error_code === 429) {
-          const wait = (errorParams?.retry_after ?? 1) * 1000;
-          console.warn(`Слишком много запросов, ждем ${wait}ms`);
+          const wait = (parameters?.retry_after ?? 1) * 1000;
+          console.warn(
+            `Слишком много запросов, повтор через ${wait / 1000}секунд`,
+          );
           await pause(wait);
           await sendExpendedMessageOfNewAd(ad);
           return;
