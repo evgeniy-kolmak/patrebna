@@ -33,23 +33,6 @@ export async function sendExpendedMessageOfNewAd(
     ad_parameters,
   } = ad;
   await i18next.changeLanguage(await getUserLanguage(userId));
-  const {
-    size,
-    square_meter,
-    rooms,
-    floor,
-    re_number_floors,
-    year_built,
-    regdate,
-    mileage,
-    cars_type,
-    cars_engine,
-    cars_capacity,
-    cars_gearbox,
-    condition,
-    delivery_enabled,
-    safedeal_enabled,
-  } = ad_parameters;
 
   const lock = getUserLock(userId);
   const sellerProfileUrl = `https://www.kufar.by/user/${saller_id}`;
@@ -57,30 +40,50 @@ export async function sendExpendedMessageOfNewAd(
   const caption = [
     `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b> ${t('В локации')} <b>${region}</b> ${t('C ценой')} <b>${price}</b>.`.trim(),
     `<i>${truncateString(description, 500)}</i>`,
-    size ? `<b>${t('Общая площадь')}</b>: ${size}м²` : '',
-    square_meter ? `<b>${t('Цена')} за м²</b>: ${square_meter}$` : '',
-    rooms ? `<b>${t('Количество комнат')}</b>: ${rooms}` : '',
-    floor && re_number_floors
-      ? `<b>${t('Этаж')}</b>: ${floor} из ${re_number_floors}`
+    ad_parameters?.size
+      ? `<b>${t('Общая площадь')}</b>: ${ad_parameters?.size}м²`
       : '',
-    year_built ? `<b>${t('Год постройки')}</b>: ${year_built}` : '',
-    regdate ? `<b>${t('Год выпуска')}</b>: ${regdate}` : '',
-    mileage
-      ? `<b>${t('Пробег')}</b>: ${mileage.toString().replace(/\D+/g, '')}км`
+    ad_parameters?.square_meter
+      ? `<b>${t('Цена')} за м²</b>: ${ad_parameters?.square_meter}$`
       : '',
-    cars_type ? `<b>${t('Тип кузова')}</b>: ${cars_type}` : '',
-    cars_gearbox ? `<b>${t('Коробка передач')}</b>: ${cars_gearbox}` : '',
-    cars_engine ? `<b>${t('Тип двигателя')}</b>: ${cars_engine}` : '',
-    cars_capacity ? `<b>${t('Объем')}</b>: ${cars_capacity}.` : '',
+    ad_parameters?.rooms
+      ? `<b>${t('Количество комнат')}</b>: ${ad_parameters?.rooms}`
+      : '',
+    ad_parameters?.floor && ad_parameters?.re_number_floors
+      ? `<b>${t('Этаж')}</b>: ${ad_parameters?.floor} из ${ad_parameters?.re_number_floors}`
+      : '',
+    ad_parameters?.year_built
+      ? `<b>${t('Год постройки')}</b>: ${ad_parameters?.year_built}`
+      : '',
+    ad_parameters?.regdate
+      ? `<b>${t('Год выпуска')}</b>: ${ad_parameters?.regdate}`
+      : '',
+    ad_parameters?.mileage
+      ? `<b>${t('Пробег')}</b>: ${ad_parameters?.mileage.toString().replace(/\D+/g, '')}км`
+      : '',
+    ad_parameters?.cars_type
+      ? `<b>${t('Тип кузова')}</b>: ${ad_parameters?.cars_type}`
+      : '',
+    ad_parameters?.cars_gearbox
+      ? `<b>${t('Коробка передач')}</b>: ${ad_parameters?.cars_gearbox}`
+      : '',
+    ad_parameters?.cars_engine
+      ? `<b>${t('Тип двигателя')}</b>: ${ad_parameters?.cars_engine}`
+      : '',
+    ad_parameters?.cars_capacity
+      ? `<b>${t('Объем')}</b>: ${ad_parameters?.cars_capacity}.`
+      : '',
     saller_id && saller_name
       ? `<b>${t('Продавец')}</b>: <a href="${sellerProfileUrl}">${saller_name}</a>`
       : '',
-    condition ? `<b>${t('Состояние товара')}</b>: ${condition}` : '',
-    safedeal_enabled && safedeal_enabled !== '-'
-      ? `<b>${t('Безопасная сделка')}</b>: ${safedeal_enabled}`
+    ad_parameters?.condition
+      ? `<b>${t('Состояние товара')}</b>: ${ad_parameters?.condition}`
       : '',
-    delivery_enabled && delivery_enabled !== '-'
-      ? `<b>${t('Доставка')}</b>: ${delivery_enabled}`
+    ad_parameters?.safedeal_enabled && ad_parameters?.safedeal_enabled !== '-'
+      ? `<b>${t('Безопасная сделка')}</b>: ${ad_parameters?.safedeal_enabled}`
+      : '',
+    ad_parameters?.delivery_enabled && ad_parameters?.delivery_enabled !== '-'
+      ? `<b>${t('Доставка')}</b>: ${ad_parameters?.delivery_enabled}`
       : '',
   ]
     .filter(Boolean)
