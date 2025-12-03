@@ -14,14 +14,14 @@ export async function parseAdHandler(
     }
     const url = `https://www.kufar.by/item/${adId}`;
     const { data } = await axios.get<string>(url);
-    const description = extractNextDataField(
+    const description: string | null = extractNextDataField(
       data,
       'props.initialState.adView.data.description',
     )
       .replace(/\n+/g, ' ')
       .trim();
 
-    if (!description) {
+    if (description === null) {
       res
         .status(500)
         .json({ error: 'Невозможно извлечь описание из NEXT_DATA.' });
