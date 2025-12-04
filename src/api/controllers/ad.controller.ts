@@ -1,6 +1,18 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import { extractNextDataField } from 'config/lib/helpers/extractNextDataField';
 import { type Request, type Response } from 'express';
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: (retryCount, error) => {
+    console.warn(`Попытка #${retryCount} для ${error?.config?.url}`);
+    return retryCount * 1000;
+  },
+  retryCondition: (error) => {
+    return axiosRetry.isNetworkOrIdempotentRequestError(error);
+  },
+});
 
 export async function parseAdHandler(
   req: Request,
