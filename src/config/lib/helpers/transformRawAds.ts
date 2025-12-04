@@ -49,7 +49,7 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
       coordinates: getParametersOfAd(ad_parameters, AdParameters.Coordinates)
         ?.coordinates?.reverse()
         .map((item: number) => Number(item.toFixed(8))),
-      ad_parameters: getParametersOfAd(ad_parameters, [
+      parameters: getParametersOfAd(ad_parameters, [
         AdParameters.Сondition,
         AdParameters.Delivery,
         AdParameters.Safedeal,

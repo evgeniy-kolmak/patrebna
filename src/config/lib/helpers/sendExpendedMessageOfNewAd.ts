@@ -30,7 +30,7 @@ export async function sendExpendedMessageOfNewAd(
     coordinates,
     description,
     region,
-    ad_parameters,
+    parameters,
   } = ad;
   await i18next.changeLanguage(await getUserLanguage(userId));
   const {
@@ -49,7 +49,7 @@ export async function sendExpendedMessageOfNewAd(
     condition,
     delivery_enabled,
     safedeal_enabled,
-  } = ad_parameters ?? {};
+  } = parameters;
 
   const lock = getUserLock(userId);
   const sellerProfileUrl = `https://www.kufar.by/user/${saller_id}`;
@@ -121,7 +121,11 @@ export async function sendExpendedMessageOfNewAd(
       await sendMessage(userId, caption, keyboardForMessage);
     } catch (error) {
       if (isTelegramError(error)) {
-        const { error_code, parameters, description } = error.response.body;
+        const {
+          error_code,
+          parameters: errorParams,
+          description,
+        } = error.response.body;
         if (
           error_code === 400 &&
           errorMessages.some((e) => description.includes(e))
@@ -142,7 +146,7 @@ export async function sendExpendedMessageOfNewAd(
           return;
         }
         if (error_code === 429) {
-          const wait = (parameters?.retry_after ?? 1) * 1000;
+          const wait = (errorParams?.retry_after ?? 1) * 1000;
           console.warn(
             `Слишком много запросов, повтор через ${wait / 1000}секунд`,
           );

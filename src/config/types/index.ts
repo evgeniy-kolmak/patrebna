@@ -160,7 +160,7 @@ export interface IExtendedAd extends IAd {
   saller_name: string;
   images: InputMedia[];
   coordinates?: number[];
-  ad_parameters: ParameterMap;
+  parameters: ParameterMap;
 }
 export type ExtendedAdForDescription = IExtendedAd & {
   description: string;
