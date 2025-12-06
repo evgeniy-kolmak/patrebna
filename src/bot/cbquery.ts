@@ -3,12 +3,6 @@ import { bot } from 'bot';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
-import start from 'bot/commands/start';
-import help from 'bot/commands/help';
-import profile from 'bot/commands/profile';
-import observe from 'bot/commands/observe';
-import premium from 'bot/commands/premium';
-import language from 'bot/commands/language';
 import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { type ICallbackData } from 'config/types';
@@ -27,6 +21,8 @@ import { handleInviteReferral } from 'bot/handlers/callbacks/inviteReferral';
 import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
+import { сommandsWrapper } from 'config/lib/helpers/сommandsWrapper';
+import { сommandHandlers } from 'constants/сommandHandlers';
 
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -262,10 +258,7 @@ export default async (): Promise<void> => {
     }
   });
   await db.openConnection();
-  start();
-  help();
-  profile();
-  observe();
-  premium();
-  language();
+  for (const command of сommandHandlers) {
+    await сommandsWrapper(command);
+  }
 };

@@ -41,6 +41,11 @@ export interface IParserData {
   status: StatusPremium;
   canNotify: boolean;
 }
+export interface ICommandHandler {
+  regex: RegExp;
+  handler: (userId: number, match: RegExpExecArray | null) => Promise<void>;
+  options?: { public?: boolean };
+}
 
 export type LanguageOfUser = Record<number, { language: Languages }>;
 
