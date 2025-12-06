@@ -1,6 +1,6 @@
 import { bot } from 'bot';
 import i18next, { t } from 'i18next';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { type ICallbackData } from 'config/types';
 import db from 'config/db/databaseServise';
 import { sendMessage } from 'config/lib/helpers/sendMessage';

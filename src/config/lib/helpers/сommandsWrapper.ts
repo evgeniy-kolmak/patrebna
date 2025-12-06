@@ -1,7 +1,7 @@
 import { bot } from 'bot';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { notRegistrationMessage } from './notRegistrationMessage';
 import { type ICommandHandler } from 'config/types';

@@ -1,4 +1,4 @@
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { tariffData } from 'constants/tariffs';
 import i18next, { t } from 'i18next';

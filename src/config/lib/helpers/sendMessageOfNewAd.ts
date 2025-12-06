@@ -1,6 +1,6 @@
 import i18next, { t } from 'i18next';
 import { sendPhoto } from 'config/lib/helpers/sendPhoto';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { pause } from 'config/lib/helpers/pause';
 import { isTelegramError, type IAd } from 'config/types';
 

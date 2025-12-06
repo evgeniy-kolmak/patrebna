@@ -4,7 +4,7 @@ import { Languages } from 'config/types';
 import {
   getUserLanguage,
   setUserLanguage,
-} from 'config/lib/helpers/cacheLaguage';
+} from 'config/lib/helpers/cacheLanguage';
 import keyboard from 'bot/keyboard';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { deleteMessage } from 'config/lib/helpers/deleteMessage';

@@ -1,5 +1,5 @@
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { getMessageObserve } from 'config/lib/helpers/getMessageObserve';
 import { getObserveButton } from 'config/lib/helpers/getObserveButton';

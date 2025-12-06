@@ -1,5 +1,5 @@
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import {
   StatusTransaction,
   type ITrackingData,

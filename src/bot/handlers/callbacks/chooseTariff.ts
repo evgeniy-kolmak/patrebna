@@ -1,5 +1,5 @@
 import i18next, { t } from 'i18next';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { tariffData } from 'constants/tariffs';
 import { type ICallbackData, type IOrder } from 'config/types';
 import { createPayment } from 'config/lib/helpers/createPayment';

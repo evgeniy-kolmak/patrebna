@@ -4,7 +4,7 @@ import { type ExtendedAdForDescription, isTelegramError } from 'config/types';
 import { truncateString } from 'config/lib/helpers/truncateString';
 import i18next, { t } from 'i18next';
 import { pause } from 'config/lib/helpers/pause';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { sendPhoto } from 'config/lib/helpers/sendPhoto';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';

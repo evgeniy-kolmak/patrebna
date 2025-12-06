@@ -3,7 +3,7 @@ import { bot } from 'bot';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import keyboard from 'bot/keyboard';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { type ICallbackData } from 'config/types';
 import { handleRegistration } from 'bot/handlers/callbacks/registration';

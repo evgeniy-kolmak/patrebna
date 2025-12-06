@@ -1,7 +1,7 @@
 import keyboard from 'bot/keyboard';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import type { User } from 'node-telegram-bot-api';
 import { type ICallbackData, type IProfile, StatusPremium } from 'config/types';
