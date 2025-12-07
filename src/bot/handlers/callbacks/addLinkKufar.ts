@@ -5,7 +5,7 @@ import { type ICallbackData } from 'config/types';
 import db from 'config/db/databaseServise';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { editMessage } from 'config/lib/helpers/editMessage';
-import keyboard from 'bot/keyboard';
+import keyboards from 'bot/keyboards';
 
 export async function handleAddLinkKufar(
   chatId: number,
@@ -57,13 +57,13 @@ export async function handleAddLinkKufar(
             });
           } else {
             if (!data) {
-              await sendMessage(chatId, t('Нулевая ссылка'), keyboard.Main());
+              await sendMessage(chatId, t('Нулевая ссылка'), keyboards.Main());
               return;
             }
             await sendMessage(
               chatId,
               t('Сообщение об успехе'),
-              keyboard.Main(),
+              keyboards.Main(),
             );
           }
         }

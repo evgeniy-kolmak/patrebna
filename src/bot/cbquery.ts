@@ -2,7 +2,7 @@
 import { bot } from 'bot';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
-import keyboard from 'bot/keyboard';
+import keyboards from 'bot/keyboards';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { type ICallbackData } from 'config/types';
@@ -218,7 +218,7 @@ export default async (): Promise<void> => {
         await sendMessage(
           chatId,
           t('Сообщение об отслеживании'),
-          keyboard.Observe(),
+          keyboards.Observe(),
         );
         break;
       }
@@ -229,7 +229,7 @@ export default async (): Promise<void> => {
           messageId,
           t('Сообщение об отслеживании'),
           callbackQueryId,
-          keyboard.Observe(),
+          keyboards.Observe(),
         );
         break;
       }
@@ -240,7 +240,7 @@ export default async (): Promise<void> => {
           messageId,
           t('Описание подписки'),
           callbackQueryId,
-          keyboard.Premium(),
+          keyboards.Premium(),
         );
         break;
       }
@@ -251,7 +251,7 @@ export default async (): Promise<void> => {
           messageId,
           t('Сообщение для FAQ'),
           callbackQueryId,
-          keyboard.Faq(),
+          keyboards.Faq(),
         );
         break;
       }

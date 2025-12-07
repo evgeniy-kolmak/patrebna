@@ -5,13 +5,13 @@ import {
 } from 'node-telegram-bot-api';
 import { dataFaq } from 'constants/faq';
 
-class Keyboard {
+class KeyboardManager {
   Main(): ReplyKeyboardMarkup {
     return {
       keyboard: [
         [{ text: `👤 ${t('Профиль')}` }, { text: `👁️ ${t('Отслеживать')}` }],
-        [{ text: `⭐️ ${t('Подписка')}` }, { text: `❓ ${t('Помощь')}` }],
-        [{ text: t('Язык') }],
+        [{ text: `⭐️ ${t('Подписка')}` }, { text: `💼 ${t('Кошелёк')}` }],
+        [{ text: t('Язык') }, { text: `❓ ${t('Помощь')}` }],
       ],
       resize_keyboard: true,
     };
@@ -37,6 +37,25 @@ class Keyboard {
           {
             text: '🧩 Kufar.by',
             callback_data: JSON.stringify({ action: 'kufar' }),
+          },
+        ],
+      ],
+    };
+  }
+
+  Wallet(): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: t('Пополнить баланс'),
+            callback_data: JSON.stringify({ action: 'wallet_top_up' }),
+          },
+        ],
+        [
+          {
+            text: t('Ежедневный бонус'),
+            callback_data: JSON.stringify({ action: 'daily_bonus' }),
           },
         ],
       ],
@@ -79,5 +98,5 @@ class Keyboard {
   }
 }
 
-const keyboard = new Keyboard();
-export default keyboard;
+const keyboards = new KeyboardManager();
+export default keyboards;
