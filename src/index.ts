@@ -9,7 +9,7 @@ import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { getUser } from 'config/lib/helpers/getUser';
 import { parseKufar } from 'parser/parseKufar';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
-import keyboard from 'bot/keyboard';
+import keyboards from 'bot/keyboards';
 
 void (async () => {
   await db.openConnection();
@@ -54,7 +54,7 @@ const userActions = {
     await cache.sendNotificationToBot({
       userId,
       text: t('Сообщение для неактивных пользователей'),
-      keyboard: keyboard.Observe(),
+      keyboard: keyboards.Observe(),
     });
   },
 };

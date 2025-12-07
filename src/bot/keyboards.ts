@@ -17,7 +17,7 @@ class KeyboardManager {
     };
   }
 
-  async Profile(): Promise<InlineKeyboardMarkup> {
+  Profile(): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
         [
