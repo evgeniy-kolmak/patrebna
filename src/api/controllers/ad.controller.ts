@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import { extractNextDataField } from 'config/lib/helpers/extractNextDataField';
 import { type Request, type Response } from 'express';
@@ -33,18 +33,25 @@ export async function parseAdHandler(
       .replace(/\n+/g, ' ')
       .trim();
 
-    if (description === null) {
-      res
-        .status(500)
-        .json({ error: 'Невозможно извлечь описание из NEXT_DATA.' });
+    if (!description) {
+      res.status(204).send();
       return;
     }
     res.json(description);
   } catch (error) {
-    console.error('Ошибка parseAdsHandler:', error);
-    res.status(500).json({
-      error: 'Внутренняя ошибка сервера',
-      details: String(error),
-    });
+    if (error instanceof AxiosError) {
+      const { response, message, config } = error;
+      res.status(response?.status ?? 400).json({
+        error: message,
+        details: config?.url,
+      });
+      console.error(`(${response?.status}) ${message} - ${config?.url}`);
+    } else {
+      res.status(500).json({
+        error: 'Внутренняя ошибка сервера',
+        details: String(error),
+      });
+      console.error('Unexpected error', error);
+    }
   }
 }
