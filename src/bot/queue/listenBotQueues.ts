@@ -1,5 +1,4 @@
 import cache from 'config/redis/redisService';
-import { pause } from 'config/lib/helpers/pause';
 
 const redis = cache.getClient();
 
@@ -14,7 +13,6 @@ void (async (): Promise<void> => {
       process.send?.(result);
     } catch (error) {
       console.error('Ошибка слушителя', error);
-      await pause(3000);
     }
   }
 })();

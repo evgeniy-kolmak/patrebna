@@ -10,7 +10,7 @@ interface SendMessageOfNewAdProps extends IAd {
 
 export async function sendMessageOfNewAd(
   ad: SendMessageOfNewAdProps,
-): Promise<string | undefined> {
+): Promise<void> {
   const { userId, img_url, price, title, url, region } = ad;
   await i18next.changeLanguage(await getUserLanguage(userId));
   const caption = [
@@ -35,17 +35,13 @@ export async function sendMessageOfNewAd(
   } catch (error) {
     if (isTelegramError(error)) {
       const { error_code, parameters } = error.response.body;
-
       if (error_code === 429) {
         const wait = (parameters?.retry_after ?? 1) * 1000;
         console.warn(
           `Слишком много запросов, повтор через ${wait / 1000}секунд`,
         );
         await pause(wait);
-        await sendMessageOfNewAd(ad);
-        return;
       }
-    }
-    console.error('Неизвестная ошибка при отправке уведомлений:', error);
+    } else console.error('Неизвестная ошибка при отправке уведомлений:', error);
   }
 }

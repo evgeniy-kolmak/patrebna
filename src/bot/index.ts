@@ -1,9 +1,9 @@
 import path from 'path';
 import { fork } from 'child_process';
 import TelegramBot from 'node-telegram-bot-api';
+import Bottleneck from 'bottleneck';
 import 'config/i18n/i18n';
 import cbquery from 'bot/cbquery';
-import { pause } from 'config/lib/helpers/pause';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import {
@@ -48,6 +48,11 @@ const listener = fork(path.resolve(__dirname, 'queue', 'listenBotQueues.ts'), {
   execArgv: ['-r', 'ts-node/register'],
 });
 
+const limiter = new Bottleneck({
+  minTime: 4000,
+  maxConcurrent: 1,
+});
+
 listener.on('message', (message: [string, string]) => {
   void (async () => {
     const [queue, payload] = message;
@@ -57,19 +62,22 @@ listener.on('message', (message: [string, string]) => {
       case 'bot_queue_ads': {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
-          await sendMessageOfNewAd({ userId, ...ad });
-          await pause(1500);
+          await limiter.schedule(async () => {
+            await sendMessageOfNewAd({ userId, ...ad });
+          });
         }
+
         break;
       }
       case 'bot_queue_extended_ads': {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
-          await sendExpendedMessageOfNewAd({
-            userId,
-            ...(ad as ExtendedAdForDescription),
+          await limiter.schedule(async () => {
+            await sendExpendedMessageOfNewAd({
+              userId,
+              ...(ad as ExtendedAdForDescription),
+            });
           });
-          await pause(3000);
         }
         break;
       }

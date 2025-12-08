@@ -107,6 +107,7 @@ export async function sendExpendedMessageOfNewAd(
       ],
     ],
   };
+
   await lock.runExclusive(async () => {
     try {
       if (!images.length) {
@@ -118,6 +119,7 @@ export async function sendExpendedMessageOfNewAd(
         return;
       }
       await bot.sendMediaGroup(userId, images);
+      await pause(200);
       await sendMessage(userId, caption, keyboardForMessage);
     } catch (error) {
       if (isTelegramError(error)) {
@@ -151,11 +153,9 @@ export async function sendExpendedMessageOfNewAd(
             `Слишком много запросов, повтор через ${wait / 1000}секунд`,
           );
           await pause(wait);
-          await sendExpendedMessageOfNewAd(ad);
-          return;
         }
+      } else
         console.error('Неизвестная ошибка при отправке уведомлений:', error);
-      }
     }
   });
 }
