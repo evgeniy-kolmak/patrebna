@@ -6,15 +6,18 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
   const allImages: InputMedia[][] = rawAds.map(({ images }) => {
     if (!images.length) return [];
 
-    return images.slice(0, 10).map(({ path, media_storage }) => ({
+    return images.slice(0, 6).map(({ path, media_storage }) => ({
       type: 'photo',
       media: `https://${media_storage}.kufar.by/v1/list_thumbs_2x/${path}`,
     }));
   });
 
   const formatPrice = (value: string): string => {
-    const num = Math.round(+value / 100);
-    return new Intl.NumberFormat('ru-RU').format(num);
+    const num = +value / 100;
+    return new Intl.NumberFormat('ru-RU', {
+      minimumFractionDigits: num < 1 ? 1 : 0,
+      maximumFractionDigits: num < 1 ? 2 : 0,
+    }).format(num);
   };
   const extendedAds: IExtendedAd[] = rawAds.map(
     (
