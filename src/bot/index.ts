@@ -3,15 +3,18 @@ import { fork } from 'child_process';
 import TelegramBot from 'node-telegram-bot-api';
 import Bottleneck from 'bottleneck';
 import 'config/i18n/i18n';
+import keyboard from 'bot/keyboard';
 import cbquery from 'bot/cbquery';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
-import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import {
   type IBotAdsMessage,
   type IBotNotificationMessage,
-  type ExtendedAdForDescription,
+  type IAd,
+  type IExtendedAd,
 } from 'config/types';
-import { sendExpendedMessageOfNewAd } from 'config/lib/helpers/sendExpendedMessageOfNewAd';
+import { sendPhoto } from 'config/lib/helpers/sendPhoto';
+import { getBaseNotification } from 'config/lib/helpers/getBaseNotification';
+import { getExtendedNotification } from 'config/lib/helpers/getExtendedNotification';
 
 (process as any).noDeprecation = true;
 
@@ -49,7 +52,7 @@ const listener = fork(path.resolve(__dirname, 'queue', 'listenBotQueues.ts'), {
 });
 
 const limiter = new Bottleneck({
-  minTime: 4000,
+  minTime: 1000,
   maxConcurrent: 1,
 });
 
@@ -63,7 +66,15 @@ listener.on('message', (message: [string, string]) => {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
           await limiter.schedule(async () => {
-            await sendMessageOfNewAd({ userId, ...ad });
+            const { url, image, caption } = await getBaseNotification(
+              ad as IAd & { userId: number },
+            );
+            await sendPhoto(
+              userId,
+              caption,
+              keyboard.BaseForMessage(url),
+              image,
+            );
           });
         }
 
@@ -73,10 +84,19 @@ listener.on('message', (message: [string, string]) => {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
           await limiter.schedule(async () => {
-            await sendExpendedMessageOfNewAd({
+            const { url, image, coordinates, caption } =
+              await getExtendedNotification(
+                ad as IExtendedAd & {
+                  userId: number;
+                  description: string;
+                },
+              );
+            await sendPhoto(
               userId,
-              ...(ad as ExtendedAdForDescription),
-            });
+              caption,
+              keyboard.ExpendedForMessage(url, coordinates),
+              image,
+            );
           });
         }
         break;
