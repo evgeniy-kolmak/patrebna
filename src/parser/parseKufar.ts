@@ -7,7 +7,7 @@ import {
   type IAd,
   type IParserData,
   StatusPremium,
-  type ExtendedAdForDescription,
+  type IExtendedAd,
 } from 'config/types';
 
 export async function parseKufar(
@@ -32,7 +32,9 @@ export async function parseKufar(
 
           if (!newAds.length) return;
           if (status === StatusPremium.ACTIVE) {
-            for (const ad of newAds as ExtendedAdForDescription[]) {
+            for (const ad of newAds as Array<
+              IExtendedAd & { description: string }
+            >) {
               const { data } = await api.get<string>('ad', {
                 params: { ad_id: ad.id },
               });

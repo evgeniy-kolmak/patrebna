@@ -1,7 +1,4 @@
-import {
-  type InputMedia,
-  type InlineKeyboardMarkup,
-} from 'node-telegram-bot-api';
+import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 interface IBaseMessage {
   userId: number;
@@ -158,13 +155,10 @@ export function isTelegramError(error: unknown): error is {
 export interface IExtendedAd extends IAd {
   saller_id: string;
   saller_name: string;
-  images: InputMedia[];
   coordinates?: number[];
   parameters: ParameterMap;
 }
-export type ExtendedAdForDescription = IExtendedAd & {
-  description: string;
-};
+
 export type ParamValue =
   | string
   | number
@@ -212,6 +206,12 @@ export enum AdParameters {
   Size = 'size',
   SquareMeter = 'square_meter',
   YearBuilt = 'year_built',
+}
+
+export interface INotification {
+  url: string;
+  image: string;
+  caption: string;
 }
 
 export type ParameterMap = Partial<Record<AdParameters, any>>;
