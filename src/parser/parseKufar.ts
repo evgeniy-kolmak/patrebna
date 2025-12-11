@@ -23,7 +23,8 @@ export async function parseKufar(
       tasks.push(
         limit(async () => {
           await pause(200);
-          const { data } = await api.get<IAd[]>(`ads?url=${url}`);
+          const encodedUrl = encodeURIComponent(url);
+          const { data } = await api.get<IAd[]>(`ads?url=${encodedUrl}`);
 
           if (!Array.isArray(data) || !data.length) return;
           const newAds = await db.addUniqueAds(userId, data, urlId);

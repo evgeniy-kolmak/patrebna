@@ -21,7 +21,7 @@ export async function parseAdsHandler(
   res: Response,
 ): Promise<void> {
   try {
-    const url = req.query.url as string;
+    const url = decodeURIComponent(req.query.url as string);
 
     if (!url) {
       res.status(400).json({ error: 'Отсутствует параметр URL' });
