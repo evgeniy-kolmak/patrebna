@@ -390,7 +390,7 @@ class DatabaseService {
       (url) => url.urlId === urlId,
     );
     return {
-      url: currentUrl?.url,
+      url: decodeURIComponent(currentUrl?.url ?? ''),
       statusUrl: currentUrl?.isActive,
       numberOfAds: currentAds?.ads.length,
     };
