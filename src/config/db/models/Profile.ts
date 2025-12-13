@@ -22,6 +22,10 @@ const ProfileSchema = new Schema(
       default: [],
       validate: uniqueArrayValidator,
     },
+    wallet: {
+      type: Number,
+      default: 0,
+    },
   },
   { versionKey: false },
 );

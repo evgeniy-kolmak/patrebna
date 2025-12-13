@@ -22,6 +22,7 @@ export async function handleChooseTariff(
       userId: chatId,
       quantity: quantityOfDays,
       messageId,
+      amount: order.amount,
     });
     const redirectUrl = await createPayment(order, data);
     if (redirectUrl) {

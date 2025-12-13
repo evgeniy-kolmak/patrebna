@@ -23,7 +23,6 @@ export interface IProfile {
   last_name?: string;
   subscribeToChannel: boolean;
   premium: IPremium;
-  referrals: string[];
 }
 
 export interface IDataParserItem {
@@ -136,6 +135,7 @@ export interface ITrackingData {
   userId: number;
   messageId: number;
   quantity: number;
+  amount: number;
 }
 
 export enum StatusTransaction {

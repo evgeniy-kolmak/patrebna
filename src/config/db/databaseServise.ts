@@ -68,7 +68,7 @@ class DatabaseService {
 
   async getProfile(id: number) {
     const user = await this.getUser(id);
-    return await Profile.findOne(user?.profile?._id).populate('premium');
+    return await Profile.findOne(user?.profile?._id);
   }
 
   async getParser(id: number) {
@@ -206,6 +206,7 @@ class DatabaseService {
       { upsert: true },
     );
     await this.grantPremium(userId, 7);
+    await this.incrementWallet(userId, 10);
   }
 
   async isChannelSubscriptionRewarded(userId: number) {
@@ -484,6 +485,17 @@ class DatabaseService {
     }
   }
 
+  async getWallet(userId: number) {
+    const profile = await this.getProfile(userId);
+    return profile?.wallet ?? 0;
+  }
+
+  async incrementWallet(userId: number, amount: number) {
+    const profile = await this.getProfile(userId);
+    if (!profile) return;
+    await Profile.updateOne({ _id: profile._id }, { $inc: { wallet: amount } });
+  }
+
   async tryAddReferralWithBonus(userId: number, referrerId: number) {
     const profile = await this.getProfile(referrerId);
     const activity = await Activity.exists({
@@ -495,7 +507,10 @@ class DatabaseService {
       { $addToSet: { referrals: userId } },
     );
 
-    if (result.matchedCount) await this.grantPremium(referrerId, 5);
+    if (result.matchedCount) {
+      await this.grantPremium(referrerId, 3);
+      await this.incrementWallet(referrerId, 3);
+    }
   }
 
   async clearExpiredAdReferences() {

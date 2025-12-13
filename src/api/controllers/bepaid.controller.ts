@@ -33,11 +33,12 @@ export async function bepaidHandler(
 async function handleTransactionWebhook(req: Request): Promise<void> {
   try {
     const { status, tracking_id }: ResponseTransaction = req.body?.transaction;
-    const { userId, quantity, messageId }: ITrackingData =
+    const { userId, quantity, messageId, amount }: ITrackingData =
       JSON.parse(tracking_id);
     await i18next.changeLanguage(await getUserLanguage(userId));
     if (status === StatusTransaction.SUCCESSFUL) {
       await db.grantPremium(userId, quantity);
+      await db.incrementWallet(userId, amount / 1000);
       await TelegramService.editMessageText(
         userId,
         messageId,
