@@ -1,17 +1,20 @@
 import path from 'path';
 import { fork } from 'child_process';
 import TelegramBot from 'node-telegram-bot-api';
+import Bottleneck from 'bottleneck';
 import 'config/i18n/i18n';
+import keyboards from 'bot/keyboards';
 import cbquery from 'bot/cbquery';
-import { pause } from 'config/lib/helpers/pause';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
-import { sendMessageOfNewAd } from 'config/lib/helpers/sendMessageOfNewAd';
 import {
   type IBotAdsMessage,
   type IBotNotificationMessage,
-  type ExtendedAdForDescription,
+  type IAd,
+  type IExtendedAd,
 } from 'config/types';
-import { sendExpendedMessageOfNewAd } from 'config/lib/helpers/sendExpendedMessageOfNewAd';
+import { sendPhoto } from 'config/lib/helpers/sendPhoto';
+import { getBaseNotification } from 'config/lib/helpers/getBaseNotification';
+import { getExtendedNotification } from 'config/lib/helpers/getExtendedNotification';
 
 (process as any).noDeprecation = true;
 
@@ -48,6 +51,11 @@ const listener = fork(path.resolve(__dirname, 'queue', 'listenBotQueues.ts'), {
   execArgv: ['-r', 'ts-node/register'],
 });
 
+const limiter = new Bottleneck({
+  minTime: 1000,
+  maxConcurrent: 1,
+});
+
 listener.on('message', (message: [string, string]) => {
   void (async () => {
     const [queue, payload] = message;
@@ -57,19 +65,39 @@ listener.on('message', (message: [string, string]) => {
       case 'bot_queue_ads': {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
-          await sendMessageOfNewAd({ userId, ...ad });
-          await pause(1500);
+          await limiter.schedule(async () => {
+            const { url, image, caption } = await getBaseNotification(
+              ad as IAd & { userId: number },
+            );
+            await sendPhoto(
+              userId,
+              caption,
+              keyboards.BaseForMessage(url),
+              image,
+            );
+          });
         }
+
         break;
       }
       case 'bot_queue_extended_ads': {
         const { userId, newAds } = data as IBotAdsMessage;
         for (const ad of newAds) {
-          await sendExpendedMessageOfNewAd({
-            userId,
-            ...(ad as ExtendedAdForDescription),
+          await limiter.schedule(async () => {
+            const { url, image, coordinates, caption } =
+              await getExtendedNotification(
+                ad as IExtendedAd & {
+                  userId: number;
+                  description: string;
+                },
+              );
+            await sendPhoto(
+              userId,
+              caption,
+              keyboards.ExpendedForMessage(url, coordinates),
+              image,
+            );
           });
-          await pause(3000);
         }
         break;
       }

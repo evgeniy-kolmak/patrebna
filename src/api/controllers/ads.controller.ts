@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { type Request, type Response } from 'express';
 import { extractNextDataField } from 'config/lib/helpers/extractNextDataField';
 import { transformRawAds } from 'config/lib/helpers/transformRawAds';
@@ -21,7 +21,7 @@ export async function parseAdsHandler(
   res: Response,
 ): Promise<void> {
   try {
-    const url = req.query.url as string;
+    const url = decodeURIComponent(req.query.url as string);
 
     if (!url) {
       res.status(400).json({ error: 'Отсутствует параметр URL' });
@@ -36,19 +36,26 @@ export async function parseAdsHandler(
     );
 
     if (!ads) {
-      res
-        .status(500)
-        .json({ error: 'Невозможно извлечь объявления из NEXT_DATA.' });
+      res.status(204).send();
       return;
     }
 
     const transformed = transformRawAds(ads);
     res.json(transformed);
   } catch (error) {
-    console.error('Ошибка parseAdsHandler:', error);
-    res.status(500).json({
-      error: 'Внутренняя ошибка сервера',
-      details: String(error),
-    });
+    if (error instanceof AxiosError) {
+      const { response, message, config } = error;
+      res.status(response?.status ?? 400).json({
+        error: message,
+        details: config?.url,
+      });
+      console.error(`(${response?.status}) ${message} - ${config?.url}`);
+    } else {
+      res.status(500).json({
+        error: 'Внутренняя ошибка сервера',
+        details: String(error),
+      });
+      console.error('Unexpected error', error);
+    }
   }
 }

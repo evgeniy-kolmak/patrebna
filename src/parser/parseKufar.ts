@@ -7,7 +7,7 @@ import {
   type IAd,
   type IParserData,
   StatusPremium,
-  type ExtendedAdForDescription,
+  type IExtendedAd,
 } from 'config/types';
 
 export async function parseKufar(
@@ -23,16 +23,17 @@ export async function parseKufar(
       tasks.push(
         limit(async () => {
           await pause(200);
-          const { data } = await api.get<IAd[]>('ads', {
-            params: { url },
-          });
+          const encodedUrl = encodeURIComponent(url);
+          const { data } = await api.get<IAd[]>(`ads?url=${encodedUrl}`);
 
           if (!Array.isArray(data) || !data.length) return;
           const newAds = await db.addUniqueAds(userId, data, urlId);
 
           if (!newAds.length) return;
           if (status === StatusPremium.ACTIVE) {
-            for (const ad of newAds as ExtendedAdForDescription[]) {
+            for (const ad of newAds as Array<
+              IExtendedAd & { description: string }
+            >) {
               const { data } = await api.get<string>('ad', {
                 params: { ad_id: ad.id },
               });

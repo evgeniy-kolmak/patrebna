@@ -96,6 +96,46 @@ class KeyboardManager {
       ],
     };
   }
+
+  BaseForMessage(url: string): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: t('Подробнее'),
+            web_app: { url },
+          },
+        ],
+      ],
+    };
+  }
+
+  ExpendedForMessage(
+    url: string,
+    coordinates?: number[],
+  ): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          ...(coordinates
+            ? [
+                {
+                  text: t('Показать на карте'),
+                  callback_data: JSON.stringify({
+                    action: 'on_map',
+                    param: coordinates,
+                  }),
+                },
+              ]
+            : []),
+          {
+            text: t('Подробнее'),
+            web_app: { url },
+          },
+        ],
+      ],
+    };
+  }
 }
 
 const keyboards = new KeyboardManager();

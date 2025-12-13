@@ -32,7 +32,8 @@ export async function handleAddLinkKufar(
       const { text } = message;
       void (async () => {
         if (text) {
-          const data = await db.setUrlKufar(chatId, text, urlId);
+          const url = decodeURIComponent(text);
+          const data = await db.setUrlKufar(chatId, url, urlId);
           if (data instanceof Error) {
             await sendMessage(chatId, t('Ошибка добавления ссылки'), {
               inline_keyboard: [

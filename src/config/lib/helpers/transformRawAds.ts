@@ -1,20 +1,24 @@
 import { type RawAd, type IExtendedAd, AdParameters } from 'config/types';
 import { getParametersOfAd } from 'config/lib/helpers/getParametersOfAd';
-import { type InputMedia } from 'node-telegram-bot-api';
 
 export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
-  const allImages: InputMedia[][] = rawAds.map(({ images }) => {
+  const allImages: string[][] = rawAds.map(({ images }) => {
     if (!images.length) return [];
 
-    return images.slice(0, 10).map(({ path, media_storage }) => ({
-      type: 'photo',
-      media: `https://${media_storage}.kufar.by/v1/list_thumbs_2x/${path}`,
-    }));
+    return images
+      .slice(0, 1)
+      .map(
+        ({ path, media_storage }) =>
+          `https://${media_storage}.kufar.by/v1/list_thumbs_2x/${path}`,
+      );
   });
 
   const formatPrice = (value: string): string => {
-    const num = Math.round(+value / 100);
-    return new Intl.NumberFormat('ru-RU').format(num);
+    const num = +value / 100;
+    return new Intl.NumberFormat('ru-RU', {
+      minimumFractionDigits: num < 1 ? 1 : 0,
+      maximumFractionDigits: num < 1 ? 2 : 0,
+    }).format(num);
   };
   const extendedAds: IExtendedAd[] = rawAds.map(
     (
@@ -38,9 +42,7 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
       id: String(ad_id),
       title: subject.trim(),
       url: ad_link,
-      img_url:
-        allImages[index][0]?.media ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp',
-      images: allImages[index],
+      img_url: allImages[index][0] ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp',
       price:
         price_byn !== '0' && price_usd !== '0'
           ? `${formatPrice(price_byn)}р. / ${formatPrice(price_usd)}$`
