@@ -1,6 +1,6 @@
 import i18next, { t } from 'i18next';
 import { type INotification, type IAd } from 'config/types';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 
 export async function getBaseNotification(
   ad: IAd & { userId: number },
