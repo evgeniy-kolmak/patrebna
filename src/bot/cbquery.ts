@@ -23,6 +23,7 @@ import { editMessage } from 'config/lib/helpers/editMessage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { сommandsWrapper } from 'config/lib/helpers/сommandsWrapper';
 import { сommandHandlers } from 'constants/сommandHandlers';
+import { getDailyBonus } from './handlers/callbacks/getDailyBonus';
 
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -253,6 +254,10 @@ export default async (): Promise<void> => {
           callbackQueryId,
           keyboards.Faq(),
         );
+        break;
+      }
+      case 'daily_bonus': {
+        await getDailyBonus(chatId, messageId, callbackQueryId);
         break;
       }
     }

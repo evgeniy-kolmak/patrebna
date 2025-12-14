@@ -493,7 +493,11 @@ class DatabaseService {
   async incrementWallet(userId: number, amount: number) {
     const profile = await this.getProfile(userId);
     if (!profile) return;
-    await Profile.updateOne({ _id: profile._id }, { $inc: { wallet: amount } });
+    const newAmount = Number((profile.wallet + amount).toFixed(1));
+    await Profile.updateOne(
+      { _id: profile._id },
+      { $set: { wallet: newAmount } },
+    );
   }
 
   async tryAddReferralWithBonus(userId: number, referrerId: number) {

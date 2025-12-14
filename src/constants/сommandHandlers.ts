@@ -1,4 +1,5 @@
 import db from 'config/db/databaseServise';
+import cache from 'config/redis/redisService';
 import { t } from 'i18next';
 import { createReadStream } from 'fs';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
@@ -112,12 +113,17 @@ export const сommandHandlers: ICommandHandler[] = [
     regex: /Кошелёк|Кашалёк/,
     handler: async (userId: number) => {
       const wallet = await db.getWallet(userId);
+      const isCompleted = await cache.getCache(`dailyBonus:${userId}`);
       const dataWallet = [
         `${t('Сообщение о кошельке')}`,
         '',
         `<b>${t('Баланс')}</b>: ${wallet} 🪙`,
       ].join('\n');
-      await sendMessage(userId, dataWallet, keyboards.Wallet());
+      await sendMessage(
+        userId,
+        dataWallet,
+        keyboards.Wallet(Boolean(isCompleted)),
+      );
     },
   },
 ];

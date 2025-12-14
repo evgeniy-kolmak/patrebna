@@ -43,7 +43,7 @@ class KeyboardManager {
     };
   }
 
-  Wallet(): InlineKeyboardMarkup {
+  Wallet(isCompleted: boolean): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
         [
@@ -53,10 +53,14 @@ class KeyboardManager {
           },
         ],
         [
-          {
-            text: t('Ежедневный бонус'),
-            callback_data: JSON.stringify({ action: 'daily_bonus' }),
-          },
+          ...(!isCompleted
+            ? [
+                {
+                  text: t('Ежедневный бонус'),
+                  callback_data: JSON.stringify({ action: 'daily_bonus' }),
+                },
+              ]
+            : []),
         ],
       ],
     };
