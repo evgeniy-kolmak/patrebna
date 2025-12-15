@@ -3,6 +3,7 @@ import db from 'config/db/databaseServise';
 import cache from 'config/redis/redisService';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
+import { checkStatusOfDailyBonus } from 'config/lib/helpers/checkStatusOfDailyBonus';
 
 export async function getDailyBonus(
   chatId: number,
@@ -11,8 +12,8 @@ export async function getDailyBonus(
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const key = `dailyBonus:${chatId}`;
-  const isCompleted = await cache.getCache(key);
-  if (!isCompleted) {
+  const isCompleted = await checkStatusOfDailyBonus(chatId);
+  if (isCompleted) {
     const now = new Date();
     const end = new Date(now);
     end.setHours(23, 59, 59, 999);
