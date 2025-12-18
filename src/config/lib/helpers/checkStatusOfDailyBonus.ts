@@ -5,5 +5,5 @@ export async function checkStatusOfDailyBonus(
 ): Promise<boolean> {
   const key = `dailyBonus:${userId}`;
   const isCompleted = await cache.getCache(key);
-  return Boolean(!isCompleted);
+  return Boolean(isCompleted);
 }

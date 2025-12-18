@@ -13,7 +13,7 @@ export async function getDailyBonus(
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const key = `dailyBonus:${chatId}`;
   const isCompleted = await checkStatusOfDailyBonus(chatId);
-  if (isCompleted) {
+  if (!isCompleted) {
     const now = new Date();
     const end = new Date(now);
     end.setHours(23, 59, 59, 999);
