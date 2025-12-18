@@ -131,7 +131,7 @@ export interface ResponseOrder {
 export interface ITrackingData {
   userId: number;
   messageId: number;
-  quantity: number;
+  quantity?: number;
   amount: number;
 }
 
