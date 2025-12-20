@@ -1,5 +1,4 @@
 import db from 'config/db/databaseServise';
-import cache from 'config/redis/redisService';
 import { t } from 'i18next';
 import { createReadStream } from 'fs';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
@@ -8,6 +7,7 @@ import { type ICommandHandler, StatusPremium } from 'config/types';
 import keyboards from 'bot/keyboards';
 import { statusDescription } from 'constants/statusDescriptionPremium';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
+import { bot } from 'bot';
 
 const SALES_IMAGE_PATH = 'src/bot/assets/images/ny-sales.webp';
 
@@ -69,7 +69,23 @@ export const сommandHandlers: ICommandHandler[] = [
         `<b>${t('Количество рефералов')}</b>: ${profile?.referrals.length}`,
         `<b>${t('Бонусы')}</b>: ${profile?.wallet ?? 0}`,
       ].join('\n');
-      await sendMessage(userId, dataProfile, keyboards.Profile());
+      const { photos, total_count } = await bot.getUserProfilePhotos(userId, {
+        offset: 0,
+        limit: 1,
+      });
+
+      if (!total_count || !photos.length) {
+        await sendMessage(userId, dataProfile, keyboards.Profile());
+      }
+
+      const avatar = photos[0];
+      const bestQuality = avatar[avatar.length - 1];
+      await sendPhoto(
+        userId,
+        dataProfile,
+        keyboards.Profile(),
+        bestQuality.file_id,
+      );
     },
   },
   {
@@ -107,23 +123,6 @@ export const сommandHandlers: ICommandHandler[] = [
           ],
         ],
       });
-    },
-  },
-  {
-    regex: /Кошелёк|Кашалёк/,
-    handler: async (userId: number) => {
-      const wallet = await db.getWallet(userId);
-      const isCompleted = await cache.getCache(`dailyBonus:${userId}`);
-      const dataWallet = [
-        `${t('Сообщение о кошельке')}`,
-        '',
-        `<b>${t('Баланс')}</b>: ${wallet} 🪙`,
-      ].join('\n');
-      await sendMessage(
-        userId,
-        dataWallet,
-        keyboards.Wallet(Boolean(isCompleted)),
-      );
     },
   },
 ];

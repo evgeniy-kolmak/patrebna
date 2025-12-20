@@ -10,8 +10,8 @@ class KeyboardManager {
     return {
       keyboard: [
         [{ text: `👤 ${t('Профиль')}` }, { text: `👁️ ${t('Отслеживать')}` }],
-        [{ text: `⭐️ ${t('Подписка')}` }, { text: `💼 ${t('Кошелёк')}` }],
-        [{ text: t('Язык') }, { text: `❓ ${t('Помощь')}` }],
+        [{ text: `⭐️ ${t('Подписка')}` }, { text: `❓ ${t('Помощь')}` }],
+        [{ text: `${t('Язык')}` }],
       ],
       resize_keyboard: true,
     };
@@ -20,6 +20,16 @@ class KeyboardManager {
   Profile(): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
+        [
+          {
+            text: t('Магазин'),
+            callback_data: JSON.stringify({ action: 'store' }),
+          },
+          {
+            text: t('Кошелёк'),
+            callback_data: JSON.stringify({ action: 'wallet' }),
+          },
+        ],
         [
           {
             text: t('Удалить профиль'),
@@ -38,29 +48,6 @@ class KeyboardManager {
             text: '🧩 Kufar.by',
             callback_data: JSON.stringify({ action: 'kufar' }),
           },
-        ],
-      ],
-    };
-  }
-
-  Wallet(isCompleted: boolean): InlineKeyboardMarkup {
-    return {
-      inline_keyboard: [
-        [
-          {
-            text: t('Пополнить баланс'),
-            callback_data: JSON.stringify({ action: 'wallet_top_up' }),
-          },
-        ],
-        [
-          ...(!isCompleted
-            ? [
-                {
-                  text: t('Ежедневный бонус'),
-                  callback_data: JSON.stringify({ action: 'daily_bonus' }),
-                },
-              ]
-            : []),
         ],
       ],
     };
@@ -96,6 +83,29 @@ class KeyboardManager {
             text: t('Получить подписку'),
             callback_data: JSON.stringify({ action: 'get_free_premium' }),
           },
+        ],
+      ],
+    };
+  }
+
+  Wallet(isCompleted: boolean): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: t('Пополнить баланс'),
+            callback_data: JSON.stringify({ action: 'wallet_top_up' }),
+          },
+        ],
+        [
+          ...(!isCompleted
+            ? [
+                {
+                  text: t('Ежедневный бонус'),
+                  callback_data: JSON.stringify({ action: 'daily_bonus' }),
+                },
+              ]
+            : []),
         ],
       ],
     };

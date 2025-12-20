@@ -19,11 +19,15 @@ import { handleSubscribeToChannel } from 'bot/handlers/callbacks/subscribeToChan
 import { handleChekOnSubscribeToChannel } from 'bot/handlers/callbacks/checkOnSubscribeToChannel';
 import { handleInviteReferral } from 'bot/handlers/callbacks/inviteReferral';
 import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
+import { getDailyBonus } from 'bot/handlers/callbacks/getDailyBonus';
+import { handleBuyBonus } from 'bot/handlers/callbacks/buyBonus';
+import { handleChooseRate } from 'bot/handlers/callbacks/chooseRate';
+import { checkStatusOfDailyBonus } from 'config/lib/helpers/checkStatusOfDailyBonus';
+import { getDataWallet } from 'config/lib/helpers/getDataWallet';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { сommandsWrapper } from 'config/lib/helpers/сommandsWrapper';
 import { сommandHandlers } from 'constants/сommandHandlers';
-import { getDailyBonus } from './handlers/callbacks/getDailyBonus';
 
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -256,8 +260,46 @@ export default async (): Promise<void> => {
         );
         break;
       }
+
+      case 'wallet': {
+        await i18next.changeLanguage(language);
+        const isCompleted = await checkStatusOfDailyBonus(chatId);
+        const message = await getDataWallet(chatId);
+        await sendMessage(chatId, message, keyboards.Wallet(isCompleted));
+        break;
+      }
+      case 'back_wallet': {
+        await i18next.changeLanguage(language);
+        const isCompleted = await checkStatusOfDailyBonus(chatId);
+        const message = await getDataWallet(chatId);
+        await editMessage(
+          chatId,
+          messageId,
+          message,
+          callbackQueryId,
+          keyboards.Wallet(isCompleted),
+        );
+        break;
+      }
       case 'daily_bonus': {
         await getDailyBonus(chatId, messageId, callbackQueryId);
+        break;
+      }
+      case 'store': {
+        await sendMessage(chatId, 'Товаров пока нет, но они скоро появятся.');
+        break;
+      }
+      case 'wallet_top_up': {
+        await handleBuyBonus(chatId, messageId, callbackQueryId);
+        break;
+      }
+      case 'choose_rate': {
+        await handleChooseRate(
+          chatId,
+          messageId,
+          callbackData,
+          callbackQueryId,
+        );
         break;
       }
     }
