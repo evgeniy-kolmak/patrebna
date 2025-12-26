@@ -39,7 +39,7 @@ async function handleTransactionWebhook(req: Request): Promise<void> {
     if (status === StatusTransaction.SUCCESSFUL) {
       if (quantity) {
         await db.grantPremium(userId, quantity);
-        await db.incrementWallet(userId, amount / 1000);
+        await db.incrementWallet(userId, amount / 100);
         await TelegramService.editMessageText(
           userId,
           messageId,
