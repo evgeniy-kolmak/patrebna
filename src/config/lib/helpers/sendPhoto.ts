@@ -5,6 +5,7 @@ import { isTelegramError } from 'config/types';
 import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
 import { type Stream } from 'stream';
 import { pause } from 'config/lib/helpers/pause';
+import { sendMessage } from 'config/lib/helpers/sendMessage';
 
 const DEFAULT_IMAGE_PATH = 'src/bot/assets/images/no-photo.webp';
 
@@ -47,6 +48,9 @@ export async function sendPhoto(
         await sendPhoto(id, caption, keyboard);
         console.error('Невалидная ссылка изображения!');
       }
-    } else console.error('Неизвестная ошибка при отправке изображения:', error);
+    } else {
+      await sendMessage(id, caption, keyboard);
+      console.error('Неизвестная ошибка при отправке изображения:', error);
+    }
   }
 }
