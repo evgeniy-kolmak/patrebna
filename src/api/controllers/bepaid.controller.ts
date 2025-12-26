@@ -1,5 +1,5 @@
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import {
   StatusTransaction,
   type ITrackingData,
@@ -33,28 +33,47 @@ export async function bepaidHandler(
 async function handleTransactionWebhook(req: Request): Promise<void> {
   try {
     const { status, tracking_id }: ResponseTransaction = req.body?.transaction;
-    const { userId, quantity, messageId }: ITrackingData =
+    const { userId, quantity, messageId, amount }: ITrackingData =
       JSON.parse(tracking_id);
     await i18next.changeLanguage(await getUserLanguage(userId));
     if (status === StatusTransaction.SUCCESSFUL) {
-      await db.grantPremium(userId, quantity);
-      await TelegramService.editMessageText(
-        userId,
-        messageId,
-        t('Сообщение об успехе'),
-      );
-      await TelegramService.sendMessageToChat(
-        `✅ Пользователь с id: <b>${userId}</b> приобрел премиум на <b>${quantity}</b> дней.`,
-      );
+      if (quantity) {
+        await db.grantPremium(userId, quantity);
+        await db.incrementWallet(userId, amount / 1000);
+        await TelegramService.editMessageText(
+          userId,
+          messageId,
+          t('Сообщение об успехе'),
+        );
+        await TelegramService.sendMessageToChat(
+          `✅ Пользователь с id: <b>${userId}</b> приобрел премиум на <b>${quantity}</b> дней.`,
+        );
+      } else {
+        await db.incrementWallet(userId, amount / 10);
+        await TelegramService.editMessageText(
+          userId,
+          messageId,
+          t('Сообщение об успехе'),
+        );
+        await TelegramService.sendMessageToChat(
+          `✅ Пользователь с id: <b>${userId}</b> пополнил кошелек на <b>${amount / 10}</b> бонусов.`,
+        );
+      }
     } else {
       await TelegramService.editMessageText(
         userId,
         messageId,
         t('Сообщение о неудаче'),
       );
-      await TelegramService.sendMessageToChat(
-        `❌ Пользователь с id: <b>${userId}</b> не смог приобрести премиум на <b>${quantity}</b> дней.`,
-      );
+      if (quantity) {
+        await TelegramService.sendMessageToChat(
+          `❌ Пользователь с id: <b>${userId}</b> не смог приобрести премиум на <b>${quantity}</b> дней.`,
+        );
+      } else {
+        await TelegramService.sendMessageToChat(
+          `❌ Пользователь с id: <b>${userId}</b> не смог пополнить кошелек на <b>${amount / 10}</b> бонусов.`,
+        );
+      }
     }
   } catch (error) {
     console.error('Ошибка обработки вебхука:', error);

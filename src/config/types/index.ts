@@ -20,7 +20,6 @@ export interface IProfile {
   last_name?: string;
   subscribeToChannel: boolean;
   premium: IPremium;
-  referrals: string[];
 }
 
 export interface IDataParserItem {
@@ -37,6 +36,11 @@ export interface IParserData {
   urls: IDataParserItem[];
   status: StatusPremium;
   canNotify: boolean;
+}
+export interface ICommandHandler {
+  regex: RegExp;
+  handler: (userId: number, match: RegExpExecArray | null) => Promise<void>;
+  options?: { public?: boolean };
 }
 
 export type LanguageOfUser = Record<number, { language: Languages }>;
@@ -127,7 +131,8 @@ export interface ResponseOrder {
 export interface ITrackingData {
   userId: number;
   messageId: number;
-  quantity: number;
+  quantity?: number;
+  amount: number;
 }
 
 export enum StatusTransaction {

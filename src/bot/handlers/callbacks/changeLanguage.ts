@@ -4,8 +4,8 @@ import { Languages } from 'config/types';
 import {
   getUserLanguage,
   setUserLanguage,
-} from 'config/lib/helpers/cacheLaguage';
-import keyboard from 'bot/keyboard';
+} from 'config/lib/helpers/cacheLanguage';
+import keyboards from 'bot/keyboards';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { deleteMessage } from 'config/lib/helpers/deleteMessage';
 
@@ -21,7 +21,7 @@ export async function handleChangeLanguage(
       : Languages.Belarusian;
   await setUserLanguage(chatId, newLanguage);
   await i18next.changeLanguage(newLanguage);
-  await sendMessage(chatId, t('Язык был изменен'), keyboard.Main());
+  await sendMessage(chatId, t('Язык был изменен'), keyboards.Main());
 
   if (message?.text?.includes('🔄'))
     await deleteMessage(chatId, message?.message_id, callbackQueryId);

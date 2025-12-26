@@ -40,7 +40,7 @@ export function transformRawAds(rawAds: RawAd[]): IExtendedAd[] {
         AdParameters.NAME,
       )?.name.trim(),
       id: String(ad_id),
-      title: subject.trim(),
+      title: subject.trim() ?? 'Без названия',
       url: ad_link,
       img_url: allImages[index][0] ?? 'https://i.ibb.co/NLkvZYG/no-photo.webp',
       price:

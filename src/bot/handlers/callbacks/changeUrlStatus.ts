@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { getObserveButton } from 'config/lib/helpers/getObserveButton';
 import { Button, type ICallbackData, type IButton } from 'config/types';
 import { getMessageObserve } from 'config/lib/helpers/getMessageObserve';

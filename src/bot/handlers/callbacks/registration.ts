@@ -1,7 +1,7 @@
-import keyboard from 'bot/keyboard';
+import keyboards from 'bot/keyboards';
 import i18next, { t } from 'i18next';
 import db from 'config/db/databaseServise';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import type { User } from 'node-telegram-bot-api';
 import { type ICallbackData, type IProfile, StatusPremium } from 'config/types';
@@ -42,7 +42,6 @@ export async function handleRegistration(
         last_name,
         subscribeToChannel: Boolean(isChannelSubscriptionRewarded),
         premium: { status: StatusPremium.NONE },
-        referrals: [],
       };
       await db.setUser(chatId, profile);
       await editMessage(
@@ -54,7 +53,7 @@ export async function handleRegistration(
       await sendMessage(
         chatId,
         t('Сообщение об отслеживании'),
-        keyboard.Observe(),
+        keyboards.Observe(),
       );
     } catch (error) {
       console.error(error);
@@ -77,7 +76,7 @@ export async function handleRegistration(
       messageId,
       t('Пользователь уже зарегистрирован'),
       callbackQueryId,
-      keyboard.Observe(),
+      keyboards.Observe(),
     );
   }
 }

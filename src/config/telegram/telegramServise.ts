@@ -26,6 +26,12 @@ export const TelegramService = {
     } catch (error) {
       if (isTelegramError(error)) {
         const { error_code, description } = error.response.body;
+        if (description.includes('Bad Request: message is not modified')) {
+          console.log(
+            'Сообщение не было изменено, так как содержимое осталось тем же.',
+          );
+          return;
+        }
         if (
           error_code === 403 ||
           (error_code === 400 && description.includes('USER_IS_BLOCKED'))
@@ -33,8 +39,6 @@ export const TelegramService = {
           await db.removeUser(chatId);
           return;
         }
-        if (description.includes('Bad Request: message is not modified'))
-          return;
 
         console.error('Ошибка при отправке сообщения в Telegram:', error);
       }

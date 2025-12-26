@@ -1,6 +1,6 @@
 import i18next, { t } from 'i18next';
 import { type INotification, type IExtendedAd } from 'config/types';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { truncateString } from 'config/lib/helpers/truncateString';
 
 export async function getExtendedNotification(

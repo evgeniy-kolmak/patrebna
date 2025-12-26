@@ -5,21 +5,31 @@ import {
 } from 'node-telegram-bot-api';
 import { dataFaq } from 'constants/faq';
 
-class Keyboard {
+class KeyboardManager {
   Main(): ReplyKeyboardMarkup {
     return {
       keyboard: [
         [{ text: `👤 ${t('Профиль')}` }, { text: `👁️ ${t('Отслеживать')}` }],
         [{ text: `⭐️ ${t('Подписка')}` }, { text: `❓ ${t('Помощь')}` }],
-        [{ text: t('Язык') }],
+        [{ text: `${t('Язык')}` }],
       ],
       resize_keyboard: true,
     };
   }
 
-  async Profile(): Promise<InlineKeyboardMarkup> {
+  Profile(): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
+        [
+          {
+            text: t('Магазин'),
+            callback_data: JSON.stringify({ action: 'store' }),
+          },
+          {
+            text: t('Кошелёк'),
+            callback_data: JSON.stringify({ action: 'wallet' }),
+          },
+        ],
         [
           {
             text: t('Удалить профиль'),
@@ -78,6 +88,67 @@ class Keyboard {
     };
   }
 
+  FreePremium(
+    isSubscribedToChannel: boolean,
+    isPlayGame: boolean,
+  ): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        isSubscribedToChannel
+          ? []
+          : [
+              {
+                text: `🔔 ${t('Подписка на канал')}`,
+                callback_data: JSON.stringify({ action: 'subscribe_channel' }),
+              },
+            ],
+        isPlayGame
+          ? []
+          : [
+              {
+                text: `🎲 ${t('Сыграть в игру')}`,
+                callback_data: JSON.stringify({ action: 'play_game' }),
+              },
+            ],
+        [
+          {
+            text: `${t('Пригласить друга')}`,
+            callback_data: JSON.stringify({ action: 'invite_referral' }),
+          },
+        ],
+        [
+          {
+            text: t('Назад'),
+            callback_data: JSON.stringify({ action: 'back_premium' }),
+          },
+        ],
+      ],
+    };
+  }
+
+  Wallet(isCompleted: boolean): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: t('Пополнить баланс'),
+            callback_data: JSON.stringify({ action: 'wallet_top_up' }),
+          },
+        ],
+        [
+          ...(!isCompleted
+            ? [
+                {
+                  text: t('Ежедневный бонус'),
+                  callback_data: JSON.stringify({ action: 'daily_bonus' }),
+                },
+              ]
+            : []),
+        ],
+      ],
+    };
+  }
+
   BaseForMessage(url: string): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
@@ -119,5 +190,5 @@ class Keyboard {
   }
 }
 
-const keyboard = new Keyboard();
-export default keyboard;
+const keyboards = new KeyboardManager();
+export default keyboards;

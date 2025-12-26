@@ -3,7 +3,7 @@ import { fork } from 'child_process';
 import TelegramBot from 'node-telegram-bot-api';
 import Bottleneck from 'bottleneck';
 import 'config/i18n/i18n';
-import keyboard from 'bot/keyboard';
+import keyboards from 'bot/keyboards';
 import cbquery from 'bot/cbquery';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import {
@@ -72,7 +72,7 @@ listener.on('message', (message: [string, string]) => {
             await sendPhoto(
               userId,
               caption,
-              keyboard.BaseForMessage(url),
+              keyboards.BaseForMessage(url),
               image,
             );
           });
@@ -94,7 +94,7 @@ listener.on('message', (message: [string, string]) => {
             await sendPhoto(
               userId,
               caption,
-              keyboard.ExpendedForMessage(url, coordinates),
+              keyboards.ExpendedForMessage(url, coordinates),
               image,
             );
           });

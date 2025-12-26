@@ -1,5 +1,5 @@
 import i18next, { t } from 'i18next';
-import { getUserLanguage } from 'config/lib/helpers/cacheLaguage';
+import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import cache from 'config/redis/redisService';
 
 export async function notificationOfExpiredPremium(
