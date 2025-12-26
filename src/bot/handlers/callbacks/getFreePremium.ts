@@ -2,6 +2,8 @@ import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import db from 'config/db/databaseServise';
+import keyboards from 'bot/keyboards';
+import { checkStatusOfDailyActivities } from 'config/lib/helpers/checkStatusOfDailyActivities';
 
 export async function handleGetFreePremium(
   chatId: number,
@@ -10,35 +12,13 @@ export async function handleGetFreePremium(
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const isSubscribedToChannel = await db.isChannelSubscriptionRewarded(chatId);
-
-  const inline_keyboard = [
-    isSubscribedToChannel
-      ? []
-      : [
-          {
-            text: `🔔 ${t('Подписка на канал')}`,
-            callback_data: JSON.stringify({ action: 'subscribe_channel' }),
-          },
-        ],
-    [
-      {
-        text: `${t('Пригласить друга')}`,
-        callback_data: JSON.stringify({ action: 'invite_referral' }),
-      },
-    ],
-    [
-      {
-        text: t('Назад'),
-        callback_data: JSON.stringify({ action: 'back_premium' }),
-      },
-    ],
-  ];
+  const isPlayGame = await checkStatusOfDailyActivities(`dailyGame:${chatId}`);
 
   await editMessage(
     chatId,
     messageId,
     t('Описание для списка задач бесплатного премиума'),
     callbackQueryId,
-    { inline_keyboard },
+    keyboards.FreePremium(isSubscribedToChannel, isPlayGame),
   );
 }

@@ -88,6 +88,44 @@ class KeyboardManager {
     };
   }
 
+  FreePremium(
+    isSubscribedToChannel: boolean,
+    isPlayGame: boolean,
+  ): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        isSubscribedToChannel
+          ? []
+          : [
+              {
+                text: `🔔 ${t('Подписка на канал')}`,
+                callback_data: JSON.stringify({ action: 'subscribe_channel' }),
+              },
+            ],
+        isPlayGame
+          ? []
+          : [
+              {
+                text: `🎲 ${t('Сыграть в игру')}`,
+                callback_data: JSON.stringify({ action: 'play_game' }),
+              },
+            ],
+        [
+          {
+            text: `${t('Пригласить друга')}`,
+            callback_data: JSON.stringify({ action: 'invite_referral' }),
+          },
+        ],
+        [
+          {
+            text: t('Назад'),
+            callback_data: JSON.stringify({ action: 'back_premium' }),
+          },
+        ],
+      ],
+    };
+  }
+
   Wallet(isCompleted: boolean): InlineKeyboardMarkup {
     return {
       inline_keyboard: [

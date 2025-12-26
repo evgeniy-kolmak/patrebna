@@ -22,12 +22,15 @@ import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { getDailyBonus } from 'bot/handlers/callbacks/getDailyBonus';
 import { handleBuyBonus } from 'bot/handlers/callbacks/buyBonus';
 import { handleChooseRate } from 'bot/handlers/callbacks/chooseRate';
-import { checkStatusOfDailyBonus } from 'config/lib/helpers/checkStatusOfDailyBonus';
+import { checkStatusOfDailyActivities } from 'config/lib/helpers/checkStatusOfDailyActivities';
 import { getDataWallet } from 'config/lib/helpers/getDataWallet';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { сommandsWrapper } from 'config/lib/helpers/сommandsWrapper';
 import { сommandHandlers } from 'constants/сommandHandlers';
+import { pause } from 'config/lib/helpers/pause';
+import { getSecondsUntilEndOfDay } from 'config/lib/helpers/getSecondsUntilEndOfDay';
+import cache from 'config/redis/redisService';
 
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -263,14 +266,16 @@ export default async (): Promise<void> => {
 
       case 'wallet': {
         await i18next.changeLanguage(language);
-        const isCompleted = await checkStatusOfDailyBonus(chatId);
+        const key = `dailyBonus:${chatId}`;
+        const isCompleted = await checkStatusOfDailyActivities(key);
         const message = await getDataWallet(chatId);
         await sendMessage(chatId, message, keyboards.Wallet(isCompleted));
         break;
       }
       case 'back_wallet': {
         await i18next.changeLanguage(language);
-        const isCompleted = await checkStatusOfDailyBonus(chatId);
+        const key = `dailyBonus:${chatId}`;
+        const isCompleted = await checkStatusOfDailyActivities(key);
         const message = await getDataWallet(chatId);
         await editMessage(
           chatId,
@@ -283,6 +288,87 @@ export default async (): Promise<void> => {
       }
       case 'daily_bonus': {
         await getDailyBonus(chatId, messageId, callbackQueryId);
+        break;
+      }
+      case 'play_game': {
+        await i18next.changeLanguage(language);
+        const key = `dailyGame:${chatId}`;
+        const isCompleted = await checkStatusOfDailyActivities(key);
+        if (isCompleted) {
+          await editMessage(
+            chatId,
+            messageId,
+            t('Игра уже сыграна'),
+            callbackQueryId,
+          );
+          break;
+        }
+        const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+        const keyboard = {
+          inline_keyboard: [
+            numberEmojis.slice(0, 3).map((_n, i) => ({
+              text: `${numberEmojis[i]}`,
+              callback_data: JSON.stringify({
+                action: 'choice_game',
+                param: i + 1,
+              }),
+            })),
+            numberEmojis.slice(3).map((_n, i) => ({
+              text: `${numberEmojis[i + 3]}`,
+              callback_data: JSON.stringify({
+                action: 'choice_game',
+                param: i + 4,
+              }),
+            })),
+            [
+              {
+                text: t('Назад'),
+                callback_data: JSON.stringify({ action: 'get_free_premium' }),
+              },
+            ],
+          ],
+        };
+        await editMessage(
+          chatId,
+          messageId,
+          t('Правила игры'),
+          callbackQueryId,
+          keyboard,
+        );
+        break;
+      }
+
+      case 'choice_game': {
+        const key = `dailyGame:${chatId}`;
+        const isCompleted = await checkStatusOfDailyActivities(key);
+        if (isCompleted) {
+          await editMessage(
+            chatId,
+            messageId,
+            t('Игра уже сыграна'),
+            callbackQueryId,
+          );
+          break;
+        }
+        const message = await bot.sendDice(chatId, { emoji: '🎲' });
+        const isSubscribedToChannel =
+          await db.isChannelSubscriptionRewarded(chatId);
+        await editMessage(
+          chatId,
+          messageId,
+          t('Описание для списка задач бесплатного премиума'),
+          callbackQueryId,
+          keyboards.FreePremium(isSubscribedToChannel, true),
+        );
+        const ttlSec = getSecondsUntilEndOfDay();
+        await cache.setCache(key, true, ttlSec);
+        await pause(3000);
+        if (callbackData?.param === message?.dice?.value) {
+          await db.grantPremium(chatId, 1);
+          await sendMessage(chatId, t('Выигрыш'));
+        } else {
+          await sendMessage(chatId, t('Проигрыш'));
+        }
         break;
       }
       case 'store': {

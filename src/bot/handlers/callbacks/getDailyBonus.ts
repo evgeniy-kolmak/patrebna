@@ -3,7 +3,8 @@ import db from 'config/db/databaseServise';
 import cache from 'config/redis/redisService';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
-import { checkStatusOfDailyBonus } from 'config/lib/helpers/checkStatusOfDailyBonus';
+import { checkStatusOfDailyActivities } from 'config/lib/helpers/checkStatusOfDailyActivities';
+import { getSecondsUntilEndOfDay } from 'config/lib/helpers/getSecondsUntilEndOfDay';
 
 export async function getDailyBonus(
   chatId: number,
@@ -12,13 +13,9 @@ export async function getDailyBonus(
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(chatId));
   const key = `dailyBonus:${chatId}`;
-  const isCompleted = await checkStatusOfDailyBonus(chatId);
+  const isCompleted = await checkStatusOfDailyActivities(key);
   if (!isCompleted) {
-    const now = new Date();
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
-    const ttlMs = end.getTime() - now.getTime();
-    const ttlSec = Math.ceil(ttlMs / 1000);
+    const ttlSec = getSecondsUntilEndOfDay();
     await cache.setCache(key, true, ttlSec);
     const dailyBonus = Math.floor(Math.random() * 11) / 10;
     await db.incrementWallet(chatId, dailyBonus);
