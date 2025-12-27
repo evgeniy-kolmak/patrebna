@@ -49,7 +49,10 @@ async function handleTransactionWebhook(req: Request): Promise<void> {
           `✅ Пользователь с id: <b>${userId}</b> приобрел премиум на <b>${quantity}</b> дней.`,
         );
       } else {
-        await db.incrementWallet(userId, amount / 10);
+        const baseAmount = amount / 10;
+        const bonusAmount = Math.ceil(baseAmount * 0.1);
+        const totalAmount = baseAmount + bonusAmount;
+        await db.incrementWallet(userId, totalAmount);
         await TelegramService.editMessageText(
           userId,
           messageId,
