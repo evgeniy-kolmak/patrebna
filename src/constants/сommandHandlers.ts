@@ -66,7 +66,7 @@ export const сommandHandlers: ICommandHandler[] = [
         `<b>${t('Дата регистрации')}</b>: ${createdAtProfile ? `<i>${new Date(createdAtProfile).toLocaleDateString('ru-RU', options)}</i>` : t('Недавно')}`,
         `<b>${t('Подписка')}</b>: ${t(statusDescription[status].title)} ${status === StatusPremium.ACTIVE && endDatePremium ? `${t('До')} <i>${new Date(endDatePremium).toLocaleDateString('ru-RU', options)}</i>` : ''}`,
         `<b>${t('Подписка на канал')}</b>: ${profile?.subscribeToChannel ? '☑️' : '✖️'}`,
-        `<b>${t('Количество рефералов')}</b>: ${profile?.referrals.length}`,
+        `<b>${t('Количество рефералов')}</b>: ${profile?.referrals?.length}`,
         `<b>${t('Бонусы')}</b>: ${profile?.wallet ?? 0}`,
       ].join('\n');
       const { photos, total_count } = await bot.getUserProfilePhotos(userId, {
@@ -74,12 +74,12 @@ export const сommandHandlers: ICommandHandler[] = [
         limit: 1,
       });
 
-      if (!total_count || !photos.length) {
+      if (!total_count || !photos?.length) {
         await sendMessage(userId, dataProfile, keyboards.Profile());
       }
 
       const avatar = photos[0];
-      const bestQuality = avatar[avatar.length - 1];
+      const bestQuality = avatar[avatar?.length - 1];
       await sendPhoto(
         userId,
         dataProfile,
