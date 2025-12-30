@@ -126,6 +126,29 @@ class KeyboardManager {
     };
   }
 
+  Store(): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: `💎 ${t('Подписка')}`,
+            callback_data: JSON.stringify({
+              action: 'buy_premium_with_bonuses',
+            }),
+          },
+        ],
+        [
+          {
+            text: `🎮 ${t('Дополнительная попытка в игре')}`,
+            callback_data: JSON.stringify({
+              action: 'buy_try_to_play_game',
+            }),
+          },
+        ],
+      ],
+    };
+  }
+
   Wallet(isCompleted: boolean): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
@@ -144,6 +167,53 @@ class KeyboardManager {
                 },
               ]
             : []),
+        ],
+      ],
+    };
+  }
+
+  Game(): InlineKeyboardMarkup {
+    const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+    return {
+      inline_keyboard: [
+        numberEmojis.slice(0, 3).map((_n, i) => ({
+          text: `${numberEmojis[i]}`,
+          callback_data: JSON.stringify({
+            action: 'choice_game',
+            param: i + 1,
+          }),
+        })),
+        numberEmojis.slice(3).map((_n, i) => ({
+          text: `${numberEmojis[i + 3]}`,
+          callback_data: JSON.stringify({
+            action: 'choice_game',
+            param: i + 4,
+          }),
+        })),
+        [
+          {
+            text: t('Назад'),
+            callback_data: JSON.stringify({ action: 'get_free_premium' }),
+          },
+        ],
+      ],
+    };
+  }
+
+  notEnoughBonusesKeyboard(): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        [
+          {
+            text: t('Пополнить баланс'),
+            callback_data: JSON.stringify({ action: 'wallet_top_up' }),
+          },
+        ],
+        [
+          {
+            text: t('Назад'),
+            callback_data: JSON.stringify({ action: 'back_store' }),
+          },
         ],
       ],
     };

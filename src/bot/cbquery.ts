@@ -22,14 +22,16 @@ import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { getDailyBonus } from 'bot/handlers/callbacks/getDailyBonus';
 import { handleBuyBonus } from 'bot/handlers/callbacks/buyBonus';
 import { handleChooseRate } from 'bot/handlers/callbacks/chooseRate';
+import { handleBuyPremiumWithBonuses } from 'bot/handlers/callbacks/buyPremiumWithBonuses';
+import { handlePlayGame } from 'bot/handlers/callbacks/playGame';
+import { handleChoiceGame } from 'bot/handlers/callbacks/choiceGame';
 import { checkStatusOfDailyActivities } from 'config/lib/helpers/checkStatusOfDailyActivities';
 import { getDataWallet } from 'config/lib/helpers/getDataWallet';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { сommandsWrapper } from 'config/lib/helpers/сommandsWrapper';
 import { сommandHandlers } from 'constants/сommandHandlers';
-import { pause } from 'config/lib/helpers/pause';
-import { getSecondsUntilEndOfDay } from 'config/lib/helpers/getSecondsUntilEndOfDay';
+import { tariffData } from 'constants/tariffs';
 import cache from 'config/redis/redisService';
 
 export default async (): Promise<void> => {
@@ -180,7 +182,9 @@ export default async (): Promise<void> => {
               [
                 {
                   text: t('Все равно удалить'),
-                  callback_data: JSON.stringify({ action: 'approve' }),
+                  callback_data: JSON.stringify({
+                    action: 'approve_remove_me',
+                  }),
                 },
               ],
               [
@@ -194,7 +198,7 @@ export default async (): Promise<void> => {
         );
         break;
       }
-      case 'approve': {
+      case 'approve_remove_me': {
         await i18next.changeLanguage(language);
         await editMessage(
           chatId,
@@ -252,6 +256,28 @@ export default async (): Promise<void> => {
         );
         break;
       }
+      case 'wallet': {
+        await i18next.changeLanguage(language);
+        const key = `dailyBonus:${chatId}`;
+        const isCompleted = await checkStatusOfDailyActivities(key);
+        const message = await getDataWallet(t('Сообщение о кошельке'), chatId);
+        await sendMessage(chatId, message, keyboards.Wallet(isCompleted));
+        break;
+      }
+      case 'back_wallet': {
+        await i18next.changeLanguage(language);
+        const key = `dailyBonus:${chatId}`;
+        const isCompleted = await checkStatusOfDailyActivities(key);
+        const message = await getDataWallet(t('Сообщение о кошельке'), chatId);
+        await editMessage(
+          chatId,
+          messageId,
+          message,
+          callbackQueryId,
+          keyboards.Wallet(isCompleted),
+        );
+        break;
+      }
       case 'back_faq': {
         await i18next.changeLanguage(language);
         await editMessage(
@@ -263,26 +289,15 @@ export default async (): Promise<void> => {
         );
         break;
       }
-
-      case 'wallet': {
+      case 'back_store': {
         await i18next.changeLanguage(language);
-        const key = `dailyBonus:${chatId}`;
-        const isCompleted = await checkStatusOfDailyActivities(key);
-        const message = await getDataWallet(chatId);
-        await sendMessage(chatId, message, keyboards.Wallet(isCompleted));
-        break;
-      }
-      case 'back_wallet': {
-        await i18next.changeLanguage(language);
-        const key = `dailyBonus:${chatId}`;
-        const isCompleted = await checkStatusOfDailyActivities(key);
-        const message = await getDataWallet(chatId);
+        const message = await getDataWallet(t('Сообщение о магазине'), chatId);
         await editMessage(
           chatId,
           messageId,
           message,
           callbackQueryId,
-          keyboards.Wallet(isCompleted),
+          keyboards.Store(),
         );
         break;
       }
@@ -291,39 +306,45 @@ export default async (): Promise<void> => {
         break;
       }
       case 'play_game': {
+        await handlePlayGame(chatId, messageId, callbackQueryId);
+        break;
+      }
+
+      case 'choice_game': {
+        await handleChoiceGame(
+          chatId,
+          messageId,
+          callbackQueryId,
+          callbackData,
+        );
+        break;
+      }
+      case 'store': {
         await i18next.changeLanguage(language);
-        const key = `dailyGame:${chatId}`;
-        const isCompleted = await checkStatusOfDailyActivities(key);
-        if (isCompleted) {
-          await editMessage(
-            chatId,
-            messageId,
-            t('Игра уже сыграна'),
-            callbackQueryId,
-          );
-          break;
-        }
-        const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+        const message = await getDataWallet(t('Сообщение о магазине'), chatId);
+        await sendMessage(chatId, message, keyboards.Store());
+        break;
+      }
+      case 'buy_premium_with_bonuses': {
+        await handleBuyPremiumWithBonuses(chatId, messageId, callbackQueryId);
+        break;
+      }
+      case 'buy_try_to_play_game': {
+        await i18next.changeLanguage(language);
         const keyboard = {
           inline_keyboard: [
-            numberEmojis.slice(0, 3).map((_n, i) => ({
-              text: `${numberEmojis[i]}`,
-              callback_data: JSON.stringify({
-                action: 'choice_game',
-                param: i + 1,
-              }),
-            })),
-            numberEmojis.slice(3).map((_n, i) => ({
-              text: `${numberEmojis[i + 3]}`,
-              callback_data: JSON.stringify({
-                action: 'choice_game',
-                param: i + 4,
-              }),
-            })),
+            [
+              {
+                text: `✅ ${t('Подтвердить')}`,
+                callback_data: JSON.stringify({
+                  action: 'approve_try_to_play',
+                }),
+              },
+            ],
             [
               {
                 text: t('Назад'),
-                callback_data: JSON.stringify({ action: 'get_free_premium' }),
+                callback_data: JSON.stringify({ action: 'back_store' }),
               },
             ],
           ],
@@ -331,50 +352,102 @@ export default async (): Promise<void> => {
         await editMessage(
           chatId,
           messageId,
-          t('Правила игры'),
+          t('Сообщения при покупке попытки в игре'),
           callbackQueryId,
           keyboard,
         );
         break;
       }
-
-      case 'choice_game': {
-        const key = `dailyGame:${chatId}`;
-        const isCompleted = await checkStatusOfDailyActivities(key);
-        if (isCompleted) {
+      case 'payment_with_bonuses': {
+        await i18next.changeLanguage(language);
+        const order = tariffData[callbackData.param];
+        const newMessage = `<b>${t(order.name)}</b>\n${t('Подписка')} на <b>${order.quantityOfDays} ${t('Дней')}</b> - <b>${order.amount / 10}</b> ${t('Бонусов')}`;
+        await editMessage(chatId, messageId, newMessage, callbackQueryId, {
+          inline_keyboard: [
+            [
+              {
+                text: `✅ ${t('Подтвердить')}`,
+                callback_data: JSON.stringify({
+                  action: 'approve_payment_with_bonuses',
+                  param: callbackData.param,
+                }),
+              },
+            ],
+            [
+              {
+                text: t('Назад'),
+                callback_data: JSON.stringify({
+                  action: 'buy_premium_with_bonuses',
+                }),
+              },
+            ],
+          ],
+        });
+        break;
+      }
+      case 'approve_payment_with_bonuses': {
+        await i18next.changeLanguage(language);
+        const wallet = await db.getWallet(chatId);
+        const { quantityOfDays, amount } = tariffData[callbackData.param];
+        if (!wallet || wallet < amount / 10) {
           await editMessage(
             chatId,
             messageId,
-            t('Игра уже сыграна'),
+            t('Недостаточно бонусов'),
             callbackQueryId,
+            keyboards.notEnoughBonusesKeyboard(),
           );
           break;
         }
-        const message = await bot.sendDice(chatId, { emoji: '🎲' });
-        const isSubscribedToChannel =
-          await db.isChannelSubscriptionRewarded(chatId);
+        await db.decrementWallet(chatId, amount / 10);
+        await db.grantPremium(chatId, quantityOfDays);
         await editMessage(
           chatId,
           messageId,
-          t('Описание для списка задач бесплатного премиума'),
+          t('Успешная покупка за бонусы'),
           callbackQueryId,
-          keyboards.FreePremium(isSubscribedToChannel, true),
         );
-        const ttlSec = getSecondsUntilEndOfDay();
-        await cache.setCache(key, true, ttlSec);
-        await pause(3000);
-        if (callbackData?.param === message?.dice?.value) {
-          await db.grantPremium(chatId, 1);
-          await sendMessage(chatId, t('Выигрыш'));
-        } else {
-          await sendMessage(chatId, t('Проигрыш'));
+        break;
+      }
+      case 'approve_try_to_play': {
+        await i18next.changeLanguage(language);
+        const isCompleted = await checkStatusOfDailyActivities(
+          `dailyGame:${chatId}`,
+        );
+        if (!isCompleted) {
+          await editMessage(
+            chatId,
+            messageId,
+            t('Доступна бесплатная попытка в игре'),
+            callbackQueryId,
+            keyboards.Game(),
+          );
+          break;
         }
+        const wallet = await db.getWallet(chatId);
+        if (!wallet || wallet < 5) {
+          await editMessage(
+            chatId,
+            messageId,
+            t('Недостаточно бонусов'),
+            callbackQueryId,
+            keyboards.notEnoughBonusesKeyboard(),
+          );
+          break;
+        }
+        await db.decrementWallet(chatId, 5);
+        await cache.removeCache(`dailyGame:${chatId}`);
+        await sendMessage(chatId, t('Сообщение об успехе'));
+        await editMessage(
+          chatId,
+          messageId,
+          t('Правила игры'),
+          callbackQueryId,
+          keyboards.Game(),
+        );
         break;
       }
-      case 'store': {
-        await sendMessage(chatId, 'Товаров пока нет, но они скоро появятся.');
-        break;
-      }
+
       case 'wallet_top_up': {
         await handleBuyBonus(chatId, messageId, callbackQueryId);
         break;
