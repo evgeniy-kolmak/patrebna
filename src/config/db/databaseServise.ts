@@ -27,7 +27,7 @@ class DatabaseService {
   private readonly TTL: number;
   constructor() {
     this.TTL = 43200;
-    this.url = `mongodb://localhost:27017/`;
+    this.url = `mongodb://mongodb:27017/`;
   }
 
   async openConnection() {
@@ -45,16 +45,16 @@ class DatabaseService {
     });
 
     await mongoose.connect(this.url, {
-      // auth: {
-      //   username,
-      //   password,
-      // },
-      // tls: true,
+      auth: {
+        username,
+        password,
+      },
+      tls: true,
       dbName: 'patrebna',
       authSource: 'admin',
       replicaSet: 'rs0',
-      // tlsAllowInvalidCertificates: true,
-      // tlsCertificateKeyFile: './certs/client.pem',
+      tlsAllowInvalidCertificates: true,
+      tlsCertificateKeyFile: './certs/client.pem',
       serverSelectionTimeoutMS: 60000,
       socketTimeoutMS: 120000,
     });
