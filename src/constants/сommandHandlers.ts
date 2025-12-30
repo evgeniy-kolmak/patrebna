@@ -76,6 +76,7 @@ export const сommandHandlers: ICommandHandler[] = [
 
       if (!total_count || !photos?.length) {
         await sendMessage(userId, dataProfile, keyboards.Profile());
+        return;
       }
 
       const avatar = photos[0];
