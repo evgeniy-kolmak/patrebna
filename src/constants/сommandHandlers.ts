@@ -1,6 +1,5 @@
 import db from 'config/db/databaseServise';
 import { t } from 'i18next';
-import { createReadStream } from 'fs';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
 import { sendPhoto } from 'config/lib/helpers/sendPhoto';
 import { type ICommandHandler, StatusPremium } from 'config/types';
@@ -8,8 +7,6 @@ import keyboards from 'bot/keyboards';
 import { statusDescription } from 'constants/statusDescriptionPremium';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { bot } from 'bot';
-
-const SALES_IMAGE_PATH = 'src/bot/assets/images/ny-sales.webp';
 
 export const сommandHandlers: ICommandHandler[] = [
   {
@@ -102,12 +99,6 @@ export const сommandHandlers: ICommandHandler[] = [
   {
     regex: /Подписка|Падпіска/,
     handler: async (userId: number) => {
-      await sendPhoto(
-        userId,
-        t('Новогодняя акция'),
-        undefined,
-        createReadStream(SALES_IMAGE_PATH),
-      );
       await sendMessage(userId, t('Описание подписки'), keyboards.Premium());
     },
   },
