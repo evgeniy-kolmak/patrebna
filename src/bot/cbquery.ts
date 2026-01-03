@@ -33,6 +33,8 @@ import { сommandsWrapper } from 'config/lib/helpers/сommandsWrapper';
 import { сommandHandlers } from 'constants/сommandHandlers';
 import { tariffData } from 'constants/tariffs';
 import cache from 'config/redis/redisService';
+import { deleteMessage } from 'config/lib/helpers/deleteMessage';
+import { pause } from 'config/lib/helpers/pause';
 
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
@@ -172,30 +174,28 @@ export default async (): Promise<void> => {
       }
       case 'remove_me': {
         await i18next.changeLanguage(language);
-        await editMessage(
-          chatId,
-          messageId,
-          t('Сообщение об удалении профиля'),
-          callbackQueryId,
-          {
-            inline_keyboard: [
-              [
-                {
-                  text: t('Все равно удалить'),
-                  callback_data: JSON.stringify({
-                    action: 'approve_remove_me',
-                  }),
-                },
-              ],
-              [
-                {
-                  text: t('В другой раз'),
-                  callback_data: JSON.stringify({ action: 'reject' }),
-                },
-              ],
+        if (messageId) {
+          await deleteMessage(chatId, messageId, callbackQueryId);
+          await pause(150);
+        }
+        await sendMessage(chatId, t('Сообщение об удалении профиля'), {
+          inline_keyboard: [
+            [
+              {
+                text: t('Все равно удалить'),
+                callback_data: JSON.stringify({
+                  action: 'approve_remove_me',
+                }),
+              },
             ],
-          },
-        );
+            [
+              {
+                text: t('В другой раз'),
+                callback_data: JSON.stringify({ action: 'reject' }),
+              },
+            ],
+          ],
+        });
         break;
       }
       case 'approve_remove_me': {
@@ -261,6 +261,10 @@ export default async (): Promise<void> => {
         const key = `dailyBonus:${chatId}`;
         const isCompleted = await checkStatusOfDailyActivities(key);
         const message = await getDataWallet(t('Сообщение о кошельке'), chatId);
+        if (messageId) {
+          await deleteMessage(chatId, messageId, callbackQueryId);
+          await pause(150);
+        }
         await sendMessage(chatId, message, keyboards.Wallet(isCompleted));
         break;
       }
@@ -321,6 +325,10 @@ export default async (): Promise<void> => {
       }
       case 'store': {
         await i18next.changeLanguage(language);
+        if (messageId) {
+          await deleteMessage(chatId, messageId, callbackQueryId);
+          await pause(150);
+        }
         const message = await getDataWallet(t('Сообщение о магазине'), chatId);
         await sendMessage(chatId, message, keyboards.Store());
         break;
