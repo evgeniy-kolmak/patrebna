@@ -99,7 +99,8 @@ export interface ICallbackData {
 }
 
 export enum StatusPremium {
-  ACTIVE = 'active',
+  MAIN = 'main',
+  BASE = 'base',
   EXPIRED = 'expired',
   NONE = 'none',
 }
@@ -133,6 +134,7 @@ export interface ITrackingData {
   messageId: number;
   quantity?: number;
   amount: number;
+  status: StatusPremium;
 }
 
 export enum StatusTransaction {
