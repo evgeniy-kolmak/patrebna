@@ -60,6 +60,13 @@ export enum Languages {
   Russian = 'ru',
   Belarusian = 'by',
 }
+export interface IPremiumActions {
+  buyMain: string;
+  buyBase: string;
+  back: string;
+}
+export type TariffActions = 'choose_tariff' | 'payment_with_bonuses';
+export type BackAction = 'back_store' | 'buy_premium';
 
 export interface IButton {
   text: string;
@@ -108,6 +115,7 @@ export enum StatusPremium {
 export interface IPremium {
   status: StatusPremium;
   end_date?: Date;
+  downgrade_date?: Date;
 }
 
 export interface IOrder {
@@ -117,6 +125,7 @@ export interface IOrder {
   description: string;
   amount: number;
   messageForBot: string;
+  status: StatusPremium;
 }
 
 export interface ResponseTransaction {
