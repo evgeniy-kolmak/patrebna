@@ -15,16 +15,27 @@ void (async () => {
   await db.openConnection();
   void scheduleParsing(
     '2/30 * * * *',
-    (user) => user.status !== StatusPremium.ACTIVE,
+    (user) => user.status === StatusPremium.BASE,
   );
   void scheduleParsing(
     '*/5 * * * *',
-    (user) => user.status === StatusPremium.ACTIVE,
+    (user) => user.status === StatusPremium.MAIN,
   );
 
   scheduleJob('0 0 * * *', async () => {
     await db.clearExpiredAdReferences();
-    const expiredUserIds = await db.expirePremium();
+    await db.applyPremiumTransition({
+      findStatus: [StatusPremium.MAIN],
+      dateField: 'downgrade_date',
+      newStatus: StatusPremium.BASE,
+      unsetField: 'downgrade_date',
+    });
+    const expiredUserIds = await db.applyPremiumTransition({
+      findStatus: [StatusPremium.MAIN, StatusPremium.BASE],
+      dateField: 'end_date',
+      newStatus: StatusPremium.EXPIRED,
+    });
+
     if (expiredUserIds.length) {
       for (const id of expiredUserIds) {
         await notificationOfExpiredPremium(id, t('Подписка уже закончилась'));
