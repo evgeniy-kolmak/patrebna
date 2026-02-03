@@ -230,4 +230,11 @@ export interface INotification {
   caption: string;
 }
 
+export interface IPremiumTransitionConfig {
+  findStatus: StatusPremium[];
+  dateField: 'end_date' | 'downgrade_date';
+  newStatus: StatusPremium;
+  unsetField?: 'downgrade_date';
+}
+
 export type ParameterMap = Partial<Record<AdParameters, any>>;

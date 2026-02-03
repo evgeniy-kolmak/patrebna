@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import 'dotenv/config';
-import mongoose, { type ObjectId } from 'mongoose';
+import mongoose, { type UpdateQuery, type ObjectId } from 'mongoose';
 import { User } from 'config/db/models/User';
 import { Profile } from 'config/db/models/Profile';
 import { Parser } from 'config/db/models/Parser';
@@ -15,6 +15,8 @@ import {
   type IExtendedDataParserItem,
   StatusPremium,
   type IParserData,
+  type IPremium,
+  type IPremiumTransitionConfig,
 } from 'config/types';
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
 import dataParserStream from 'config/db/stream/usersParse';
@@ -88,110 +90,156 @@ class DatabaseService {
     return await Premium.findOne({ _id: profile?.premium?._id }).lean();
   }
 
-  async expirePremium() {
-    const now = new Date();
-    const expiredUsers = (await User.find()
+  private async findUsersByPremiumMatch(match: Record<string, unknown>) {
+    const users = (await User.find()
       .select('-_id id')
       .populate({
         path: 'profile',
         select: '-_id premium',
         populate: {
           path: 'premium',
-          match: {
-            status: StatusPremium.ACTIVE,
-            end_date: { $lte: now },
-          },
+          match,
         },
       })
       .lean()) as unknown as Array<{
       id: number;
-      profile: { premium: { status: string } | null };
+      profile: { premium: object | null };
     }>;
-    const expiredUserIds = expiredUsers
-      .filter((user) => user.profile?.premium !== null)
-      .map((user) => user.id);
 
-    for (const userId of expiredUserIds) {
+    return users.filter((u) => u.profile?.premium !== null).map((u) => u.id);
+  }
+
+  async expirePremiumSoon() {
+    const oneDayLater = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    return await this.findUsersByPremiumMatch({
+      status: { $in: [StatusPremium.MAIN, StatusPremium.BASE] },
+      end_date: { $lte: oneDayLater },
+    });
+  }
+
+  async applyPremiumTransition(config: IPremiumTransitionConfig) {
+    const now = new Date();
+    const userIds = await this.findUsersByPremiumMatch({
+      status: { $in: config.findStatus },
+      [config.dateField]: { $lte: now },
+    });
+
+    for (const userId of userIds) {
       const user = await getUser(userId);
+
       await cache.setCache(
         `user:${userId}`,
-        { ...user, status: StatusPremium.EXPIRED },
+        { ...user, status: config.newStatus },
         this.TTL,
       );
+
       const dataParser = await this.getDataParser(userId);
       if (!dataParser) continue;
+
       const updatedUrls = dataParser.urls.map((url) => {
-        if (url.urlId !== 1 && url.isActive) {
-          return {
-            ...url.toObject(),
-            isActive: false,
-          };
+        const shouldDisable =
+          url.isActive && (config.unsetField ? url.urlId !== 1 : true);
+
+        if (shouldDisable) {
+          return { ...url.toObject(), isActive: false };
         }
         return url;
       });
 
       await DataParser.findOneAndUpdate(
-        { _id: dataParser?._id },
+        { _id: dataParser._id },
         { $set: { urls: updatedUrls } },
       );
     }
 
+    const update: UpdateQuery<IPremium> = {
+      $set: { status: config.newStatus },
+    };
+    if (config.unsetField) {
+      update.$unset = { [config.unsetField]: '' };
+    }
+
     await Premium.updateMany(
-      { status: StatusPremium.ACTIVE, end_date: { $lte: now } },
-      { $set: { status: StatusPremium.EXPIRED } },
+      {
+        status: { $in: config.findStatus },
+        [config.dateField]: { $lte: now },
+      },
+      update,
     );
 
-    return expiredUserIds;
+    return userIds;
   }
 
-  async expirePremiumSoon() {
-    const oneDayLater = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const usersWithPremiumEndingSoon = (await User.find()
-      .select('-_id id')
-      .populate({
-        path: 'profile',
-        select: '-_id premium',
-        populate: {
-          path: 'premium',
-          match: {
-            status: StatusPremium.ACTIVE,
-            end_date: { $lte: oneDayLater },
-          },
-        },
-      })
-      .lean()) as unknown as Array<{
-      id: number;
-      profile: { premium: { status: string } | null };
-    }>;
-    return usersWithPremiumEndingSoon
-      .filter((user) => user.profile?.premium !== null)
-      .map((user) => user.id);
-  }
-
-  async grantPremium(userId: number, days: number) {
+  async grantPremium(userId: number, days: number, status: StatusPremium) {
     const premium = await this.getDataPremium(userId);
     const user = await getUser(userId);
     const now = new Date();
+
     const endDate =
       premium?.end_date && premium.end_date > now
         ? new Date(premium.end_date)
-        : now;
+        : new Date(now);
+
     endDate.setDate(endDate.getDate() + days);
 
-    await Premium.findOneAndUpdate(
-      { _id: premium?._id },
-      {
-        status: StatusPremium.ACTIVE,
-        end_date: endDate,
-      },
-      { upsert: true, new: true },
-    );
+    const update: IPremium = {
+      status,
+      end_date: endDate,
+    };
 
-    await cache.setCache(
-      `user:${userId}`,
-      { ...user, status: StatusPremium.ACTIVE },
-      this.TTL,
+    const shouldUpdateDowngrade =
+      status === StatusPremium.MAIN &&
+      (premium?.status === StatusPremium.BASE ||
+        premium?.status === StatusPremium.MAIN);
+
+    if (shouldUpdateDowngrade) {
+      const downgradeAt = new Date(now);
+      downgradeAt.setDate(downgradeAt.getDate() + days);
+
+      update.downgrade_date = downgradeAt;
+    }
+
+    await Premium.findOneAndUpdate({ _id: premium?._id }, update, {
+      upsert: true,
+      new: true,
+    });
+
+    const dataParser = await this.getDataParser(userId);
+
+    if (dataParser) {
+      const urls = dataParser.urls.map((url) => {
+        if (url.urlId === 1 && !url.isActive) {
+          return { ...url.toObject(), isActive: true };
+        }
+        return url;
+      });
+
+      await DataParser.findOneAndUpdate(
+        { _id: dataParser._id },
+        { $set: { urls } },
+      );
+      if (user.urls?.length) {
+        user.urls = user.urls.map((url) =>
+          url.urlId === 1 ? { ...url, isActive: true } : url,
+        );
+      }
+    }
+    await cache.setCache(`user:${userId}`, { ...user, status }, this.TTL);
+  }
+
+  async trialUsed(userId: number) {
+    await Activity.updateOne(
+      {},
+      { $addToSet: { usedTrialIds: userId } },
+      { upsert: true },
     );
+    await this.grantPremium(userId, 7, StatusPremium.BASE);
+  }
+
+  async hasUsedTrial(userId: number) {
+    const activity = await Activity.exists({ usedTrialIds: userId });
+    return Boolean(activity);
   }
 
   async rewardForChannelSubscription(userId: number) {
@@ -205,7 +253,7 @@ class DatabaseService {
       { $addToSet: { userIdsSubscribedToChannel: userId } },
       { upsert: true },
     );
-    await this.grantPremium(userId, 7);
+    await this.grantPremium(userId, 7, StatusPremium.MAIN);
     await this.incrementWallet(userId, 10);
   }
 
@@ -406,9 +454,7 @@ class DatabaseService {
       .filter((url) => url.urlId !== urlId)
       .map((url, index) => ({
         urlId:
-          statusPremium?.status === StatusPremium.ACTIVE
-            ? index + 1
-            : url.urlId,
+          statusPremium?.status === StatusPremium.MAIN ? index + 1 : url.urlId,
         url: url.url,
         isActive: url.isActive,
         _id: url._id,
@@ -434,7 +480,7 @@ class DatabaseService {
           'kufar.kufarAds': updatedParser?.kufar?.kufarAds.map((ad, index) => ({
             ...ad.toObject(),
             urlId:
-              statusPremium?.status === StatusPremium.ACTIVE
+              statusPremium?.status === StatusPremium.MAIN
                 ? index + 1
                 : ad.urlId,
           })),
@@ -522,7 +568,7 @@ class DatabaseService {
     );
 
     if (result.matchedCount) {
-      await this.grantPremium(referrerId, 3);
+      await this.grantPremium(referrerId, 3, StatusPremium.MAIN);
       await this.incrementWallet(referrerId, 3);
     }
   }
