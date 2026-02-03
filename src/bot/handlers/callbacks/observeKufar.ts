@@ -24,7 +24,7 @@ export async function handleObserveKufar(
     inlineKeyboard.unshift(getObserveButton(Button.ADD, 1));
   }
 
-  if (firstUrl && statusPremium?.status !== StatusPremium.ACTIVE) {
+  if (firstUrl && statusPremium?.status !== StatusPremium.MAIN) {
     message = await getMessageObserve(chatId, 1);
     const { isActive, urlId } = firstUrl;
     inlineKeyboard.unshift(
@@ -36,7 +36,7 @@ export async function handleObserveKufar(
     );
   }
 
-  if (quantityUrls && statusPremium?.status === StatusPremium.ACTIVE) {
+  if (quantityUrls && statusPremium?.status === StatusPremium.MAIN) {
     if (quantityUrls < 3)
       inlineKeyboard.unshift(
         getObserveButton(Button.ADD_MORE, quantityUrls + 1),
