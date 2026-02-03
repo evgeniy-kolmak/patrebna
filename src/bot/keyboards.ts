@@ -4,6 +4,12 @@ import {
   type ReplyKeyboardMarkup,
 } from 'node-telegram-bot-api';
 import { dataFaq } from 'constants/faq';
+import { buildTariffKeyboard } from 'config/lib/helpers/buildTariffKeyboard';
+import {
+  type IPremiumActions,
+  StatusPremium,
+  type TariffActions,
+} from 'config/types';
 
 class KeyboardManager {
   Main(): ReplyKeyboardMarkup {
@@ -17,9 +23,19 @@ class KeyboardManager {
     };
   }
 
-  Profile(): InlineKeyboardMarkup {
+  Profile(isTrial: boolean): InlineKeyboardMarkup {
     return {
       inline_keyboard: [
+        isTrial
+          ? []
+          : [
+              {
+                text: t('Получить триал'),
+                callback_data: JSON.stringify({
+                  action: 'get_trial_from_profile',
+                }),
+              },
+            ],
         [
           {
             text: t('Магазин'),
@@ -84,6 +100,62 @@ class KeyboardManager {
             callback_data: JSON.stringify({ action: 'get_free_premium' }),
           },
         ],
+      ],
+    };
+  }
+
+  TypesOfPremium(
+    status: StatusPremium | undefined,
+    actions: IPremiumActions,
+    tariffActions: TariffActions,
+  ): InlineKeyboardMarkup {
+    const { buyMain, buyBase, back } = actions;
+    return {
+      inline_keyboard: [
+        ...(status === StatusPremium.MAIN
+          ? buildTariffKeyboard(tariffActions)
+          : [
+              [
+                {
+                  text: t('Основная подписка'),
+                  callback_data: JSON.stringify({
+                    action: buyMain,
+                  }),
+                },
+                {
+                  text: t('Базовая подписка'),
+                  callback_data: JSON.stringify({
+                    action: buyBase,
+                  }),
+                },
+              ],
+            ]),
+        [
+          {
+            text: t('Назад'),
+            callback_data: JSON.stringify({ action: back }),
+          },
+        ],
+      ],
+    };
+  }
+
+  Trial(isTrial: boolean): InlineKeyboardMarkup {
+    return {
+      inline_keyboard: [
+        isTrial
+          ? [
+              {
+                text: t('Получить доступ'),
+                callback_data: JSON.stringify({ action: 'buy_base_premium' }),
+              },
+            ]
+          : [
+              {
+                text: t('Получить триал'),
+                callback_data: JSON.stringify({ action: 'get_trial' }),
+              },
+            ],
       ],
     };
   }
