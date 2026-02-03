@@ -10,7 +10,7 @@ import { handleRegistration } from 'bot/handlers/callbacks/registration';
 import { handleAddLinkKufar } from 'bot/handlers/callbacks/addLinkKufar';
 import { handleChangeLanguage } from 'bot/handlers/callbacks/changeLanguage';
 import { handleChooseTariff } from 'bot/handlers/callbacks/chooseTariff';
-import { handleBuyPremium } from 'bot/handlers/callbacks/buyPremium';
+import { handleBuyMainPremium } from 'bot/handlers/callbacks/buyMainPremium';
 import { handleObserveKufar } from 'bot/handlers/callbacks/observeKufar';
 import { handleChangeUrlStatus } from 'bot/handlers/callbacks/changeUrlStatus';
 import { handleWrapperForLink } from 'bot/handlers/callbacks/wrapperForLink';
@@ -22,8 +22,8 @@ import { handleOpenQuestionFaq } from 'bot/handlers/callbacks/openQuestionFaq';
 import { getDailyBonus } from 'bot/handlers/callbacks/getDailyBonus';
 import { handleBuyBonus } from 'bot/handlers/callbacks/buyBonus';
 import { handleChooseRate } from 'bot/handlers/callbacks/chooseRate';
-import { handleBuyPremiumWithBonuses } from 'bot/handlers/callbacks/buyPremiumWithBonuses';
 import { handlePlayGame } from 'bot/handlers/callbacks/playGame';
+import { handleBuyBasePremium } from 'bot/handlers/callbacks/buyBasePremium';
 import { handleChoiceGame } from 'bot/handlers/callbacks/choiceGame';
 import { checkStatusOfDailyActivities } from 'config/lib/helpers/checkStatusOfDailyActivities';
 import { getDataWallet } from 'config/lib/helpers/getDataWallet';
@@ -35,11 +35,16 @@ import { tariffData } from 'constants/tariffs';
 import cache from 'config/redis/redisService';
 import { deleteMessage } from 'config/lib/helpers/deleteMessage';
 import { pause } from 'config/lib/helpers/pause';
+import { handleBuyPremium } from './handlers/callbacks/buyPremium';
+import { baseTariff } from 'constants/baseTariff';
+import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
 
 export default async (): Promise<void> => {
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, id: callbackQueryId, message } = query;
     const chatId = from.id;
+    const premium = await db.getDataPremium(chatId);
+    const statusPremium = premium?.status;
     const isRegistered = await db.getUser(chatId);
     const isBlocked = await db.isUserBlocked(chatId);
     if (isBlocked) {
@@ -124,7 +129,73 @@ export default async (): Promise<void> => {
         break;
       }
       case 'buy_premium': {
-        await handleBuyPremium(chatId, messageId, callbackQueryId);
+        await handleBuyPremium(
+          chatId,
+          messageId,
+          callbackQueryId,
+          statusPremium,
+          {
+            buyMain: 'buy_main_premium',
+            buyBase: 'buy_base_premium',
+            back: 'back_premium',
+          },
+          'choose_tariff',
+        );
+        break;
+      }
+      case 'buy_main_premium': {
+        await handleBuyMainPremium(
+          chatId,
+          messageId,
+          callbackQueryId,
+          'choose_tariff',
+          'buy_premium',
+        );
+        break;
+      }
+      case 'buy_base_premium': {
+        await handleBuyBasePremium(chatId, messageId, callbackQueryId);
+        break;
+      }
+      case 'buy_main_premium_with_bonuses': {
+        await handleBuyMainPremium(
+          chatId,
+          messageId,
+          callbackQueryId,
+          'payment_with_bonuses',
+          'back_store',
+        );
+        break;
+      }
+      case 'buy_base_premium_with_bonuses': {
+        await i18next.changeLanguage(language);
+        await editMessage(
+          chatId,
+          messageId,
+          `${t('Cообщение для базовой подписки')}\n\n👍 ${t('Всего')} за <b>50 ${t('Бонусов')}</b> ${t('Подпись к базовой подписке')}`,
+          callbackQueryId,
+          {
+            inline_keyboard: [
+              [
+                {
+                  text: `✅ ${t('Подтвердить')}`,
+                  callback_data: JSON.stringify({
+                    action: 'approve_payment_with_bonuses',
+                    param: 0,
+                  }),
+                },
+              ],
+              [
+                {
+                  text: t('Назад'),
+                  callback_data: JSON.stringify({
+                    action: 'buy_premium_with_bonuses',
+                  }),
+                },
+              ],
+            ],
+          },
+        );
         break;
       }
       case 'choose_tariff': {
@@ -226,11 +297,6 @@ export default async (): Promise<void> => {
           messageId,
           t('Отклонить удаление'),
           callbackQueryId,
-        );
-        await sendMessage(
-          chatId,
-          t('Сообщение об отслеживании'),
-          keyboards.Observe(),
         );
         break;
       }
@@ -334,7 +400,18 @@ export default async (): Promise<void> => {
         break;
       }
       case 'buy_premium_with_bonuses': {
-        await handleBuyPremiumWithBonuses(chatId, messageId, callbackQueryId);
+        await handleBuyPremium(
+          chatId,
+          messageId,
+          callbackQueryId,
+          statusPremium,
+          {
+            buyMain: 'buy_main_premium_with_bonuses',
+            buyBase: 'buy_base_premium_with_bonuses',
+            back: 'back_store',
+          },
+          'payment_with_bonuses',
+        );
         break;
       }
       case 'buy_try_to_play_game': {
@@ -368,7 +445,7 @@ export default async (): Promise<void> => {
       }
       case 'payment_with_bonuses': {
         await i18next.changeLanguage(language);
-        const order = tariffData[callbackData.param];
+        const order = tariffData[callbackData.param - 1];
         const newMessage = `<b>${t(order.name)}</b>\n${t('Подписка')} на <b>${order.quantityOfDays} ${t('Дней')}</b> - <b>${order.amount / 10}</b> ${t('Бонусов')}`;
         await editMessage(chatId, messageId, newMessage, callbackQueryId, {
           inline_keyboard: [
@@ -396,7 +473,10 @@ export default async (): Promise<void> => {
       case 'approve_payment_with_bonuses': {
         await i18next.changeLanguage(language);
         const wallet = await db.getWallet(chatId);
-        const { quantityOfDays, amount } = tariffData[callbackData.param];
+        const fullTariffData = [baseTariff, ...tariffData];
+        const { quantityOfDays, amount, status } =
+          fullTariffData[callbackData.param];
+        console.log(quantityOfDays, amount);
         if (!wallet || wallet < amount / 10) {
           await editMessage(
             chatId,
@@ -408,7 +488,7 @@ export default async (): Promise<void> => {
           break;
         }
         await db.decrementWallet(chatId, amount / 10);
-        await db.grantPremium(chatId, quantityOfDays);
+        await db.grantPremium(chatId, quantityOfDays, status);
         await editMessage(
           chatId,
           messageId,
@@ -452,6 +532,76 @@ export default async (): Promise<void> => {
           t('Правила игры'),
           callbackQueryId,
           keyboards.Game(),
+        );
+        break;
+      }
+      case 'get_trial': {
+        await i18next.changeLanguage(language);
+        const isTrial = await db.hasUsedTrial(chatId);
+        if (isTrial) {
+          await editMessage(
+            chatId,
+            messageId,
+            t('Триал использован'),
+            callbackQueryId,
+            {
+              inline_keyboard: [
+                [
+                  {
+                    text: t('Получить доступ'),
+                    callback_data: JSON.stringify({ action: 'buy_premium' }),
+                  },
+                ],
+              ],
+            },
+          );
+          break;
+        }
+        await db.trialUsed(chatId);
+        await editMessage(
+          chatId,
+          messageId,
+          t('Триал получен'),
+          callbackQueryId,
+        );
+        await sendMessage(
+          chatId,
+          t('Сообщение об отслеживании'),
+          keyboards.Observe(),
+        );
+        break;
+      }
+      case 'get_trial_from_profile': {
+        await i18next.changeLanguage(language);
+        if (!messageId) {
+          await safeAnswerCallbackQuery(callbackQueryId, {
+            text: t('Ошибка удаления сообщения'),
+            show_alert: true,
+          });
+          break;
+        }
+        const isTrial = await db.hasUsedTrial(chatId);
+        if (isTrial) {
+          await deleteMessage(chatId, messageId, callbackQueryId);
+          await sendMessage(chatId, t('Триал использован'), {
+            inline_keyboard: [
+              [
+                {
+                  text: t('Получить доступ'),
+                  callback_data: JSON.stringify({ action: 'buy_premium' }),
+                },
+              ],
+            ],
+          });
+          break;
+        }
+        await db.trialUsed(chatId);
+        await deleteMessage(chatId, messageId, callbackQueryId);
+        await sendMessage(chatId, t('Триал получен'));
+        await sendMessage(
+          chatId,
+          t('Сообщение об отслеживании'),
+          keyboards.Observe(),
         );
         break;
       }
