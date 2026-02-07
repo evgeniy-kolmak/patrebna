@@ -9,6 +9,7 @@ import {
 import { type Request, type Response } from 'express';
 import i18next, { t } from 'i18next';
 import { TelegramService } from 'config/telegram/telegramServise';
+import { statusDescription } from 'constants/statusDescriptionPremium';
 
 export async function bepaidHandler(
   req: Request,
@@ -33,20 +34,28 @@ export async function bepaidHandler(
 async function handleTransactionWebhook(req: Request): Promise<void> {
   try {
     const { status, tracking_id }: ResponseTransaction = req.body?.transaction;
-    const { userId, quantity, messageId, amount }: ITrackingData =
-      JSON.parse(tracking_id);
+    const {
+      userId,
+      quantity,
+      messageId,
+      amount,
+      status: premiumStatus,
+    }: ITrackingData = JSON.parse(tracking_id);
     await i18next.changeLanguage(await getUserLanguage(userId));
     if (status === StatusTransaction.SUCCESSFUL) {
       if (quantity) {
-        await db.grantPremium(userId, quantity);
-        await db.incrementWallet(userId, amount / 100);
+        const price = amount / 100;
+        await db.grantPremium(userId, quantity, premiumStatus);
+        await db.incrementWallet(userId, price);
         await TelegramService.editMessageText(
           userId,
           messageId,
           t('Сообщение об успехе'),
         );
         await TelegramService.sendMessageToChat(
-          `✅ Пользователь с id: <b>${userId}</b> приобрел премиум на <b>${quantity}</b> дней.`,
+          `✅ Пользователь с id: <b>${userId}</b> приобрел <i>${
+            statusDescription[premiumStatus].title
+          }</i>на <b>${quantity}</b> дней за <b>${price} BYN</b>.`,
         );
       } else {
         const baseAmount = amount / 10;
