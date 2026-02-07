@@ -7,6 +7,8 @@ import keyboards from 'bot/keyboards';
 import { statusDescription } from 'constants/statusDescriptionPremium';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
 import { bot } from 'bot';
+import { sendAccessMessage } from 'config/lib/helpers/sendAccessMessage';
+import { hasPremium } from 'config/lib/helpers/hasPremium';
 
 export const сommandHandlers: ICommandHandler[] = [
   {
@@ -20,14 +22,13 @@ export const сommandHandlers: ICommandHandler[] = [
           referrerId = parsed;
         }
       }
+      const isTrial = await db.hasUsedTrial(userId);
+      const isPremium = await hasPremium(userId);
+
       const isRegistered = await db.getUser(userId);
       await sendMessage(userId, t('Приветствие'), keyboards.Main());
       if (isRegistered) {
-        await sendMessage(
-          userId,
-          t('Сообщение об отслеживании'),
-          keyboards.Observe(),
-        );
+        await sendAccessMessage(userId, isPremium, isTrial);
       } else await notRegistrationMessage(userId, referrerId);
     },
     options: { public: true },
@@ -47,6 +48,7 @@ export const сommandHandlers: ICommandHandler[] = [
       const premium = await db.getDataPremium(userId);
       const status = premium?.status ?? StatusPremium.NONE;
       const endDatePremium = premium?.end_date;
+      const downgradeDatePremium = premium?.downgrade_date;
       const createdAtProfile = premium?.createdAt;
       const options: Intl.DateTimeFormatOptions = {
         day: 'numeric',
@@ -55,13 +57,16 @@ export const сommandHandlers: ICommandHandler[] = [
         timeZone: 'Europe/Minsk',
       };
 
+      const isTrial = await db.hasUsedTrial(userId);
+      const isPremium = await hasPremium(userId);
+
       const dataProfile = [
         `${t('Сообщение для профиля')}`,
         '',
         `<b>${t('ФИО')}</b>: ${profile?.last_name ?? ''} ${profile?.first_name ?? ''}`,
         `${profile?.username ? `<b>${t('Псевдоним')}</b>: ${profile?.username ?? ''}` : ''}`,
         `<b>${t('Дата регистрации')}</b>: ${createdAtProfile ? `<i>${new Date(createdAtProfile).toLocaleDateString('ru-RU', options)}</i>` : t('Недавно')}`,
-        `<b>${t('Подписка')}</b>: ${t(statusDescription[status].title)} ${status === StatusPremium.ACTIVE && endDatePremium ? `${t('До')} <i>${new Date(endDatePremium).toLocaleDateString('ru-RU', options)}</i>` : ''}`,
+        `<b>${t('Подписка')}</b>: ${t(statusDescription[status]?.title)} ${isPremium && endDatePremium ? `${t('До')} <i>${new Date(downgradeDatePremium ?? endDatePremium).toLocaleDateString('ru-RU', options)}</i>` : ''}`,
         `<b>${t('Подписка на канал')}</b>: ${profile?.subscribeToChannel ? '☑️' : '✖️'}`,
         `<b>${t('Количество рефералов')}</b>: ${profile?.referrals?.length}`,
         `<b>${t('Бонусы')}</b>: ${profile?.wallet ?? 0}`,
@@ -72,7 +77,11 @@ export const сommandHandlers: ICommandHandler[] = [
       });
 
       if (!total_count || !photos?.length) {
-        await sendMessage(userId, dataProfile, keyboards.Profile());
+        await sendMessage(
+          userId,
+          dataProfile,
+          keyboards.Profile(isTrial || isPremium),
+        );
         return;
       }
 
@@ -81,7 +90,7 @@ export const сommandHandlers: ICommandHandler[] = [
       await sendPhoto(
         userId,
         dataProfile,
-        keyboards.Profile(),
+        keyboards.Profile(isTrial || isPremium),
         bestQuality.file_id,
       );
     },
@@ -89,11 +98,9 @@ export const сommandHandlers: ICommandHandler[] = [
   {
     regex: /Отслеживать|Адсочваць/,
     handler: async (userId: number) => {
-      await sendMessage(
-        userId,
-        t('Сообщение об отслеживании'),
-        keyboards.Observe(),
-      );
+      const isTrial = await db.hasUsedTrial(userId);
+      const isPremium = await hasPremium(userId);
+      await sendAccessMessage(userId, isPremium, isTrial);
     },
   },
   {
