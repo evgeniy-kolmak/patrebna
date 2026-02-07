@@ -62,10 +62,11 @@ const userActions = {
     await db.removeUser(userId);
   },
   notification: async (userId: number) => {
+    const isTrial = await db.hasUsedTrial(userId);
     await cache.sendNotificationToBot({
       userId,
       text: t('Сообщение для неактивных пользователей'),
-      keyboard: keyboards.Observe(),
+      keyboard: keyboards.Trial(isTrial),
     });
   },
 };
