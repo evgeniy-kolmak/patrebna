@@ -18,6 +18,11 @@ const ActivitySchema = new Schema(
       default: [],
       validate: uniqueArrayValidator,
     },
+    usedTrialIds: {
+      type: [Number],
+      default: [],
+      validate: uniqueArrayValidator,
+    },
   },
   {
     versionKey: false,

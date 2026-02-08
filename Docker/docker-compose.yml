@@ -4,8 +4,13 @@ services:
     build: 
       context: ../
       dockerfile: ./Docker/bot/Dockerfile
+    environment:
+      - TZ=Europe/Moscow
     image: bot
     container_name: bot
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     restart: always
     ports:
       - "8443:8443"
@@ -23,8 +28,13 @@ services:
     build: 
       context: ../
       dockerfile: ./Docker/parser/Dockerfile
+    environment:
+      - TZ=Europe/Moscow
     image: parser
     container_name: parser
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     restart: always
     ports:
       - "3001:3001"
@@ -42,8 +52,13 @@ services:
     build:
       context: ../
       dockerfile: ./Docker/api/Dockerfile
+    environment:
+      - TZ=Europe/Moscow  
     image: api
     container_name: api
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     restart: always
     ports:
       - "443:3000"

@@ -60,6 +60,13 @@ export enum Languages {
   Russian = 'ru',
   Belarusian = 'by',
 }
+export interface IPremiumActions {
+  buyMain: string;
+  buyBase: string;
+  back: string;
+}
+export type TariffActions = 'choose_tariff' | 'payment_with_bonuses';
+export type BackAction = 'back_store' | 'buy_premium';
 
 export interface IButton {
   text: string;
@@ -99,7 +106,8 @@ export interface ICallbackData {
 }
 
 export enum StatusPremium {
-  ACTIVE = 'active',
+  MAIN = 'main',
+  BASE = 'base',
   EXPIRED = 'expired',
   NONE = 'none',
 }
@@ -107,6 +115,7 @@ export enum StatusPremium {
 export interface IPremium {
   status: StatusPremium;
   end_date?: Date;
+  downgrade_date?: Date;
 }
 
 export interface IOrder {
@@ -116,6 +125,7 @@ export interface IOrder {
   description: string;
   amount: number;
   messageForBot: string;
+  status: StatusPremium;
 }
 
 export interface ResponseTransaction {
@@ -133,6 +143,7 @@ export interface ITrackingData {
   messageId: number;
   quantity?: number;
   amount: number;
+  status: StatusPremium;
 }
 
 export enum StatusTransaction {
@@ -217,6 +228,13 @@ export interface INotification {
   url: string;
   image: string;
   caption: string;
+}
+
+export interface IPremiumTransitionConfig {
+  findStatus: StatusPremium[];
+  dateField: 'end_date' | 'downgrade_date';
+  newStatus: StatusPremium;
+  unsetField?: 'downgrade_date';
 }
 
 export type ParameterMap = Partial<Record<AdParameters, any>>;

@@ -5,15 +5,21 @@ const PremiumSchema = new Schema(
   {
     status: {
       type: String,
-      enum: [StatusPremium.ACTIVE, StatusPremium.EXPIRED, StatusPremium.NONE],
+      enum: Object.values(StatusPremium),
       default: StatusPremium.NONE,
       required: true,
     },
     end_date: {
       type: Date,
       required: function (this: IPremium) {
-        return this.status === StatusPremium.ACTIVE;
+        return (
+          this.status === StatusPremium.MAIN ||
+          this.status === StatusPremium.BASE
+        );
       },
+    },
+    downgrade_date: {
+      type: Date,
     },
   },
   {

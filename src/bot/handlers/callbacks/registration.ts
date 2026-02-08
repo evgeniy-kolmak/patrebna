@@ -11,29 +11,30 @@ import { Activity } from 'config/db/models/Activity';
 import cache from 'config/redis/redisService';
 
 export async function handleRegistration(
-  chatId: number,
+  userId: number,
   from: User,
   messageId: number | undefined,
   callbackData: ICallbackData,
   callbackQueryId: string,
 ): Promise<void> {
-  await i18next.changeLanguage(await getUserLanguage(chatId));
-  const isRegistred = await db.getUser(chatId);
-
+  await i18next.changeLanguage(await getUserLanguage(userId));
+  const isRegistred = await db.getUser(userId);
+  const isTrial = await db.hasUsedTrial(userId);
   if (!isRegistred) {
-    const lockKey = `registering:${chatId}`;
+    const lockKey = `registering:${userId}`;
     const isLocked = await cache.setCacheNotExists(lockKey, true);
     if (!isLocked) {
-      if (messageId) await deleteMessage(chatId, messageId, callbackQueryId);
+      if (messageId) await deleteMessage(userId, messageId, callbackQueryId);
       return;
     }
+
     try {
       const isChannelSubscriptionRewarded = await Activity.exists({
-        userIdsSubscribedToChannel: chatId,
+        userIdsSubscribedToChannel: userId,
       });
 
       if (callbackData?.param)
-        await db.tryAddReferralWithBonus(chatId, callbackData?.param as number);
+        await db.tryAddReferralWithBonus(userId, callbackData?.param as number);
 
       const { username, first_name, last_name } = from;
       const profile: IProfile = {
@@ -43,21 +44,22 @@ export async function handleRegistration(
         subscribeToChannel: Boolean(isChannelSubscriptionRewarded),
         premium: { status: StatusPremium.NONE },
       };
-      await db.setUser(chatId, profile);
+      await db.setUser(userId, profile);
       await editMessage(
-        chatId,
+        userId,
         messageId,
         t('Успех регистрации'),
         callbackQueryId,
       );
+
       await sendMessage(
-        chatId,
-        t('Сообщение об отслеживании'),
-        keyboards.Observe(),
+        userId,
+        isTrial ? t('Триал использован') : t('Триал  сообщение'),
+        keyboards.Trial(isTrial),
       );
     } catch (error) {
       console.error(error);
-      await sendMessage(chatId, t('Ошибка регистрации'), {
+      await sendMessage(userId, t('Ошибка регистрации'), {
         inline_keyboard: [
           [
             {
@@ -72,11 +74,11 @@ export async function handleRegistration(
     }
   } else {
     await editMessage(
-      chatId,
+      userId,
       messageId,
       t('Пользователь уже зарегистрирован'),
       callbackQueryId,
-      keyboards.Observe(),
+      keyboards.Trial(isTrial),
     );
   }
 }

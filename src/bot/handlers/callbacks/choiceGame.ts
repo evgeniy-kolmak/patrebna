@@ -9,6 +9,7 @@ import { getSecondsUntilEndOfDay } from 'config/lib/helpers/getSecondsUntilEndOf
 import cache from 'config/redis/redisService';
 import { pause } from 'config/lib/helpers/pause';
 import { sendMessage } from 'config/lib/helpers/sendMessage';
+import { StatusPremium } from 'config/types';
 
 export async function handleChoiceGame(
   userId: number,
@@ -41,7 +42,7 @@ export async function handleChoiceGame(
   await cache.setCache(key, true, ttlSec);
   await pause(3000);
   if (callbackData?.param === message?.dice?.value) {
-    await db.grantPremium(userId, 1);
+    await db.grantPremium(userId, 1, StatusPremium.MAIN);
     await sendMessage(userId, t('Выигрыш'));
   } else {
     await sendMessage(userId, t('Проигрыш'));

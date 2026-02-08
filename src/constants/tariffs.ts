@@ -1,4 +1,4 @@
-import { type IOrder } from 'config/types';
+import { StatusPremium, type IOrder } from 'config/types';
 
 export const tariffData: IOrder[] = [
   {
@@ -8,6 +8,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для пробного',
     description: 'Доступ к премиум-подписке на 1 день',
     amount: 300,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 2,
@@ -16,6 +17,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для начального',
     description: 'Доступ к премиум-подписке на 3 дня.',
     amount: 700,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 3,
@@ -24,6 +26,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для базового',
     description: 'Доступ к премиум-подписке на 7 дней.',
     amount: 1200,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 4,
@@ -32,6 +35,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для стандартного',
     description: 'Доступ к премиум-подписке на 15 дней.',
     amount: 1800,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 5,
@@ -40,6 +44,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для оптимального',
     description: 'Доступ к премиум-подписке на 30 дней.',
     amount: 2500,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 6,
@@ -48,6 +53,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для расширенного',
     description: 'Доступ к премиум-подписке на 90 дней.',
     amount: 7000,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 7,
@@ -56,6 +62,7 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для долгосрочного',
     description: 'Доступ к премиум-подписке на 180 дней.',
     amount: 12000,
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 8,
@@ -64,5 +71,6 @@ export const tariffData: IOrder[] = [
     messageForBot: 'Cообщение для годового',
     description: 'Доступ к премиум-подписке на 365 дней.',
     amount: 23000,
+    status: StatusPremium.MAIN,
   },
 ];

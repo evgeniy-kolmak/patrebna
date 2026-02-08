@@ -1,4 +1,4 @@
-import { type IOrder } from 'config/types';
+import { StatusPremium, type IOrder } from 'config/types';
 
 export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
   {
@@ -7,6 +7,7 @@ export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
     description: 'Пополнение кошелька на 10 бонусов.',
     amount: 100,
     messageForBot: 'Бонус 10',
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 2,
@@ -14,6 +15,7 @@ export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
     description: 'Пополнение кошелька на 50 бонусов.',
     amount: 500,
     messageForBot: 'Бонус 50',
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 3,
@@ -21,6 +23,7 @@ export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
     description: 'Пополнение кошелька на 100 бонусов.',
     amount: 1000,
     messageForBot: 'Бонус 100',
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 4,
@@ -28,6 +31,7 @@ export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
     description: 'Пополнение кошелька на 250 бонусов.',
     amount: 2500,
     messageForBot: 'Бонус 250',
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 5,
@@ -35,6 +39,7 @@ export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
     description: 'Пополнение кошелька на 500 бонусов.',
     amount: 5000,
     messageForBot: 'Бонус 500',
+    status: StatusPremium.MAIN,
   },
   {
     orderId: 6,
@@ -42,5 +47,6 @@ export const ratesData: Array<Omit<IOrder, 'quantityOfDays'>> = [
     description: 'Пополнение кошелька на 1000 бонусов.',
     amount: 10000,
     messageForBot: 'Бонус 1000',
+    status: StatusPremium.MAIN,
   },
 ];

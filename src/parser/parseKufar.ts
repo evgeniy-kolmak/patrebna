@@ -30,7 +30,7 @@ export async function parseKufar(
           const newAds = await db.addUniqueAds(userId, data, urlId);
 
           if (!newAds.length) return;
-          if (status === StatusPremium.ACTIVE) {
+          if (status === StatusPremium.MAIN) {
             for (const ad of newAds as Array<
               IExtendedAd & { description: string }
             >) {
@@ -45,7 +45,7 @@ export async function parseKufar(
             userId,
             newAds,
             key:
-              status === StatusPremium.ACTIVE
+              status === StatusPremium.MAIN
                 ? 'bot_queue_extended_ads'
                 : 'bot_queue_ads',
           });
