@@ -17,6 +17,7 @@ import {
   type IParserData,
   type IPremium,
   type IPremiumTransitionConfig,
+  type ActivePremiumStatus,
 } from 'config/types';
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
 import dataParserStream from 'config/db/stream/usersParse';
@@ -171,7 +172,11 @@ class DatabaseService {
     return userIds;
   }
 
-  async grantPremium(userId: number, days: number, status: StatusPremium) {
+  async grantPremium(
+    userId: number,
+    days: number,
+    status: ActivePremiumStatus,
+  ) {
     const premium = await this.getDataPremium(userId);
     const user = await getUser(userId);
     const now = new Date();

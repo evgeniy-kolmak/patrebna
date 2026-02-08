@@ -1,15 +1,21 @@
 import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import {
+  type ActivePremiumStatus,
   StatusTransaction,
   type ITrackingData,
   type ResponseTransaction,
   type ResponseOrder,
+  StatusPremium,
 } from 'config/types';
 import { type Request, type Response } from 'express';
 import i18next, { t } from 'i18next';
 import { TelegramService } from 'config/telegram/telegramServise';
-import { statusDescription } from 'constants/statusDescriptionPremium';
+
+const premiumTitle: Record<ActivePremiumStatus, string> = {
+  [StatusPremium.MAIN]: '⭐️ Основную подписку',
+  [StatusPremium.BASE]: '📦 Базовую подписку',
+};
 
 export async function bepaidHandler(
   req: Request,
@@ -53,9 +59,9 @@ async function handleTransactionWebhook(req: Request): Promise<void> {
           t('Сообщение об успехе'),
         );
         await TelegramService.sendMessageToChat(
-          `✅ Пользователь с id: <b>${userId}</b> приобрел <i>${
-            statusDescription[premiumStatus].title
-          }</i>на <b>${quantity}</b> дней за <b>${price} BYN</b>.`,
+          `✅ Пользователь с id: <b>${userId}</b> приобрел <b>«${
+            premiumTitle[premiumStatus]
+          }»</b> на <b>${quantity}</b> дней за <b>${price} BYN</b>.`,
         );
       } else {
         const baseAmount = amount / 10;

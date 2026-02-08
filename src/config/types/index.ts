@@ -137,13 +137,17 @@ export interface ResponseOrder {
   description: string;
   amount: number;
 }
+export type ActivePremiumStatus = Exclude<
+  StatusPremium,
+  StatusPremium.EXPIRED | StatusPremium.NONE
+>;
 
 export interface ITrackingData {
   userId: number;
   messageId: number;
   quantity?: number;
   amount: number;
-  status: StatusPremium;
+  status: ActivePremiumStatus;
 }
 
 export enum StatusTransaction {
