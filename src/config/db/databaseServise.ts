@@ -193,16 +193,21 @@ class DatabaseService {
       end_date: endDate,
     };
 
-    const shouldUpdateDowngrade =
-      status === StatusPremium.MAIN &&
-      (premium?.status === StatusPremium.BASE ||
-        premium?.status === StatusPremium.MAIN);
+    const isMain = status === StatusPremium.MAIN;
+    const wasBase = premium?.status === StatusPremium.BASE;
+    const wasMain = premium?.status === StatusPremium.MAIN;
+    const hasDowngradeDate = premium?.downgrade_date;
 
-    if (shouldUpdateDowngrade) {
-      const downgradeAt = new Date(now);
-      downgradeAt.setDate(downgradeAt.getDate() + days);
+    const shouldCreateDowngrade = isMain && wasBase;
+    const shouldUpdateDowngrade = isMain && wasMain && hasDowngradeDate;
 
-      update.downgrade_date = downgradeAt;
+    if (shouldCreateDowngrade || shouldUpdateDowngrade) {
+      const baseDate = hasDowngradeDate
+        ? new Date(hasDowngradeDate)
+        : new Date(now);
+
+      baseDate.setDate(baseDate.getDate() + days);
+      update.downgrade_date = baseDate;
     }
 
     await Premium.findOneAndUpdate({ _id: premium?._id }, update, {
