@@ -125,7 +125,7 @@ export interface IOrder {
   description: string;
   amount: number;
   messageForBot: string;
-  status: StatusPremium;
+  status: ActivePremiumStatus;
 }
 
 export interface ResponseTransaction {

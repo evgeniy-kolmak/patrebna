@@ -476,7 +476,6 @@ export default async (): Promise<void> => {
         const fullTariffData = [baseTariff, ...tariffData];
         const { quantityOfDays, amount, status } =
           fullTariffData[callbackData.param];
-        console.log(quantityOfDays, amount);
         if (!wallet || wallet < amount / 10) {
           await editMessage(
             chatId,
