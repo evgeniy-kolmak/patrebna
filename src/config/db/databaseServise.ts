@@ -12,18 +12,20 @@ import {
   type IAd,
   type IProfile,
   type IDataParserItem,
-  type IExtendedDataParserItem,
   StatusPremium,
   type IParserData,
   type IPremium,
   type IPremiumTransitionConfig,
   type ActivePremiumStatus,
+  OperationType,
 } from 'config/types';
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
-import dataParserStream from 'config/db/stream/usersParse';
 import cache from 'config/redis/redisService';
 import { getUser } from 'config/lib/helpers/getUser';
 import { TelegramService } from 'config/telegram/telegramServise';
+import { updateUserCache } from 'config/lib/helpers/updateUserCache';
+import { addUserIdToCache } from 'config/lib/helpers/addUserIdToCache';
+import { removeUserIdFromCache } from 'config/lib/helpers/removeUserIdFromCache';
 
 class DatabaseService {
   private readonly url: string;
@@ -44,7 +46,6 @@ class DatabaseService {
     );
     connect.once('open', () => {
       console.log('Успешное подключение к базе данных.');
-      dataParserStream();
     });
 
     await mongoose.connect(this.url, {
@@ -55,7 +56,6 @@ class DatabaseService {
       tls: true,
       dbName: 'patrebna',
       authSource: 'admin',
-      replicaSet: 'rs0',
       tlsAllowInvalidCertificates: true,
       tlsCertificateKeyFile: './certs/client.pem',
       serverSelectionTimeoutMS: 60000,
@@ -235,6 +235,7 @@ class DatabaseService {
         );
       }
     }
+    await addUserIdToCache(userId);
     await cache.setCache(`user:${userId}`, { ...user, status }, this.TTL);
   }
 
@@ -297,10 +298,11 @@ class DatabaseService {
   async getUserForParse(userId: number): Promise<IParserData> {
     const premium = await this.getDataPremium(userId);
     const dataParser = await this.getDataParser(userId);
-    const extendedUrls: IExtendedDataParserItem[] = dataParser?.urls.toObject();
-    const urls = extendedUrls?.map(
-      ({ _id, ...rest }) => rest as IDataParserItem,
-    );
+    const extendedUrls = dataParser?.urls.map((u) => u.toObject());
+
+    const urls: IDataParserItem[] =
+      extendedUrls?.map(({ _id, ...rest }) => rest) ?? [];
+
     return {
       urls,
       status: premium?.status ?? StatusPremium.NONE,
@@ -361,10 +363,8 @@ class DatabaseService {
           await cache.setCache('languages', updatedLanguages, this.TTL);
         }
       }
-      if (cacheUsers) {
-        const userIds: number[] = JSON.parse(cacheUsers);
-        const filteredUsers = userIds.filter((userId) => userId !== id);
-        await cache.setCache('ids', filteredUsers, this.TTL);
+      if (cacheUsers && cacheUsers !== '[]') {
+        await removeUserIdFromCache(id);
         await TelegramService.sendMessageToChat(
           `${[
             `🗑️ Пользователь с id: <b>${id}</b> был удален`,
@@ -397,6 +397,10 @@ class DatabaseService {
     if (!dataParser) {
       const newDataParser = await DataParser.create({ urls: [dataParserItem] });
       await parser?.updateOne({ 'kufar.dataParser': newDataParser._id });
+      await updateUserCache(userId, {
+        type: OperationType.INSERT,
+        url: dataParserItem,
+      });
     } else {
       const updatedUrls = dataParser.urls.map((u) =>
         u.urlId === urlId ? dataParserItem : u,
@@ -414,6 +418,11 @@ class DatabaseService {
       if (dataParser.urls.some((u) => u.urlId === urlId)) {
         await this.removeKufarAdsByUrlId(userId, urlId);
       }
+
+      await updateUserCache(userId, {
+        type: OperationType.UPDATE,
+        url: dataParserItem,
+      });
     }
 
     await this.addUniqueAds(userId, dataUrl, urlId);
@@ -438,6 +447,13 @@ class DatabaseService {
       { new: true },
     );
     const updatedUrl = updatedParser?.urls.find((url) => url.urlId === urlId);
+    if (!updatedUrl) return;
+
+    const { _id, ...cleanUrl } = updatedUrl.toObject();
+    await updateUserCache(userId, {
+      type: OperationType.UPDATE,
+      url: cleanUrl,
+    });
     return updatedUrl?.isActive;
   }
 
@@ -476,27 +492,35 @@ class DatabaseService {
         { 'kufar.dataParser': dataParser._id },
         { $unset: { 'kufar.dataParser': '' } },
       );
-    } else
+      await updateUserCache(userId, { type: OperationType.DELETE });
+    } else {
       await DataParser.updateOne({ _id: dataParser._id }, { $set: { urls } });
+      const cleanUrls = urls.map(({ _id, ...rest }) => rest);
+      await updateUserCache(userId, {
+        type: OperationType.REPLACE_ALL,
+        urls: cleanUrls,
+      });
+      await this.removeKufarAdsByUrlId(userId, urlId);
 
-    await this.removeKufarAdsByUrlId(userId, urlId);
+      const updatedParser = await this.getParser(userId);
 
-    const updatedParser = await this.getParser(userId);
-
-    await Parser.updateOne(
-      { _id: updatedParser?._id },
-      {
-        $set: {
-          'kufar.kufarAds': updatedParser?.kufar?.kufarAds.map((ad, index) => ({
-            ...ad.toObject(),
-            urlId:
-              statusPremium?.status === StatusPremium.MAIN
-                ? index + 1
-                : ad.urlId,
-          })),
+      await Parser.updateOne(
+        { _id: updatedParser?._id },
+        {
+          $set: {
+            'kufar.kufarAds': updatedParser?.kufar?.kufarAds.map(
+              (ad, index) => ({
+                ...ad.toObject(),
+                urlId:
+                  statusPremium?.status === StatusPremium.MAIN
+                    ? index + 1
+                    : ad.urlId,
+              }),
+            ),
+          },
         },
-      },
-    );
+      );
+    }
   }
 
   async addUniqueAds(id: number, parseAds: IAd[], urlId: number) {
