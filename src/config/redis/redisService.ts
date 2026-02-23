@@ -66,6 +66,10 @@ class RedisService {
   async removeCache(key: string): Promise<number> {
     return await this.redis.del(key);
   }
+
+  async getTTL(key: string): Promise<number> {
+    return await this.redis.ttl(key);
+  }
 }
 
 const cache = new RedisService();

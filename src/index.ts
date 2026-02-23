@@ -4,10 +4,11 @@ import { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import cache from 'config/redis/redisService';
 import { scheduleJob } from 'node-schedule';
-import { StatusPremium, UserActions } from 'config/types';
+import { OperationType, StatusPremium, UserActions } from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
 import { getUser } from 'config/lib/helpers/getUser';
 import { parseKufar } from 'parser/parseKufar';
+import { updateUserCache } from 'config/lib/helpers/updateUserCache';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
 import keyboards from 'bot/keyboards';
 
@@ -39,6 +40,7 @@ void (async () => {
     if (expiredUserIds.length) {
       for (const id of expiredUserIds) {
         await notificationOfExpiredPremium(id, t('Подписка уже закончилась'));
+        await updateUserCache(id, { type: OperationType.DELETE });
       }
     }
     const expiredUserSoonIds = await db.expirePremiumSoon();
@@ -101,6 +103,7 @@ async function scheduleParsing(
     const usersWithStatus = await Promise.all(
       userIds.map(async (userId) => {
         const user = await getUser(userId);
+        await cache.setCache(`user:${userId}`, { ...user }, 43200);
         return { userId, ...user };
       }),
     );
