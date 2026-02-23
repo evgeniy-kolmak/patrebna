@@ -28,10 +28,6 @@ export interface IDataParserItem {
   isActive: boolean;
 }
 
-export interface IExtendedDataParserItem {
-  _id: string;
-}
-
 export interface IParserData {
   urls: IDataParserItem[];
   status: StatusPremium;
@@ -87,8 +83,15 @@ export enum Button {
 export enum OperationType {
   INSERT = 'insert',
   UPDATE = 'update',
+  REPLACE_ALL = 'replace_all',
   DELETE = 'delete',
 }
+
+export type UpdateUserCacheAction =
+  | { type: OperationType.INSERT; url: IDataParserItem }
+  | { type: OperationType.UPDATE; url: IDataParserItem }
+  | { type: OperationType.REPLACE_ALL; urls: IDataParserItem[] }
+  | { type: OperationType.DELETE };
 
 export enum UserActions {
   REMOVE = 'remove',
