@@ -1,10 +1,12 @@
 import db from 'config/db/databaseServise';
 import cache from 'config/redis/redisService';
+import { type IParserData } from 'config/types';
 
 export async function rebuildUserCache(
   userId: number,
   TTL: number,
-): Promise<void> {
+): Promise<IParserData> {
   const user = await db.getUserForParse(userId);
   await cache.setCache(`user:${userId}`, user, TTL);
+  return user;
 }

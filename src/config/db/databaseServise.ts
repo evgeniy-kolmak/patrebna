@@ -31,7 +31,6 @@ class DatabaseService {
   private readonly url: string;
   private readonly TTL: number;
   constructor() {
-    this.TTL = 43200;
     this.url = `mongodb://mongodb:27017/`;
   }
 
@@ -127,14 +126,6 @@ class DatabaseService {
     });
 
     for (const userId of userIds) {
-      const user = await getUser(userId);
-
-      await cache.setCache(
-        `user:${userId}`,
-        { ...user, status: config.newStatus },
-        this.TTL,
-      );
-
       const dataParser = await this.getDataParser(userId);
       if (!dataParser) continue;
 
@@ -151,6 +142,18 @@ class DatabaseService {
       await DataParser.findOneAndUpdate(
         { _id: dataParser._id },
         { $set: { urls: updatedUrls } },
+      );
+
+      const KEY = `user:${userId}`;
+      const currentTTL = await cache.getTTL(KEY);
+      const cacheUser = await cache.getCache(KEY);
+      if (!cacheUser || currentTTL === -2) continue;
+      const userDataFromCache: IParserData = JSON.parse(cacheUser);
+
+      await cache.setCache(
+        KEY,
+        { ...userDataFromCache, status: config.newStatus },
+        currentTTL,
       );
     }
 
@@ -235,8 +238,14 @@ class DatabaseService {
         );
       }
     }
+    const KEY = `user:${userId}`;
     await addUserIdToCache(userId);
-    await cache.setCache(`user:${userId}`, { ...user, status }, this.TTL);
+    const currentTTL = await cache.getTTL(KEY);
+    await cache.setCache(
+      KEY,
+      { ...user, status },
+      currentTTL !== -2 ? currentTTL : 43200,
+    );
   }
 
   async trialUsed(userId: number) {
@@ -360,7 +369,11 @@ class DatabaseService {
         const parsedLanguages = JSON.parse(cacheLanguages);
         if (parsedLanguages[id]) {
           const { [id]: _, ...updatedLanguages } = parsedLanguages;
-          await cache.setCache('languages', updatedLanguages, this.TTL);
+          await cache.setCache(
+            'languages',
+            updatedLanguages,
+            60 * 60 * 24 * 30,
+          );
         }
       }
       if (cacheUsers && cacheUsers !== '[]') {

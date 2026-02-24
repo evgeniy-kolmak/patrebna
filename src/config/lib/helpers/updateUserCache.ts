@@ -13,12 +13,15 @@ export async function updateUserCache(
   action: UpdateUserCacheAction,
 ): Promise<void> {
   const TTL = 43200;
+  const KEY = `user:${userId}`;
+  const currentTTL = await cache.getTTL(KEY);
+  const cacheUser = await cache.getCache(KEY);
   const { type } = action;
-  const cacheUser = await cache.getCache(`user:${userId}`);
   switch (type) {
     case OperationType.INSERT: {
       await addUserIdToCache(userId);
-      if (!cacheUser) {
+
+      if (!cacheUser || currentTTL === -2) {
         await rebuildUserCache(userId, TTL);
         return;
       }
@@ -26,14 +29,14 @@ export async function updateUserCache(
       const parserData: IParserData = JSON.parse(cacheUser);
       parserData.urls ??= [];
       parserData.urls.push(action.url);
-      await cache.setCache(`user:${userId}`, parserData, TTL);
+      await cache.setCache(KEY, parserData, currentTTL);
       break;
     }
 
     case OperationType.UPDATE: {
       await addUserIdToCache(userId);
 
-      if (!cacheUser) {
+      if (!cacheUser || currentTTL === -2) {
         await rebuildUserCache(userId, TTL);
         return;
       }
@@ -56,13 +59,13 @@ export async function updateUserCache(
 
       parserData.urls[index] = action.url;
 
-      await cache.setCache(`user:${userId}`, parserData, TTL);
+      await cache.setCache(KEY, parserData, currentTTL);
       break;
     }
     case OperationType.REPLACE_ALL: {
       await addUserIdToCache(userId);
 
-      if (!cacheUser) {
+      if (!cacheUser || currentTTL === -2) {
         await rebuildUserCache(userId, TTL);
         return;
       }
@@ -71,12 +74,12 @@ export async function updateUserCache(
 
       parserData.urls = action.urls;
 
-      await cache.setCache(`user:${userId}`, parserData, TTL);
+      await cache.setCache(KEY, parserData, currentTTL);
       break;
     }
     case OperationType.DELETE: {
       await removeUserIdFromCache(userId);
-      await cache.removeCache(`user:${userId}`);
+      await cache.removeCache(KEY);
       break;
     }
   }

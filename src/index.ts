@@ -4,13 +4,18 @@ import { t } from 'i18next';
 import db from 'config/db/databaseServise';
 import cache from 'config/redis/redisService';
 import { scheduleJob } from 'node-schedule';
-import { OperationType, StatusPremium, UserActions } from 'config/types';
+import {
+  type IParserData,
+  OperationType,
+  StatusPremium,
+  UserActions,
+} from 'config/types';
 import { getUserIds } from 'config/lib/helpers/getUserIds';
-import { getUser } from 'config/lib/helpers/getUser';
 import { parseKufar } from 'parser/parseKufar';
 import { updateUserCache } from 'config/lib/helpers/updateUserCache';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
 import keyboards from 'bot/keyboards';
+import { rebuildUserCache } from 'config/lib/helpers/rebuildUserCache';
 
 void (async () => {
   await db.openConnection();
@@ -102,9 +107,16 @@ async function scheduleParsing(
 
     const usersWithStatus = await Promise.all(
       userIds.map(async (userId) => {
-        const user = await getUser(userId);
-        await cache.setCache(`user:${userId}`, { ...user }, 43200);
-        return { userId, ...user };
+        const KEY = `user:${userId}`;
+        const currentTTL = await cache.getTTL(KEY);
+        const cacheUser = await cache.getCache(KEY);
+        if (!cacheUser || currentTTL === -2) {
+          const userDataFromDb = await rebuildUserCache(userId, 43200);
+          return { userId, ...userDataFromDb };
+        }
+        const userDataFromCache: IParserData = JSON.parse(cacheUser);
+
+        return { userId, ...userDataFromCache };
       }),
     );
 
