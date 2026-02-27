@@ -23,7 +23,6 @@ export async function handleChooseTariff(
       userId,
       quantity: quantityOfDays,
       messageId,
-      amount: order.amount,
       status,
     });
     const redirectUrl = await createPayment(order, data);

@@ -17,11 +17,9 @@ export async function handleChooseRate(
     (item) => item.orderId === orderId,
   );
   if (order) {
-    const { amount } = order;
     const data = JSON.stringify({
       userId,
       messageId,
-      amount,
     });
     const redirectUrl = await createPayment(order, data);
     if (redirectUrl) {
