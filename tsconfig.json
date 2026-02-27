@@ -16,6 +16,5 @@
     "require": ["tsconfig-paths/register"]
   },
   "exclude": ["node_modules"],
-  "include": ["**/*.ts"],
-  "files": ["src/config/types/telegram.d.ts"]
+  "include": ["**/*.ts"]
 }
