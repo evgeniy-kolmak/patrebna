@@ -1,81 +1,93 @@
 import db from 'config/db/databaseServise';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import {
-  type ActivePremiumStatus,
   StatusTransaction,
   type ITrackingData,
   type ResponseTransaction,
   type ResponseOrder,
-  StatusPremium,
 } from 'config/types';
 import { type Request, type Response } from 'express';
 import i18next, { t } from 'i18next';
 import { TelegramService } from 'config/telegram/telegramServise';
-
-const premiumTitle: Record<ActivePremiumStatus, string> = {
-  [StatusPremium.MAIN]: '⭐️ Основную подписку',
-  [StatusPremium.BASE]: '📦 Базовую подписку',
-};
+import { submitReceipt } from 'config/lib/helpers/playwright/submitReceipt';
 
 export async function bepaidHandler(
   req: Request,
   res: Response,
 ): Promise<void> {
-  switch (true) {
-    case Boolean(req.body.transaction):
-      await handleTransactionWebhook(req);
-      break;
+  try {
+    res.status(200).json({ status: 'ok' });
+    switch (true) {
+      case Boolean(req.body.transaction):
+        await handleTransactionWebhook(req);
+        break;
 
-    case req.body.status === 'expired':
-      await handleTokenExpiredWebhook(req);
-      break;
+      case req.body.status === 'expired':
+        await handleTokenExpiredWebhook(req);
+        break;
 
-    default:
-      console.info('Неизвестный webhook:', req.body);
+      default:
+        console.info('Неизвестный webhook:', req.body);
+    }
+  } catch (error) {
+    console.error('Ошибка обработки запроса:', error);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
-
-  res.status(200).json({ status: 'ok' });
 }
 
 async function handleTransactionWebhook(req: Request): Promise<void> {
   try {
-    const { status, tracking_id }: ResponseTransaction = req.body?.transaction;
+    const { status, tracking_id, amount, description }: ResponseTransaction =
+      req.body?.transaction;
     const {
       userId,
       quantity,
       messageId,
-      amount,
       status: premiumStatus,
     }: ITrackingData = JSON.parse(tracking_id);
+    const price = amount / 100;
     await i18next.changeLanguage(await getUserLanguage(userId));
     if (status === StatusTransaction.SUCCESSFUL) {
       if (quantity) {
-        const price = amount / 100;
-        await db.grantPremium(userId, quantity, premiumStatus);
+        const endDate = await db.grantPremium(userId, quantity, premiumStatus);
         await db.incrementWallet(userId, price);
-        await TelegramService.editMessageText(
-          userId,
-          messageId,
-          t('Сообщение об успехе'),
-        );
+        const message = `${[
+          `${t('Успешная подписка (title)')} <b>${price}</b> BYN.`,
+          `${t('Успешная подписка (subtitle)')} <b>${endDate.toLocaleDateString('ru-RU')}.</b>`,
+        ].join('\n')}`;
+        await TelegramService.editMessageText(userId, messageId, message);
         await TelegramService.sendMessageToChat(
-          `✅ Пользователь с id: <b>${userId}</b> приобрел <b>«${
-            premiumTitle[premiumStatus]
-          }»</b> на <b>${quantity}</b> дней за <b>${price} BYN</b>.`,
+          `✅ Пользователь с id: <b>${userId}</b> приобрел\n<b>«${description}»</b>.`,
         );
+        try {
+          await submitReceipt(userId, description, price.toString());
+        } catch (error) {
+          await TelegramService.sendMessageToChat(
+            `❌ Ошибка выдачи чека для пользователя с id: <b>${userId}</b>`,
+          );
+          console.error('Ошибка при отправке чека:', error);
+        }
       } else {
         const baseAmount = amount / 10;
         const bonusAmount = Math.ceil(baseAmount * 0.1);
         const totalAmount = baseAmount + bonusAmount;
         await db.incrementWallet(userId, totalAmount);
-        await TelegramService.editMessageText(
-          userId,
-          messageId,
-          t('Сообщение об успехе'),
-        );
+        const message = `${[
+          `${t('Успешная подписка (title)')} <b>${price}</b> BYN.`,
+          `${t('Успешное пополнение (subtitle)')} <b>${totalAmount}</b> ${t('Бонусов')}.`,
+        ].join('\n')}`;
+        await TelegramService.editMessageText(userId, messageId, message);
         await TelegramService.sendMessageToChat(
           `✅ Пользователь с id: <b>${userId}</b> пополнил кошелек на <b>${amount / 10}</b> бонусов.`,
         );
+        try {
+          await submitReceipt(userId, description, price.toString());
+        } catch (error) {
+          await TelegramService.sendMessageToChat(
+            `❌ Ошибка выдачи чека для пользователя с id: <b>${userId}</b>`,
+          );
+          console.error('Ошибка при отправке чека:', error);
+        }
       }
     } else {
       await TelegramService.editMessageText(

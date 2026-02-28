@@ -29,7 +29,6 @@ import { removeUserIdFromCache } from 'config/lib/helpers/removeUserIdFromCache'
 
 class DatabaseService {
   private readonly url: string;
-  private readonly TTL: number;
   constructor() {
     this.url = `mongodb://mongodb:27017/`;
   }
@@ -53,10 +52,10 @@ class DatabaseService {
         password,
       },
       tls: true,
-      dbName: 'patrebna',
-      authSource: 'admin',
       tlsAllowInvalidCertificates: true,
       tlsCertificateKeyFile: './certs/client.pem',
+      dbName: 'patrebna',
+      authSource: 'admin',
       serverSelectionTimeoutMS: 60000,
       socketTimeoutMS: 120000,
     });
@@ -246,6 +245,7 @@ class DatabaseService {
       { ...user, status },
       currentTTL !== -2 ? currentTTL : 43200,
     );
+    return endDate;
   }
 
   async trialUsed(userId: number) {

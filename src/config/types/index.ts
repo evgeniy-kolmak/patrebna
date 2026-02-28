@@ -133,6 +133,8 @@ export interface IOrder {
 
 export interface ResponseTransaction {
   status: StatusTransaction;
+  amount: number;
+  description: string;
   tracking_id: string;
 }
 export interface ResponseOrder {
@@ -149,7 +151,6 @@ export interface ITrackingData {
   userId: number;
   messageId: number;
   quantity?: number;
-  amount: number;
   status: ActivePremiumStatus;
 }
 
