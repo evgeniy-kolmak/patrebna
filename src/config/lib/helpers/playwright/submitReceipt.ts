@@ -15,7 +15,11 @@ export async function submitReceipt(
   const interval = setInterval(() => {
     void TelegramService.sendChatAction(userId);
   }, 4000);
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: '/usr/bin/chromium-browser',
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  });
   const page = await browser.newPage();
   await page.goto(targetUrl);
   await page.click('button[aria-label="Войти в учетную запись"]');
