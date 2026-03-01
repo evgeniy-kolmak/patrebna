@@ -29,7 +29,9 @@ export const TelegramService = {
       });
     } catch (error) {
       if (isTelegramError(error)) {
-        const { error_code, description } = error.response.data;
+        const payload = error.response.data ?? error.response.body;
+        if (!payload) return;
+        const { error_code, description } = payload;
         if (description.includes('Bad Request: message is not modified')) {
           console.log(
             'Сообщение не было изменено, так как содержимое осталось тем же.',
@@ -79,7 +81,11 @@ export const TelegramService = {
       });
     } catch (error) {
       if (isTelegramError(error)) {
-        const { error_code, description } = error.response.data;
+        const payload = error.response.data ?? error.response.body;
+
+        if (!payload) return;
+
+        const { error_code, description } = payload;
         if (
           error_code === 403 ||
           (error_code === 400 && description.includes('USER_IS_BLOCKED'))

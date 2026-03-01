@@ -159,20 +159,28 @@ export enum StatusTransaction {
   FAILED = 'failed',
   PENDING = 'pending',
 }
+interface TelegramErrorShape {
+  error_code: number;
+  description: string;
+  parameters?: { retry_after?: number };
+}
 
 export function isTelegramError(error: unknown): error is {
   response: {
-    data: {
-      error_code: number;
-      description: string;
-      parameters?: { retry_after?: number };
-    };
+    data?: TelegramErrorShape;
+    body?: TelegramErrorShape;
   };
 } {
-  const data = (error as any)?.response?.data;
+  const err = error as any;
+
+  const data = err?.response?.data;
+  const body = err?.response?.body;
+
+  const payload = data ?? body;
+
   return (
-    typeof data?.error_code === 'number' &&
-    typeof data?.description === 'string'
+    typeof payload?.error_code === 'number' &&
+    typeof payload?.description === 'string'
   );
 }
 

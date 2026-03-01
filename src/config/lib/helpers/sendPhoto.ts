@@ -28,7 +28,9 @@ export async function sendPhoto(
     });
   } catch (error) {
     if (isTelegramError(error)) {
-      const { error_code, description, parameters } = error.response.body;
+      const payload = error.response.data ?? error.response.body;
+      if (!payload) return;
+      const { error_code, description, parameters } = payload;
       if (
         error_code === 403 ||
         (error_code === 400 && description.includes('USER_IS_BLOCKED'))

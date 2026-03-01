@@ -12,7 +12,9 @@ export async function deleteMessage(
     await bot.deleteMessage(chatId, messageId);
   } catch (error) {
     if (isTelegramError(error)) {
-      const { description } = error.response.body;
+      const payload = error.response.data ?? error.response.body;
+      if (!payload) return;
+      const { description } = payload;
       if (description.includes('Bad Request: message to delete not found')) {
         await safeAnswerCallbackQuery(callbackQueryId, {
           text: t('Ошибка удаления сообщения'),

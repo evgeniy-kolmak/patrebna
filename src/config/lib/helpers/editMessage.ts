@@ -21,7 +21,9 @@ export async function editMessage(
     });
   } catch (error) {
     if (isTelegramError(error)) {
-      const { description } = error.response.body;
+      const payload = error.response.data ?? error.response.body;
+      if (!payload) return;
+      const { description } = payload;
       if (description.includes('Bad Request: message is not modified')) {
         await safeAnswerCallbackQuery(callbackQueryId, {
           text: t('Ошибка редактирования сообщения'),
