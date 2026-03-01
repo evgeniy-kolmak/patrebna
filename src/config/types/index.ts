@@ -162,17 +162,17 @@ export enum StatusTransaction {
 
 export function isTelegramError(error: unknown): error is {
   response: {
-    body: {
+    data: {
       error_code: number;
       description: string;
       parameters?: { retry_after?: number };
     };
   };
 } {
-  const body = (error as any)?.response?.body;
+  const data = (error as any)?.response?.data;
   return (
-    typeof body?.error_code === 'number' &&
-    typeof body?.description === 'string'
+    typeof data?.error_code === 'number' &&
+    typeof data?.description === 'string'
   );
 }
 
