@@ -376,15 +376,14 @@ class DatabaseService {
           );
         }
       }
-      if (cacheUsers && cacheUsers !== '[]') {
-        await removeUserIdFromCache(id);
-        await TelegramService.sendMessageToChat(
-          `${[
-            `🗑️ Пользователь с id: <b>${id}</b> был удален`,
-            `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
-          ].join('\n')}`,
-        );
-      }
+      if (cacheUsers && cacheUsers !== '[]') await removeUserIdFromCache(id);
+
+      await TelegramService.sendMessageToChat(
+        `${[
+          `🗑️ Пользователь с id: <b>${id}</b> был удален`,
+          `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
+        ].join('\n')}`,
+      );
       console.error(`Заблокированный пользователь c ID:${id} был удален!`);
     } else console.error(`Пользователь c ID:${id} не был найден.`);
   }
