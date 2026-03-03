@@ -45,4 +45,20 @@ export const dataFaq: IFaq[] = [
     question: 'Вопрос 11',
     answer: 'Ответ 11',
   },
+  {
+    question: 'Вопрос 12',
+    answer: 'Ответ 12',
+  },
+  {
+    question: 'Вопрос 13',
+    answer: 'Ответ 13',
+  },
+  {
+    question: 'Вопрос 14',
+    answer: 'Ответ 14',
+  },
+  {
+    question: 'Вопрос 15',
+    answer: 'Ответ 15',
+  },
 ];
