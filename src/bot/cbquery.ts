@@ -66,7 +66,16 @@ export default async (): Promise<void> => {
       callbackData = { action: data ?? '' };
     }
 
-    if (!isRegistered && callbackData?.action !== 'registration') {
+    const allowedActionsForGuest = [
+      'registration',
+      'faq_question_open',
+      'back_faq',
+    ];
+
+    if (
+      !isRegistered &&
+      !allowedActionsForGuest.includes(callbackData?.action)
+    ) {
       await notRegistrationMessage(chatId);
       return;
     }
