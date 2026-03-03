@@ -20,6 +20,7 @@ export interface IProfile {
   last_name?: string;
   subscribeToChannel: boolean;
   premium: IPremium;
+  source?: string;
 }
 
 export interface IDataParserItem {

@@ -34,7 +34,10 @@ export async function handleRegistration(
       });
 
       if (callbackData?.param)
-        await db.tryAddReferralWithBonus(userId, callbackData?.param as number);
+        await db.tryAddReferralWithBonus(
+          userId,
+          callbackData?.param[0] as number,
+        );
 
       const { username, first_name, last_name } = from;
       const profile: IProfile = {
@@ -44,6 +47,9 @@ export async function handleRegistration(
         subscribeToChannel: Boolean(isChannelSubscriptionRewarded),
         premium: { status: StatusPremium.NONE },
       };
+
+      if (callbackData?.param?.[1]) profile.source = callbackData?.param[1];
+
       await db.setUser(userId, profile);
       await editMessage(
         userId,

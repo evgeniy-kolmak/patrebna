@@ -4,6 +4,7 @@ import { sendMessage } from 'config/lib/helpers/sendMessage';
 export async function notRegistrationMessage(
   userId: number,
   referrerId?: number,
+  source?: string,
 ): Promise<void> {
   await sendMessage(userId, t('Сообщение о регистрации'), {
     inline_keyboard: [
@@ -12,7 +13,7 @@ export async function notRegistrationMessage(
           text: t('Регистрация'),
           callback_data: JSON.stringify({
             action: 'registration',
-            param: referrerId,
+            param: [referrerId, source],
           }),
         },
       ],

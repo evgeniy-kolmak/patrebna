@@ -16,11 +16,16 @@ export const сommandHandlers: ICommandHandler[] = [
     handler: async (userId, match) => {
       const payload = match?.[1] ?? null;
       let referrerId: number | undefined;
+      let source: string | undefined;
       if (payload?.startsWith('ref')) {
         const parsed = Number(payload.slice(3));
         if (!isNaN(parsed)) {
           referrerId = parsed;
+          source = 'referral';
         }
+      }
+      if (payload?.startsWith('source')) {
+        source = payload.slice(7);
       }
       const isTrial = await db.hasUsedTrial(userId);
       const isPremium = await hasPremium(userId);
@@ -29,7 +34,7 @@ export const сommandHandlers: ICommandHandler[] = [
       await sendMessage(userId, t('Приветствие'), keyboards.Main());
       if (isRegistered) {
         await sendAccessMessage(userId, isPremium, isTrial);
-      } else await notRegistrationMessage(userId, referrerId);
+      } else await notRegistrationMessage(userId, referrerId, source);
     },
     options: { public: true },
   },
