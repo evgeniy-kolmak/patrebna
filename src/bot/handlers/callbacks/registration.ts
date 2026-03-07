@@ -33,12 +33,12 @@ export async function handleRegistration(
         userIdsSubscribedToChannel: userId,
       });
 
-      if (callbackData?.param)
+      if (callbackData?.param?.[0]) {
         await db.tryAddReferralWithBonus(
           userId,
           callbackData?.param[0] as number,
         );
-
+      }
       const { username, first_name, last_name } = from;
       const profile: IProfile = {
         username,
