@@ -58,7 +58,7 @@ export const сommandHandlers: ICommandHandler[] = [
       const options: Intl.DateTimeFormatOptions = {
         day: 'numeric',
         month: 'numeric',
-        year: 'numeric',
+        year: '2-digit',
         timeZone: 'Europe/Minsk',
       };
 

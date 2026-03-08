@@ -13,24 +13,28 @@ export async function сommandsWrapper({
 }: ICommandHandler): Promise<void> {
   bot.onText(regex, (ctx, match) => {
     void (async () => {
-      const userId = ctx.chat.id;
-      await i18next.changeLanguage(await getUserLanguage(userId));
-      const isBlocked = await db.isUserBlocked(userId);
-      if (isBlocked) {
+      const { id, type } = ctx.chat;
+      if (type !== 'private') {
         await sendMessage(
-          userId,
-          t('Сообщение для заблокированного пользователя'),
+          id,
+          '🤖 Я могу работать только в <b>личных чатах</b>.\nПожалуйста, напишите <a href="https://t.me/patrebnaBot?start=source_group">мне</a> в личные сообщения.',
         );
         return;
       }
+      await i18next.changeLanguage(await getUserLanguage(id));
+      const isBlocked = await db.isUserBlocked(id);
+      if (isBlocked) {
+        await sendMessage(id, t('Сообщение для заблокированного пользователя'));
+        return;
+      }
       if (!options.public) {
-        const isRegistered = await db.getUser(userId);
+        const isRegistered = await db.getUser(id);
         if (!isRegistered) {
-          await notRegistrationMessage(userId);
+          await notRegistrationMessage(id);
           return;
         }
       }
-      await handler(userId, match);
+      await handler(id, match);
     })();
   });
 }
