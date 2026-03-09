@@ -33,7 +33,7 @@ void (async () => {
 
   scheduleJob('0 0 * * *', async () => {
     await db.clearExpiredAdReferences();
-    await db.applyPremiumTransition({
+    const downgradeUserIds = await db.applyPremiumTransition({
       findStatus: [StatusPremium.MAIN],
       dateField: 'downgrade_date',
       newStatus: StatusPremium.BASE,
@@ -44,6 +44,13 @@ void (async () => {
       dateField: 'end_date',
       newStatus: StatusPremium.EXPIRED,
     });
+
+    if (downgradeUserIds.length) {
+      for (const id of downgradeUserIds) {
+        await notificationOfExpiredPremium(id, t('Подписка понижена'));
+        await syncChatMemberTag(CHAT_ID, id, 'Премиум');
+      }
+    }
 
     if (expiredUserIds.length) {
       for (const id of expiredUserIds) {
