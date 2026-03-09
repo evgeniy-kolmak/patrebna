@@ -1,12 +1,15 @@
 import axios from 'axios';
 import db from 'config/db/databaseServise';
 import FormData from 'form-data';
-import { type InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import {
+  type InlineKeyboardMarkup,
+  type ChatMember,
+} from 'node-telegram-bot-api';
 import { type Stream } from 'stream';
 import { isTelegramError } from 'config/types';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const CHAT_ID = process.env.TELEGRAM_CHANNEL_ID;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TOKEN}`;
 
 (process as any).noDeprecation = true;
@@ -107,6 +110,39 @@ export const TelegramService = {
       });
     } catch (error) {
       console.error('Ошибка при отправке действия в Telegram:', error);
+    }
+  },
+  async getChatMember(
+    chatId: string,
+    userId: number,
+  ): Promise<(ChatMember & { tag?: string }) | null> {
+    try {
+      const url = `${TELEGRAM_API_URL}/getChatMember`;
+      const { data } = await axios.get(url, {
+        params: {
+          chat_id: chatId,
+          user_id: userId,
+        },
+      });
+      return data.result;
+    } catch (error) {
+      console.error(
+        'Ошибка при получении информации об участнике чата:',
+        error,
+      );
+      return null;
+    }
+  },
+  async setChatMemberTag(chatId: string, userId: number, tag: string) {
+    try {
+      const url = `${TELEGRAM_API_URL}/setChatMemberTag`;
+      await axios.post(url, {
+        chat_id: chatId,
+        user_id: userId,
+        tag,
+      });
+    } catch (error) {
+      console.error('Ошибка при установке тега участника в Telegram:', error);
     }
   },
 };

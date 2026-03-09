@@ -26,6 +26,7 @@ import { TelegramService } from 'config/telegram/telegramServise';
 import { updateUserCache } from 'config/lib/helpers/updateUserCache';
 import { addUserIdToCache } from 'config/lib/helpers/addUserIdToCache';
 import { removeUserIdFromCache } from 'config/lib/helpers/removeUserIdFromCache';
+import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
 
 class DatabaseService {
   private readonly url: string;
@@ -195,6 +196,8 @@ class DatabaseService {
       end_date: endDate,
     };
 
+    const CHAT_ID = process.env.TELEGRAM_CHANNEL_ID ?? '';
+
     const isMain = status === StatusPremium.MAIN;
     const wasBase = premium?.status === StatusPremium.BASE;
     const wasMain = premium?.status === StatusPremium.MAIN;
@@ -244,6 +247,11 @@ class DatabaseService {
       KEY,
       { ...user, status },
       currentTTL !== -2 ? currentTTL : 43200,
+    );
+    await syncChatMemberTag(
+      CHAT_ID,
+      userId,
+      status === StatusPremium.MAIN ? 'Премиум+' : 'Премиум',
     );
     return endDate;
   }

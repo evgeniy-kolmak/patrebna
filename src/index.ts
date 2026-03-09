@@ -16,6 +16,9 @@ import { updateUserCache } from 'config/lib/helpers/updateUserCache';
 import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfExpiredPremium';
 import keyboards from 'bot/keyboards';
 import { rebuildUserCache } from 'config/lib/helpers/rebuildUserCache';
+import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
+
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
 
 void (async () => {
   await db.openConnection();
@@ -46,6 +49,7 @@ void (async () => {
       for (const id of expiredUserIds) {
         await notificationOfExpiredPremium(id, t('Подписка уже закончилась'));
         await updateUserCache(id, { type: OperationType.DELETE });
+        await syncChatMemberTag(CHAT_ID, id, '');
       }
     }
     const expiredUserSoonIds = await db.expirePremiumSoon();
