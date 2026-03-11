@@ -196,7 +196,7 @@ class DatabaseService {
       end_date: endDate,
     };
 
-    const CHAT_ID = process.env.TELEGRAM_CHANNEL_ID ?? '';
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
 
     const isMain = status === StatusPremium.MAIN;
     const wasBase = premium?.status === StatusPremium.BASE;

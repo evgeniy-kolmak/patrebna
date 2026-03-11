@@ -9,7 +9,7 @@ import { type Stream } from 'stream';
 import { isTelegramError } from 'config/types';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = process.env.TELEGRAM_CHANNEL_ID;
+const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TOKEN}`;
 
 (process as any).noDeprecation = true;
@@ -58,7 +58,7 @@ export const TelegramService = {
     try {
       const url = `${TELEGRAM_API_URL}/sendMessage`;
       await axios.post(url, {
-        chat_id: CHAT_ID,
+        chat_id: CHANNEL_ID,
         text,
         parse_mode: 'HTML',
       });

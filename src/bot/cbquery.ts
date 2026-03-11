@@ -5,7 +5,7 @@ import db from 'config/db/databaseServise';
 import keyboards from 'bot/keyboards';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { notRegistrationMessage } from 'config/lib/helpers/notRegistrationMessage';
-import { type ICallbackData } from 'config/types';
+import { StatusPremium, type ICallbackData } from 'config/types';
 import { handleRegistration } from 'bot/handlers/callbacks/registration';
 import { handleAddLinkKufar } from 'bot/handlers/callbacks/addLinkKufar';
 import { handleChangeLanguage } from 'bot/handlers/callbacks/changeLanguage';
@@ -38,8 +38,24 @@ import { pause } from 'config/lib/helpers/pause';
 import { handleBuyPremium } from './handlers/callbacks/buyPremium';
 import { baseTariff } from 'constants/baseTariff';
 import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
+import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
 
 export default async (): Promise<void> => {
+  const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
+
+  bot.on('message', async (msg) => {
+    if (msg.chat.id !== Number(CHAT_ID)) return;
+    if (!msg.new_chat_members) return;
+    for (const { id } of msg.new_chat_members) {
+      const premium = await db.getDataPremium(id);
+      await syncChatMemberTag(
+        CHAT_ID,
+        id,
+        premium?.status === StatusPremium.MAIN ? 'Премиум+' : 'Премиум',
+      );
+    }
+  });
+
   bot.on('callback_query', async (query): Promise<void> => {
     const { data, from, id: callbackQueryId, message } = query;
     const chatId = from.id;
