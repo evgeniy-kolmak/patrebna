@@ -13,7 +13,7 @@ import {
 export async function parseKufar(
   users: Array<IParserData & { userId: number }>,
 ): Promise<void> {
-  const limit = pLimit(10);
+  const limit = pLimit(3);
   const tasks = [];
 
   for (const user of users) {
@@ -23,7 +23,7 @@ export async function parseKufar(
       tasks.push(
         limit(async () => {
           try {
-            await pause(200);
+            await pause(500);
             const encodedUrl = encodeURIComponent(url);
             const { data } = await api.get<IAd[]>(`ads?url=${encodedUrl}`);
 
@@ -31,22 +31,26 @@ export async function parseKufar(
             const newAds = await db.addUniqueAds(userId, data, urlId);
 
             if (!newAds.length) return;
-            if (status === StatusPremium.MAIN) {
+            if (user.status === StatusPremium.MAIN) {
+              const descLimit = pLimit(5);
+
               for (const ad of newAds as Array<
-                IExtendedAd & { description: string }
+                IExtendedAd & { description?: string }
               >) {
-                try {
-                  const { data } = await api.get<string>('ad', {
-                    params: { ad_id: ad.id },
-                  });
-                  ad.description = data;
-                  await pause(300);
-                } catch (error) {
-                  console.error(
-                    'Ошибка при получении описания объявления:',
-                    error,
-                  );
-                }
+                await descLimit(async () => {
+                  try {
+                    const { data } = await api.get<string>('ad', {
+                      params: { ad_id: ad.id },
+                    });
+                    ad.description = data;
+                    await pause(300);
+                  } catch (err) {
+                    console.error(
+                      'Ошибка при получении описания объявления:',
+                      err,
+                    );
+                  }
+                });
               }
             }
             await cache.sendAdsToBot({
