@@ -8,7 +8,7 @@ export async function editMessage(
   chatId: number,
   messageId: number | undefined,
   newMessage: string,
-  callbackQueryId: string,
+  callbackQueryId?: string,
   keyboard?: InlineKeyboardMarkup,
 ): Promise<void> {
   try {
@@ -19,7 +19,9 @@ export async function editMessage(
       reply_markup: keyboard,
       disable_web_page_preview: true,
     });
+    console.log(messageId, callbackQueryId);
   } catch (error) {
+    if (!callbackQueryId) return;
     if (isTelegramError(error)) {
       const payload = error.response.data ?? error.response.body;
       if (!payload) return;

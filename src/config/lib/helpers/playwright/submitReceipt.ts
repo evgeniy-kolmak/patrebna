@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
-import { TelegramService } from 'config/telegram/telegramServise';
 import { readFile } from 'fs/promises';
+import { bot } from 'bot';
 
 const targetUrl = 'https://npd.nalog.gov.by/npdweb/';
 const login = process.env.LOGIN_NPD ?? '';
@@ -8,12 +8,12 @@ const password = process.env.PASSWORD_NPD ?? '';
 
 export async function submitReceipt(
   userId: number,
-  note: string,
+  caption: string,
   amount: string,
 ): Promise<void> {
   const filename = `Чек_${userId}_${new Date().toLocaleDateString('ru-RU')}_${amount}BYN.pdf`;
   const interval = setInterval(() => {
-    void TelegramService.sendChatAction(userId);
+    void bot.sendChatAction(userId, 'upload_document');
   }, 4000);
   const browser = await chromium.launch({
     headless: true,
@@ -30,7 +30,7 @@ export async function submitReceipt(
   const closeButton = page.locator('button:has-text("Закрыть")');
   if (await closeButton.count()) await closeButton.click();
   await page.click('button[aria-label="Новый чек"]');
-  await page.fill('textarea[id="note"]', note);
+  await page.fill('textarea[id="note"]', caption);
   await page.fill('input[id="amount"]', amount);
   await page.click('button[aria-label="Безналичный расчёт"]');
   await page.click('button:has-text("Подтверждаю")');
@@ -41,6 +41,11 @@ export async function submitReceipt(
   const filePath = await download.path();
   const buffer = await readFile(filePath);
   clearInterval(interval);
-  await TelegramService.sendDocument(userId, buffer, note, filename);
+  await bot.sendDocument(
+    userId,
+    buffer,
+    { caption, parse_mode: 'HTML' },
+    { filename },
+  );
   await browser.close();
 }
