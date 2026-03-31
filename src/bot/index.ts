@@ -11,10 +11,12 @@ import {
   type IBotNotificationMessage,
   type IAd,
   type IExtendedAd,
+  type PaymentWebhookBody,
 } from 'config/types';
 import { sendPhoto } from 'config/lib/helpers/sendPhoto';
 import { getBaseNotification } from 'config/lib/helpers/getBaseNotification';
 import { getExtendedNotification } from 'config/lib/helpers/getExtendedNotification';
+import { handlePaymentWebhook } from 'config/lib/helpers/handlePaymentWebhook';
 
 (process as any).noDeprecation = true;
 
@@ -104,6 +106,10 @@ listener.on('message', (message: [string, string]) => {
       case 'bot_queue_notifications': {
         const { userId, text, keyboard } = data as IBotNotificationMessage;
         await sendMessage(userId, text, keyboard);
+        break;
+      }
+      case 'bot_queue_payments': {
+        await handlePaymentWebhook(data as PaymentWebhookBody);
         break;
       }
     }

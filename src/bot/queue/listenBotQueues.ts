@@ -6,7 +6,12 @@ void (async (): Promise<void> => {
   while (true) {
     try {
       const result = await redis.blpop(
-        ['bot_queue_ads', 'bot_queue_extended_ads', 'bot_queue_notifications'],
+        [
+          'bot_queue_ads',
+          'bot_queue_extended_ads',
+          'bot_queue_notifications',
+          'bot_queue_payments',
+        ],
         0,
       );
       if (!result) continue;

@@ -143,6 +143,12 @@ export interface ResponseOrder {
   description: string;
   amount: number;
 }
+export interface PaymentWebhookBody {
+  transaction: ResponseTransaction;
+  status: string;
+  order: ResponseOrder;
+}
+
 export type ActivePremiumStatus = Exclude<
   StatusPremium,
   StatusPremium.EXPIRED | StatusPremium.NONE
