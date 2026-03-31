@@ -1,4 +1,4 @@
-import { api } from 'services/apiClient';
+import axios from 'axios';
 import db from 'config/db/databaseServise';
 import cache from 'config/redis/redisService';
 import pLimit from 'p-limit';
@@ -9,6 +9,8 @@ import {
   StatusPremium,
   type IExtendedAd,
 } from 'config/types';
+
+const HOST_API = process.env.HOST_API ?? '';
 
 export async function parseKufar(
   users: Array<IParserData & { userId: number }>,
@@ -25,7 +27,9 @@ export async function parseKufar(
           try {
             await pause(500);
             const encodedUrl = encodeURIComponent(url);
-            const { data } = await api.get<IAd[]>(`ads?url=${encodedUrl}`);
+            const { data } = await axios.get<IAd[]>(
+              `https://${HOST_API}/api/ads?url=${encodedUrl}`,
+            );
 
             if (!Array.isArray(data) || !data.length) return;
             const newAds = await db.addUniqueAds(userId, data, urlId);
@@ -39,9 +43,12 @@ export async function parseKufar(
               >) {
                 await descLimit(async () => {
                   try {
-                    const { data } = await api.get<string>('ad', {
-                      params: { ad_id: ad.id },
-                    });
+                    const { data } = await axios.get<string>(
+                      `https://${HOST_API}/api/ad`,
+                      {
+                        params: { ad_id: ad.id },
+                      },
+                    );
                     ad.description = data;
                     await pause(300);
                   } catch (err) {

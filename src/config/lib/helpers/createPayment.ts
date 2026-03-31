@@ -14,7 +14,7 @@ export async function createPayment(
 ): Promise<string | undefined> {
   const storeId = process.env.STORE_ID;
   const bepaidApiKey = process.env.BEPAID_API_KEY;
-  const HOST = process.env.HOST;
+  const HOST_API = process.env.HOST_API ?? '';
   const credentials = Buffer.from(`${storeId}:${bepaidApiKey}`).toString(
     'base64',
   );
@@ -35,7 +35,7 @@ export async function createPayment(
           },
           settings: {
             language: 'ru',
-            notification_url: `https://${HOST}/api/bepaid`,
+            notification_url: `https://${HOST_API}/api/bepaid`,
           },
         },
       },

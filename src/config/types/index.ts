@@ -205,27 +205,6 @@ export type ParamValue =
   | Array<string | number | boolean>
   | [number, number];
 
-export interface RawParam {
-  vl: ParamValue;
-  p: string;
-  v: ParamValue;
-}
-export interface RawImage {
-  path: string;
-  media_storage: string;
-}
-export interface RawAd {
-  account_id: string;
-  account_parameters: RawParam[];
-  ad_id: number;
-  subject: string;
-  ad_link: string;
-  body_short: string | null;
-  price_byn: string;
-  price_usd: string;
-  images: RawImage[];
-  ad_parameters: RawParam[];
-}
 export enum AdParameters {
   Area = 'area',
   CarsCapacity = 'cars_capacity',

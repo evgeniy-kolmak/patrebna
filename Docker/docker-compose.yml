@@ -48,31 +48,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-  api:
-    build:
-      context: ../
-      dockerfile: ./Docker/api/Dockerfile
-    environment:
-      - TZ=Europe/Moscow  
-    image: api
-    container_name: api
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    restart: always
-    ports:
-      - "443:3000"
-    depends_on:
-      - mongodb
-    networks:
-      - patrebna-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    cap_add:
-      - NET_ADMIN
   mongodb:
     image: mongo:latest
     container_name: mongodb
