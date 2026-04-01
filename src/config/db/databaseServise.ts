@@ -22,14 +22,12 @@ import {
 import { checkUrlOfKufar } from 'config/lib/helpers/checkUrlOfKufar';
 import cache from 'config/redis/redisService';
 import { getUser } from 'config/lib/helpers/getUser';
-import { sendMessage } from 'config/lib/helpers/sendMessage';
+import { TelegramService } from 'config/telegram/telegramServise';
 import { updateUserCache } from 'config/lib/helpers/updateUserCache';
 import { addUserIdToCache } from 'config/lib/helpers/addUserIdToCache';
 import { removeUserIdFromCache } from 'config/lib/helpers/removeUserIdFromCache';
 import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
 
-const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
-const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
 const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID ?? '';
 
 class DatabaseService {
@@ -39,6 +37,8 @@ class DatabaseService {
   }
 
   async openConnection() {
+    const username = process.env.MONGO_INITDB_ROOT_USERNAME ?? '';
+    const password = process.env.MONGO_INITDB_ROOT_PASSWORD ?? '';
     const connect = mongoose.connection;
     connect.on(
       'error',
@@ -346,8 +346,8 @@ class DatabaseService {
       { $addToSet: { alreadyRegisteredUserIds: id } },
       { upsert: true },
     );
-    await sendMessage(
-      Number(CHANNEL_ID),
+    await TelegramService.sendMessage(
+      CHANNEL_ID,
       `${[
         `🙍 Пользователь с id: <b>${id}</b> присоединился к боту`,
         `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
@@ -388,8 +388,8 @@ class DatabaseService {
       }
       if (cacheUsers && cacheUsers !== '[]') await removeUserIdFromCache(id);
 
-      await sendMessage(
-        Number(CHANNEL_ID),
+      await TelegramService.sendMessage(
+        CHANNEL_ID,
         `${[
           `🗑️ Пользователь с id: <b>${id}</b> был удален`,
           `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,

@@ -7,6 +7,18 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${TOKEN}`;
 (process as any).noDeprecation = true;
 
 export const TelegramService = {
+  async sendMessage(chatId: string, text: string): Promise<void> {
+    try {
+      const url = `${TELEGRAM_API_URL}/sendMessage`;
+      await axios.post(url, {
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+      });
+    } catch (error) {
+      console.error('Ошибка при отправке сообщения в Telegram:', error);
+    }
+  },
   async getChatMember(
     chatId: string,
     userId: number,
