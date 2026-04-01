@@ -19,7 +19,6 @@ export async function editMessage(
       reply_markup: keyboard,
       disable_web_page_preview: true,
     });
-    console.log(messageId, callbackQueryId);
   } catch (error) {
     if (!callbackQueryId) return;
     if (isTelegramError(error)) {
