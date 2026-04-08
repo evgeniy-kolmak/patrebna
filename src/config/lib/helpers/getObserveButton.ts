@@ -63,7 +63,7 @@ export function getObserveButton(type?: Button, param?: number): IButton[] {
     [Button.BACK]: [
       {
         text: t('Назад'),
-        callback_data: JSON.stringify({ action: 'kufar', param }),
+        callback_data: JSON.stringify({ action: 'begin', param }),
       },
     ],
   };
