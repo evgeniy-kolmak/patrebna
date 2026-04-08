@@ -61,8 +61,8 @@ class KeyboardManager {
       inline_keyboard: [
         [
           {
-            text: '🧩 Kufar.by',
-            callback_data: JSON.stringify({ action: 'kufar' }),
+            text: t('Мои отслеживания'),
+            callback_data: JSON.stringify({ action: 'begin' }),
           },
         ],
       ],

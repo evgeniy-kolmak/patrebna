@@ -113,7 +113,7 @@ export default async (): Promise<void> => {
         await handleChangeLanguage(chatId, message, callbackQueryId);
         break;
       }
-      case 'kufar': {
+      case 'begin': {
         await handleObserveKufar(chatId, messageId, callbackQueryId);
         break;
       }
