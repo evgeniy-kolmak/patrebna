@@ -351,6 +351,7 @@ class DatabaseService {
       `${[
         `🙍 Пользователь с id: <b>${id}</b> присоединился к боту`,
         `👥 Всего пользователей: <b>${(await User.find({})).length}</b>`,
+        `${rest.source ? `🏷️ Источник: <b>${rest.source}</b>` : ''}`,
       ].join('\n')}`,
     );
     return newUser;
