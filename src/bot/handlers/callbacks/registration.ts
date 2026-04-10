@@ -46,7 +46,9 @@ export async function handleRegistration(
         last_name,
         subscribeToChannel: Boolean(isChannelSubscriptionRewarded),
         premium: { status: StatusPremium.NONE },
-        source: callbackData?.param?.[1] as string,
+        ...(callbackData?.param?.[1] && {
+          source: callbackData.param[1] as string,
+        }),
       };
 
       if (callbackData?.param?.[1]) profile.source = callbackData?.param[1];
