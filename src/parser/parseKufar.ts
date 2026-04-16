@@ -44,10 +44,7 @@ export async function parseKufar(
                 await descLimit(async () => {
                   try {
                     const { data } = await axios.get<string>(
-                      `https://${HOST_API}/api/ad`,
-                      {
-                        params: { ad_id: ad.id },
-                      },
+                      `https://${HOST_API}/api/${ad.id}/description`,
                     );
                     ad.description = data;
                     await pause(300);
