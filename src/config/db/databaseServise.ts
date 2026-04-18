@@ -110,6 +110,12 @@ class DatabaseService {
     return users.filter((u) => u.profile?.premium !== null).map((u) => u.id);
   }
 
+  async getOldUserIds() {
+    return await this.findUsersByPremiumMatch({
+      status: { $in: [StatusPremium.EXPIRED, StatusPremium.NONE] },
+    });
+  }
+
   async expirePremiumSoon() {
     const oneDayLater = new Date(Date.now() + 24 * 60 * 60 * 1000);
 

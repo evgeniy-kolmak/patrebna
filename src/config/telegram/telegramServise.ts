@@ -1,22 +1,77 @@
 import axios from 'axios';
-import { type ChatMember } from 'node-telegram-bot-api';
+import db from 'config/db/databaseServise';
+import { isTelegramError } from 'config/types';
+import {
+  type InlineKeyboardMarkup,
+  type ChatMember,
+} from 'node-telegram-bot-api';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TOKEN}`;
 
 (process as any).noDeprecation = true;
 
+interface TelegramResponse<T> {
+  ok: boolean;
+  result: T;
+}
+
+interface TelegramMessage {
+  message_id: number;
+  chat: {
+    id: number;
+    type: string;
+  };
+  date: number;
+  text?: string;
+}
 export const TelegramService = {
-  async sendMessage(chatId: string, text: string): Promise<void> {
+  async sendMessage(
+    chatId: string,
+    text: string,
+    keyboard?: InlineKeyboardMarkup,
+  ): Promise<TelegramResponse<TelegramMessage> | undefined> {
     try {
       const url = `${TELEGRAM_API_URL}/sendMessage`;
-      await axios.post(url, {
+      const { data } = await axios.post(url, {
         chat_id: chatId,
         text,
         parse_mode: 'HTML',
+        ...(keyboard && { reply_markup: keyboard }),
+      });
+      return data;
+    } catch (error) {
+      if (isTelegramError(error)) {
+        const payload = error.response.data ?? error.response.body;
+        if (!payload) return;
+        const { error_code, description } = payload;
+        if (
+          error_code === 403 ||
+          (error_code === 400 && description.includes('USER_IS_BLOCKED'))
+        )
+          await db.removeUser(Number(chatId));
+        return;
+      }
+      console.error('Ошибка при отправке сообщения в Telegram:', error);
+    }
+  },
+  async editMessageReplyMarkup(
+    chatId: string,
+    messageId: number,
+    keyboard: InlineKeyboardMarkup,
+  ): Promise<void> {
+    try {
+      const url = `${TELEGRAM_API_URL}/editMessageReplyMarkup`;
+      await axios.post(url, {
+        chat_id: chatId,
+        message_id: messageId,
+        ...(keyboard && { reply_markup: keyboard }),
       });
     } catch (error) {
-      console.error('Ошибка при отправке сообщения в Telegram:', error);
+      console.error(
+        'Ошибка при редактировании клавиатуры Telegram сообщения:',
+        error,
+      );
     }
   },
   async getChatMember(

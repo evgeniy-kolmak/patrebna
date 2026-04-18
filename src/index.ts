@@ -17,11 +17,17 @@ import { notificationOfExpiredPremium } from 'config/lib/helpers/notificationOfE
 import keyboards from 'bot/keyboards';
 import { rebuildUserCache } from 'config/lib/helpers/rebuildUserCache';
 import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
+import { notifyInactiveUsers } from 'config/lib/helpers/notifyInactiveUsers';
 
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
 
 void (async () => {
   await db.openConnection();
+
+  scheduleJob('0 13 * * 6', async () => {
+    await notifyInactiveUsers();
+  });
+
   void scheduleParsing(
     '2/30 * * * *',
     (user) => user.status === StatusPremium.BASE,
