@@ -24,7 +24,7 @@ const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
 void (async () => {
   await db.openConnection();
 
-  scheduleJob('0 13 * * 6', async () => {
+  scheduleJob('0 14 * * 6', async () => {
     await notifyInactiveUsers();
   });
 

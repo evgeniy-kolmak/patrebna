@@ -6,16 +6,16 @@ import { TelegramService } from 'config/telegram/telegramServise';
 import { pause } from 'config/lib/helpers/pause';
 
 export async function notifyInactiveUsers(): Promise<void> {
-  const currentDay = new Date();
+  const now = new Date();
   const oldUserIds = await db.getOldUserIds();
   if (!oldUserIds.length) return;
   for (const userId of oldUserIds) {
     await pause();
     const premium = await db.getDataPremium(userId);
-    const endDay = premium?.end_date ?? premium?.updatedAt ?? currentDay;
+    const endDay = premium?.end_date ?? premium?.updatedAt;
+    if (!endDay) continue;
     const daysSinceEnd = Math.floor(
-      (currentDay.getTime() - new Date(endDay).getTime()) /
-        (1000 * 60 * 60 * 24),
+      (now.getTime() - new Date(endDay).getTime()) / (1000 * 60 * 60 * 24),
     );
     const text = [
       '👀 <b>Мы скучали!</b>',
@@ -29,10 +29,10 @@ export async function notifyInactiveUsers(): Promise<void> {
       '🚀 <b>Возвращайтесь и ловите лучшие предложения первыми!</b>',
     ].join('\n');
     const response = await TelegramService.sendMessage(userId.toString(), text);
-    if (!response) return;
+    if (!response) continue;
     const messageId = response.result.message_id;
 
-    const trakingData: ITrackingData = {
+    const trackingData: ITrackingData = {
       userId,
       messageId,
       status: StatusPremium.BASE,
@@ -41,9 +41,9 @@ export async function notifyInactiveUsers(): Promise<void> {
 
     const redirectUrl = await createPayment(
       { description: 'Специальное предложение', amount: 499 },
-      JSON.stringify(trakingData),
+      JSON.stringify(trackingData),
     );
-    if (!redirectUrl) return;
+    if (!redirectUrl) continue;
 
     const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: [
