@@ -2,24 +2,27 @@ import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { createPayment } from 'config/lib/helpers/createPayment';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
+import { type ITrackingData } from 'config/types';
 import { baseTariff } from 'constants/baseTariff';
 import i18next, { t } from 'i18next';
 
 export async function handleBuyBasePremium(
   userId: number,
-  messageId: number | undefined,
+  messageId: number,
   callbackQueryId: string,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(userId));
-  const { quantityOfDays, amount, status, messageForBot } = baseTariff;
-  const data = JSON.stringify({
+  const { quantityOfDays, status, messageForBot } = baseTariff;
+  const trackingData: ITrackingData = {
     userId,
     quantity: quantityOfDays,
     messageId,
-    amount,
     status,
-  });
-  const redirectUrl = await createPayment(baseTariff, data);
+  };
+  const redirectUrl = await createPayment(
+    baseTariff,
+    JSON.stringify(trackingData),
+  );
   if (!redirectUrl) {
     await safeAnswerCallbackQuery(callbackQueryId, {
       text: t('Неизвестная ошибка'),

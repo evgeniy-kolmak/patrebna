@@ -1,13 +1,17 @@
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
-import { type ICallbackData, type IOrder } from 'config/types';
+import {
+  type ITrackingData,
+  type ICallbackData,
+  type IOrder,
+} from 'config/types';
 import { createPayment } from 'config/lib/helpers/createPayment';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { ratesData } from 'constants/rates';
 
 export async function handleChooseRate(
   userId: number,
-  messageId: number | undefined,
+  messageId: number,
   callbackData: ICallbackData,
   callbackQueryId: string,
 ): Promise<void> {
@@ -17,11 +21,14 @@ export async function handleChooseRate(
     (item) => item.orderId === orderId,
   );
   if (order) {
-    const data = JSON.stringify({
+    const trackingData: Omit<ITrackingData, 'status'> = {
       userId,
       messageId,
-    });
-    const redirectUrl = await createPayment(order, data);
+    };
+    const redirectUrl = await createPayment(
+      order,
+      JSON.stringify(trackingData),
+    );
     if (redirectUrl) {
       await editMessage(
         userId,

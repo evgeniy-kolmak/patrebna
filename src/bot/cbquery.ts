@@ -179,6 +179,7 @@ export default async (): Promise<void> => {
         break;
       }
       case 'buy_base_premium': {
+        if (!messageId) return;
         await handleBuyBasePremium(chatId, messageId, callbackQueryId);
         break;
       }
@@ -224,6 +225,7 @@ export default async (): Promise<void> => {
         break;
       }
       case 'choose_tariff': {
+        if (!messageId) return;
         await handleChooseTariff(
           chatId,
           messageId,
@@ -635,6 +637,7 @@ export default async (): Promise<void> => {
         break;
       }
       case 'choose_rate': {
+        if (!messageId) return;
         await handleChooseRate(
           chatId,
           messageId,

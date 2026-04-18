@@ -1,14 +1,18 @@
 import i18next, { t } from 'i18next';
 import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { tariffData } from 'constants/tariffs';
-import { type ICallbackData, type IOrder } from 'config/types';
+import {
+  type ITrackingData,
+  type ICallbackData,
+  type IOrder,
+} from 'config/types';
 import { createPayment } from 'config/lib/helpers/createPayment';
 import { editMessage } from 'config/lib/helpers/editMessage';
 import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
 
 export async function handleChooseTariff(
   userId: number,
-  messageId: number | undefined,
+  messageId: number,
   callbackData: ICallbackData,
   callbackQueryId: string,
 ): Promise<void> {
@@ -19,13 +23,16 @@ export async function handleChooseTariff(
   );
   if (order) {
     const { quantityOfDays, status } = order;
-    const data = JSON.stringify({
+    const trackingData: ITrackingData = {
       userId,
       quantity: quantityOfDays,
       messageId,
       status,
-    });
-    const redirectUrl = await createPayment(order, data);
+    };
+    const redirectUrl = await createPayment(
+      order,
+      JSON.stringify(trackingData),
+    );
     if (!redirectUrl) {
       await safeAnswerCallbackQuery(callbackQueryId, {
         text: t('Неизвестная ошибка'),
