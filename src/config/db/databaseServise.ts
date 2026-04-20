@@ -27,8 +27,10 @@ import { updateUserCache } from 'config/lib/helpers/updateUserCache';
 import { addUserIdToCache } from 'config/lib/helpers/addUserIdToCache';
 import { removeUserIdFromCache } from 'config/lib/helpers/removeUserIdFromCache';
 import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
+import { hasHigherActiveStatus } from 'config/lib/helpers/premiumPriority';
 
 const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID ?? '';
+const FREE_PLAN_ACTIVITY_DAYS = 7;
 
 class DatabaseService {
   private readonly url: string;
@@ -120,7 +122,9 @@ class DatabaseService {
     const oneDayLater = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     return await this.findUsersByPremiumMatch({
-      status: { $in: [StatusPremium.MAIN, StatusPremium.BASE] },
+      status: {
+        $in: [StatusPremium.MAIN, StatusPremium.BASE, StatusPremium.FREE],
+      },
       end_date: { $lte: oneDayLater },
     });
   }
@@ -190,9 +194,19 @@ class DatabaseService {
     const premium = await this.getDataPremium(userId);
     const user = await getUser(userId);
     const now = new Date();
+    const isFree = premium?.status === StatusPremium.FREE;
+    const isDowngradeBlocked = hasHigherActiveStatus(
+      premium?.status,
+      premium?.end_date,
+      status,
+    );
+
+    if (isDowngradeBlocked) {
+      return new Date(premium?.end_date ?? now);
+    }
 
     const endDate =
-      premium?.end_date && premium.end_date > now
+      premium?.end_date && premium.end_date > now && !isFree
         ? new Date(premium.end_date)
         : new Date(now);
 
@@ -255,12 +269,96 @@ class DatabaseService {
       { ...user, status },
       currentTTL !== -2 ? currentTTL : 43200,
     );
-    await syncChatMemberTag(
-      CHAT_ID,
-      userId,
-      status === StatusPremium.MAIN ? 'Премиум+' : 'Премиум',
-    );
+    const tag =
+      status === StatusPremium.MAIN
+        ? 'Премиум+'
+        : status === StatusPremium.BASE
+          ? 'Премиум'
+          : '';
+
+    await syncChatMemberTag(CHAT_ID, userId, tag);
     return endDate;
+  }
+
+  async activateFreePremium(userId: number) {
+    const premium = await this.getDataPremium(userId);
+    const user = await getUser(userId);
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + FREE_PLAN_ACTIVITY_DAYS);
+
+    await Premium.findOneAndUpdate(
+      { _id: premium?._id },
+      {
+        $set: {
+          status: StatusPremium.FREE,
+          end_date: endDate,
+        },
+        $unset: {
+          downgrade_date: '',
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+
+    const dataParser = await this.getDataParser(userId);
+
+    if (dataParser) {
+      const urls = dataParser.urls.map((url) => {
+        if (url.urlId === 1 && !url.isActive) {
+          return { ...url.toObject(), isActive: true };
+        }
+        if (url.urlId !== 1 && url.isActive) {
+          return { ...url.toObject(), isActive: false };
+        }
+        return url;
+      });
+
+      await DataParser.findOneAndUpdate(
+        { _id: dataParser._id },
+        { $set: { urls } },
+      );
+      if (user.urls?.length) {
+        user.urls = user.urls.map((url) => ({
+          ...url,
+          isActive: url.urlId === 1,
+        }));
+      }
+    }
+
+    const KEY = `user:${userId}`;
+    await addUserIdToCache(userId);
+    const currentTTL = await cache.getTTL(KEY);
+    await cache.setCache(
+      KEY,
+      { ...user, status: StatusPremium.FREE },
+      currentTTL !== -2 ? currentTTL : 43200,
+    );
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
+    await syncChatMemberTag(CHAT_ID, userId, '');
+    return endDate;
+  }
+
+  async touchFreePremiumActivity(userId: number) {
+    const premium = await this.getDataPremium(userId);
+    const now = new Date();
+    if (
+      premium?.status !== StatusPremium.FREE ||
+      !premium.end_date ||
+      new Date(premium.end_date) <= now
+    ) {
+      return;
+    }
+
+    const endDate = new Date(now);
+    endDate.setDate(endDate.getDate() + FREE_PLAN_ACTIVITY_DAYS);
+
+    await Premium.updateOne(
+      { _id: premium._id },
+      { $set: { end_date: endDate } },
+    );
   }
 
   async trialUsed(userId: number) {

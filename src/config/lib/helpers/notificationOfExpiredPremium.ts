@@ -5,6 +5,7 @@ import cache from 'config/redis/redisService';
 export async function notificationOfExpiredPremium(
   userId: number,
   text: string,
+  includeFreeAction = false,
 ): Promise<void> {
   await i18next.changeLanguage(await getUserLanguage(userId));
   await cache.sendNotificationToBot({
@@ -18,6 +19,18 @@ export async function notificationOfExpiredPremium(
             callback_data: JSON.stringify({ action: 'buy_premium' }),
           },
         ],
+        ...(includeFreeAction
+          ? [
+              [
+                {
+                  text: t('Продолжить с бесплатным тарифом'),
+                  callback_data: JSON.stringify({
+                    action: 'activate_free_plan',
+                  }),
+                },
+              ],
+            ]
+          : []),
       ],
     },
   });

@@ -33,6 +33,10 @@ void (async () => {
     (user) => user.status === StatusPremium.BASE,
   );
   void scheduleParsing(
+    '13 * * * *',
+    (user) => user.status === StatusPremium.FREE,
+  );
+  void scheduleParsing(
     '*/5 * * * *',
     (user) => user.status === StatusPremium.MAIN,
   );
@@ -46,7 +50,7 @@ void (async () => {
       unsetField: 'downgrade_date',
     });
     const expiredUserIds = await db.applyPremiumTransition({
-      findStatus: [StatusPremium.MAIN, StatusPremium.BASE],
+      findStatus: [StatusPremium.MAIN, StatusPremium.BASE, StatusPremium.FREE],
       dateField: 'end_date',
       newStatus: StatusPremium.EXPIRED,
     });
@@ -60,7 +64,11 @@ void (async () => {
 
     if (expiredUserIds.length) {
       for (const id of expiredUserIds) {
-        await notificationOfExpiredPremium(id, t('Подписка уже закончилась'));
+        await notificationOfExpiredPremium(
+          id,
+          t('Подписка уже закончилась'),
+          true,
+        );
         await updateUserCache(id, { type: OperationType.DELETE });
         await syncChatMemberTag(CHAT_ID, id, '');
       }
