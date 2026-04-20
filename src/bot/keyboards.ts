@@ -23,19 +23,42 @@ class KeyboardManager {
     };
   }
 
-  Profile(isTrial: boolean): InlineKeyboardMarkup {
+  Profile(
+    status: StatusPremium | undefined,
+    isTrialUsed: boolean,
+  ): InlineKeyboardMarkup {
+    const canActivateTrial =
+      !isTrialUsed &&
+      [StatusPremium.NONE, StatusPremium.EXPIRED, StatusPremium.FREE].includes(
+        status ?? StatusPremium.NONE,
+      );
+    const canActivateFree = [
+      StatusPremium.NONE,
+      StatusPremium.EXPIRED,
+    ].includes(status ?? StatusPremium.NONE);
+
     return {
       inline_keyboard: [
-        isTrial
-          ? []
-          : [
+        canActivateTrial
+          ? [
               {
                 text: t('Получить триал'),
                 callback_data: JSON.stringify({
                   action: 'get_trial_from_profile',
                 }),
               },
-            ],
+            ]
+          : [],
+        canActivateFree
+          ? [
+              {
+                text: t('Продолжить с бесплатным тарифом'),
+                callback_data: JSON.stringify({
+                  action: 'activate_free_plan',
+                }),
+              },
+            ]
+          : [],
         [
           {
             text: t('Магазин'),
@@ -146,7 +169,7 @@ class KeyboardManager {
         isTrial
           ? [
               {
-                text: t('Получить доступ'),
+                text: t('Купить базовую подписку'),
                 callback_data: JSON.stringify({ action: 'buy_base_premium' }),
               },
             ]
@@ -156,6 +179,12 @@ class KeyboardManager {
                 callback_data: JSON.stringify({ action: 'get_trial' }),
               },
             ],
+        [
+          {
+            text: t('Продолжить с бесплатным тарифом'),
+            callback_data: JSON.stringify({ action: 'activate_free_plan' }),
+          },
+        ],
       ],
     };
   }

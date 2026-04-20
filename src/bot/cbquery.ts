@@ -39,6 +39,25 @@ import { handleBuyPremium } from './handlers/callbacks/buyPremium';
 import { baseTariff } from 'constants/baseTariff';
 import { safeAnswerCallbackQuery } from 'config/lib/helpers/safeAnswerCallbackQuery';
 import { syncChatMemberTag } from 'config/lib/helpers/syncChatMemberTag';
+import { hasHigherActiveStatus } from 'config/lib/helpers/premiumPriority';
+
+async function handleBlockedDowngradeAction(
+  chatId: number,
+  messageId: number | undefined,
+  callbackQueryId: string,
+): Promise<void> {
+  const text = t('Нельзя понизить активную подписку');
+
+  if (!messageId) {
+    await safeAnswerCallbackQuery(callbackQueryId, {
+      text,
+      show_alert: true,
+    });
+    return;
+  }
+
+  await editMessage(chatId, messageId, text, callbackQueryId);
+}
 
 export default async (): Promise<void> => {
   const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
@@ -51,9 +70,21 @@ export default async (): Promise<void> => {
       await syncChatMemberTag(
         CHAT_ID,
         id,
-        premium?.status === StatusPremium.MAIN ? 'Премиум+' : 'Премиум',
+        premium?.status === StatusPremium.MAIN
+          ? 'Премиум+'
+          : premium?.status === StatusPremium.BASE
+            ? 'Премиум'
+            : '',
       );
     }
+  });
+
+  bot.on('message', async (msg) => {
+    const chatId = msg.from?.id;
+    if (!chatId) return;
+    const isRegistered = await db.getUser(chatId);
+    if (!isRegistered) return;
+    await db.touchFreePremiumActivity(chatId);
   });
 
   bot.on('callback_query', async (query): Promise<void> => {
@@ -61,6 +92,7 @@ export default async (): Promise<void> => {
     const chatId = from.id;
     const premium = await db.getDataPremium(chatId);
     const statusPremium = premium?.status;
+    const endDatePremium = premium?.end_date;
     const isRegistered = await db.getUser(chatId);
     const isBlocked = await db.isUserBlocked(chatId);
     if (isBlocked) {
@@ -94,6 +126,10 @@ export default async (): Promise<void> => {
     ) {
       await notRegistrationMessage(chatId);
       return;
+    }
+
+    if (isRegistered) {
+      await db.touchFreePremiumActivity(chatId);
     }
 
     const messageId = message?.message_id;
@@ -180,6 +216,21 @@ export default async (): Promise<void> => {
       }
       case 'buy_base_premium': {
         if (!messageId) return;
+        await i18next.changeLanguage(language);
+        if (
+          hasHigherActiveStatus(
+            statusPremium,
+            endDatePremium,
+            StatusPremium.BASE,
+          )
+        ) {
+          await handleBlockedDowngradeAction(
+            chatId,
+            messageId,
+            callbackQueryId,
+          );
+          break;
+        }
         await handleBuyBasePremium(chatId, messageId, callbackQueryId);
         break;
       }
@@ -189,12 +240,26 @@ export default async (): Promise<void> => {
           messageId,
           callbackQueryId,
           'payment_with_bonuses',
-          'back_store',
+          'buy_premium_with_bonuses',
         );
         break;
       }
       case 'buy_base_premium_with_bonuses': {
         await i18next.changeLanguage(language);
+        if (
+          hasHigherActiveStatus(
+            statusPremium,
+            endDatePremium,
+            StatusPremium.BASE,
+          )
+        ) {
+          await handleBlockedDowngradeAction(
+            chatId,
+            messageId,
+            callbackQueryId,
+          );
+          break;
+        }
         await editMessage(
           chatId,
           messageId,
@@ -499,6 +564,18 @@ export default async (): Promise<void> => {
       }
       case 'approve_payment_with_bonuses': {
         await i18next.changeLanguage(language);
+        const selectedStatus =
+          callbackData.param === 0 ? StatusPremium.BASE : StatusPremium.MAIN;
+        if (
+          hasHigherActiveStatus(statusPremium, endDatePremium, selectedStatus)
+        ) {
+          await handleBlockedDowngradeAction(
+            chatId,
+            messageId,
+            callbackQueryId,
+          );
+          break;
+        }
         const wallet = await db.getWallet(chatId);
         const fullTariffData = [baseTariff, ...tariffData];
         const { quantityOfDays, amount, status } =
@@ -563,6 +640,20 @@ export default async (): Promise<void> => {
       }
       case 'get_trial': {
         await i18next.changeLanguage(language);
+        if (
+          hasHigherActiveStatus(
+            statusPremium,
+            endDatePremium,
+            StatusPremium.BASE,
+          )
+        ) {
+          await handleBlockedDowngradeAction(
+            chatId,
+            messageId,
+            callbackQueryId,
+          );
+          break;
+        }
         const isTrial = await db.hasUsedTrial(chatId);
         if (isTrial) {
           await editMessage(
@@ -574,8 +665,18 @@ export default async (): Promise<void> => {
               inline_keyboard: [
                 [
                   {
-                    text: t('Получить доступ'),
-                    callback_data: JSON.stringify({ action: 'buy_premium' }),
+                    text: t('Купить базовую подписку'),
+                    callback_data: JSON.stringify({
+                      action: 'buy_base_premium',
+                    }),
+                  },
+                ],
+                [
+                  {
+                    text: t('Продолжить с бесплатным тарифом'),
+                    callback_data: JSON.stringify({
+                      action: 'activate_free_plan',
+                    }),
                   },
                 ],
               ],
@@ -599,6 +700,20 @@ export default async (): Promise<void> => {
       }
       case 'get_trial_from_profile': {
         await i18next.changeLanguage(language);
+        if (
+          hasHigherActiveStatus(
+            statusPremium,
+            endDatePremium,
+            StatusPremium.BASE,
+          )
+        ) {
+          await handleBlockedDowngradeAction(
+            chatId,
+            messageId,
+            callbackQueryId,
+          );
+          break;
+        }
         if (!messageId) {
           await safeAnswerCallbackQuery(callbackQueryId, {
             text: t('Ошибка удаления сообщения'),
@@ -613,8 +728,18 @@ export default async (): Promise<void> => {
             inline_keyboard: [
               [
                 {
-                  text: t('Получить доступ'),
-                  callback_data: JSON.stringify({ action: 'buy_premium' }),
+                  text: t('Купить базовую подписку'),
+                  callback_data: JSON.stringify({
+                    action: 'buy_base_premium',
+                  }),
+                },
+              ],
+              [
+                {
+                  text: t('Продолжить с бесплатным тарифом'),
+                  callback_data: JSON.stringify({
+                    action: 'activate_free_plan',
+                  }),
                 },
               ],
             ],
@@ -624,6 +749,41 @@ export default async (): Promise<void> => {
         await db.trialUsed(chatId);
         await deleteMessage(chatId, messageId, callbackQueryId);
         await sendMessage(chatId, t('Триал получен'));
+        await sendMessage(
+          chatId,
+          t('Сообщение об отслеживании'),
+          keyboards.Observe(),
+        );
+        break;
+      }
+      case 'activate_free_plan': {
+        await i18next.changeLanguage(language);
+        if (
+          hasHigherActiveStatus(
+            statusPremium,
+            endDatePremium,
+            StatusPremium.FREE,
+          )
+        ) {
+          await handleBlockedDowngradeAction(
+            chatId,
+            messageId,
+            callbackQueryId,
+          );
+          break;
+        }
+        await db.activateFreePremium(chatId);
+        if (message?.photo?.length && messageId) {
+          await deleteMessage(chatId, messageId, callbackQueryId);
+          await sendMessage(chatId, t('Бесплатный тариф активирован'));
+        } else {
+          await editMessage(
+            chatId,
+            messageId,
+            t('Бесплатный тариф активирован'),
+            callbackQueryId,
+          );
+        }
         await sendMessage(
           chatId,
           t('Сообщение об отслеживании'),

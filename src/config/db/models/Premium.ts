@@ -14,7 +14,8 @@ const PremiumSchema = new Schema(
       required: function (this: IPremium) {
         return (
           this.status === StatusPremium.MAIN ||
-          this.status === StatusPremium.BASE
+          this.status === StatusPremium.BASE ||
+          this.status === StatusPremium.FREE
         );
       },
     },
