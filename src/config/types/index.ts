@@ -63,7 +63,10 @@ export interface IPremiumActions {
   back: string;
 }
 export type TariffActions = 'choose_tariff' | 'payment_with_bonuses';
-export type BackAction = 'back_store' | 'buy_premium';
+export type BackAction =
+  | 'back_store'
+  | 'buy_premium'
+  | 'buy_premium_with_bonuses';
 
 export interface IButton {
   text: string;
@@ -112,6 +115,7 @@ export interface ICallbackData {
 export enum StatusPremium {
   MAIN = 'main',
   BASE = 'base',
+  FREE = 'free',
   EXPIRED = 'expired',
   NONE = 'none',
 }

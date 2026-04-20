@@ -7,6 +7,9 @@ export const statusDescription: StatusDescription = {
   [StatusPremium.BASE]: {
     title: 'Базовая',
   },
+  [StatusPremium.FREE]: {
+    title: 'Бесплатная',
+  },
   [StatusPremium.EXPIRED]: {
     title: 'Истекла',
   },

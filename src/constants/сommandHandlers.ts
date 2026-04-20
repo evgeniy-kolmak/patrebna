@@ -85,7 +85,7 @@ export const сommandHandlers: ICommandHandler[] = [
         await sendMessage(
           userId,
           dataProfile,
-          keyboards.Profile(isTrial || isPremium),
+          keyboards.Profile(status, isTrial),
         );
         return;
       }
@@ -95,7 +95,7 @@ export const сommandHandlers: ICommandHandler[] = [
       await sendPhoto(
         userId,
         dataProfile,
-        keyboards.Profile(isTrial || isPremium),
+        keyboards.Profile(status, isTrial),
         bestQuality.file_id,
       );
     },

@@ -6,6 +6,7 @@ export async function hasPremium(userId: number): Promise<boolean> {
 
   return (
     premium?.status === StatusPremium.MAIN ||
-    premium?.status === StatusPremium.BASE
+    premium?.status === StatusPremium.BASE ||
+    premium?.status === StatusPremium.FREE
   );
 }
