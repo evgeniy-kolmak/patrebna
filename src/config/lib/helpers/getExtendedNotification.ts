@@ -4,7 +4,7 @@ import { getUserLanguage } from 'config/lib/helpers/cacheLanguage';
 import { truncateString } from 'config/lib/helpers/truncateString';
 
 export async function getExtendedNotification(
-  ad: IExtendedAd & { userId: number; description: string },
+  ad: IExtendedAd & { userId: number; description: string; currency: string },
 ): Promise<INotification & { coordinates?: number[] }> {
   const {
     saller_id,
@@ -14,6 +14,7 @@ export async function getExtendedNotification(
     price,
     title,
     url,
+    currency,
     coordinates,
     description,
     region,
@@ -48,7 +49,9 @@ export async function getExtendedNotification(
       `${t('Появилось')} <a href="${url}">${t('Новое объявление')}</a>: <b>${title}</b> ${t('В локации')} <b>${region}</b> ${t('C ценой')} <b>${price}</b>.`.trim(),
       `${description ? `<i>${truncateString(description, 500)}</i>` : ''}`,
       size ? `<b>${t('Общая площадь')}</b>: ${size}м²` : '',
-      square_meter ? `<b>${t('Цена')} за м²</b>: ${square_meter}$` : '',
+      square_meter
+        ? `<b>${t('Цена')} за м²</b>: ${square_meter}${currency}`
+        : '',
       rooms ? `<b>${t('Количество комнат')}</b>: ${rooms}` : '',
       floor && re_number_floors
         ? `<b>${t('Этаж')}</b>: ${floor} из ${re_number_floors}`

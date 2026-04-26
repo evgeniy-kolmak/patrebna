@@ -91,6 +91,7 @@ listener.on('message', (message: [string, string]) => {
                 ad as IExtendedAd & {
                   userId: number;
                   description: string;
+                  currency: string;
                 },
               );
             await sendPhoto(
