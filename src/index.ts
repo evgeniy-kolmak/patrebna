@@ -29,11 +29,11 @@ void (async () => {
   });
 
   void scheduleParsing(
-    '2/30 * * * *',
+    '2/15 * * * *',
     (user) => user.status === StatusPremium.BASE,
   );
   void scheduleParsing(
-    '13 * * * *',
+    '23 * * * *',
     (user) => user.status === StatusPremium.FREE,
   );
   void scheduleParsing(
