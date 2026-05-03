@@ -7,6 +7,7 @@ import { pause } from 'config/lib/helpers/pause';
 
 export async function notifyInactiveUsers(): Promise<void> {
   const now = new Date();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const oldUserIds = await db.getOldUserIds();
   if (!oldUserIds.length) return;
   for (const userId of oldUserIds) {
@@ -42,6 +43,7 @@ export async function notifyInactiveUsers(): Promise<void> {
     const redirectUrl = await createPayment(
       { description: 'Специальное предложение', amount: 499 },
       JSON.stringify(trackingData),
+      expiresAt,
     );
     if (!redirectUrl) continue;
 
